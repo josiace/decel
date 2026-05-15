@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Résultats de l'Examen - {{ session.exam.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'exam_detail' session.exam.id %}">{{ session.exam.title }}</a></li>
+                <li class="breadcrumb-item active">Résultats</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            <div class="card-header {% if session.passed %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                <h2 class="mb-0">
+                    {% if session.passed %}
+                        🎉 Réussi !
+                    {% else %}
+                        ❌ Non Réussi
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="card-body text-center">
+                <h1>{{ session.score }}%</h1>
+                <p class="lead">{{ answers|length }} questions répondues</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4>Résultats Détaillés</h4>
+            </div>
+            <div class="card-body">
+                {% for answer in answers %}
+                    <div class="card mb-3 {% if answer.is_correct %}border-success{% else %}border-danger{% endif %}">
+                        <div class="card-header {% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                            <h5 class="mb-0">
+                                Question {{ answer.question.order }}
+                                {% if answer.is_correct %}
+                                    ✓ Correct
+                                {% else %}
+                                    ✗ Incorrect
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if answer.question.text %}
+                                <p>{{ answer.question.text }}</p>
+                            {% else %}
+                                <p class="text-muted">Question sur fichier</p>
+                            {% endif %}
+                            
+                            <h6>Vos Réponses :</h6>
+                            <ul>
+                                {% if answer.selected_options.exists %}
+                                    {% for option in answer.selected_options.all %}
+                                        <li><strong>{{ option.label }})</strong> {{ option.text }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for choice in answer.selected_choices.all %}
+                                        <li>{{ choice.text }}</li>
+                                    {% empty %}
+                                        <li class="text-muted">Aucune réponse sélectionnée</li>
+                                    {% endfor %}
+                                {% endif %}
+                            </ul>
+                            
+                            <h6>Bonnes Réponses :</h6>
+                            <ul>
+                                {% if answer.question.options.exists %}
+                                    {% for option in answer.question.options.filter.is_correct %}
+                                        <li><strong>{{ option.label }})</strong> {{ option.text }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for choice in answer.question.choices.filter.is_correct %}
+                                        <li>{{ choice.text }}</li>
+                                    {% endfor %}
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'exam_list' %}" class="btn btn-primary">Retour aux Examens</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Aller au Tableau de Bord</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

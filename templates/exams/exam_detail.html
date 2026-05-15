@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
+                <li class="breadcrumb-item active">{{ exam.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ exam.title }}</h2>
+                <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+            </div>
+            <div class="card-body">
+                <p class="lead">{{ exam.description|default:"Pas de description disponible." }}</p>
+                
+                {% if exam.exam_type == 'file' %}
+                    {% if exam.question_file %}
+                        <div class="ratio ratio-16x9 mb-4">
+                            <iframe src="{{ exam.question_file.url }}" allowfullscreen></iframe>
+                        </div>
+                        <a href="{{ exam.question_file.url }}" class="btn btn-secondary mb-4" target="_blank">
+                            <i class="bi bi-download"></i> Télécharger le fichier
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Aucun fichier de questions disponible.
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Matière :</strong> {{ exam.subject.name }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Difficulté :</strong> {{ exam.difficulty }}/5
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Questions :</strong> {{ exam.question_count }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Type d'examen :</strong> {{ exam.get_exam_type_display }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Note de passage :</strong> {{ exam.passing_score }}%
+                            </li>
+                            {% if exam.time_limit %}
+                                <li class="list-group-item">
+                                    <strong>Limite de temps :</strong> {{ exam.time_limit }} minutes
+                                </li>
+                            {% endif %}
+                            <li class="list-group-item">
+                                <strong>Notation :</strong> QCM strict (correspondance exacte requise)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Important :</strong> Cet examen utilise une notation QCM stricte. Vous devez sélectionner TOUTES les bonnes réponses et AUCUNE mauvaise réponse pour qu'une question soit considérée correcte. Aucun crédit partiel n'est accordé.
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'exam_take' exam.id %}" class="btn btn-primary btn-lg">Commencer l'Examen</a>
+                <a href="{% url 'exam_list' %}" class="btn btn-secondary btn-lg">Retour aux Examens</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

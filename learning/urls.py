@@ -1,0 +1,15 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('courses/', views.course_list, name='course_list'),
+    path('courses/<int:course_id>/', views.course_detail, name='course_detail'),
+    path('courses/<int:course_id>/complete/', views.course_complete, name='course_complete'),
+    path('courses/<int:course_id>/purchase/', views.purchase_course, name='purchase_course'),
+    path('tds/', views.td_list, name='td_list'),
+    path('tds/<int:td_id>/', views.td_detail, name='td_detail'),
+    path('tds/<int:td_id>/complete/', views.td_complete, name='td_complete'),
+    path('tds/<int:td_id>/purchase/', views.purchase_td, name='purchase_td'),
+    path('corrections/<int:correction_id>/purchase/', views.purchase_correction, name='purchase_correction'),
+    path('download/<str:content_type>/<int:content_id>/', views.download_file, name='download_file'),
+]

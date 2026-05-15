@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Cours</a></li>
+                <li class="breadcrumb-item active">{{ course.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2>{{ course.title }}</h2>
+                <div>
+                    <span class="badge bg-primary">{{ course.subject.name }}</span>
+                    {% if course.xp_price > 0 %}
+                        <span class="badge bg-warning">{{ course.xp_price }} XP</span>
+                    {% else %}
+                        <span class="badge bg-success">Gratuit</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">{{ course.description|default:"" }}</p>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Par {{ course.author.get_full_name|default:course.author.username }}</small>
+                    <span class="mx-2">|</span>
+                    <small class="text-muted">Type : {{ course.get_content_type_display }}</small>
+                </div>
+                
+                <hr>
+                
+                {% if can_access %}
+                    <div class="course-content">
+                        {% if course.content_type == 'text' %}
+                            {{ course.content|linebreaks }}
+                        {% elif course.content_type == 'pdf' %}
+                            {% if course.content_file %}
+                                <div class="ratio ratio-16x9 mb-3">
+                                    <iframe src="{{ course.content_file.url }}" allowfullscreen></iframe>
+                                </div>
+                                <a href="{% url 'download_file' 'course' course.id %}" class="btn btn-primary">
+                                    <i class="bi bi-download"></i> Télécharger le PDF
+                                </a>
+                            {% else %}
+                                <p class="text-muted">Aucun fichier disponible.</p>
+                            {% endif %}
+                        {% elif course.content_type == 'file' %}
+                            {% if course.content_file %}
+                                <a href="{% url 'download_file' 'course' course.id %}" class="btn btn-primary">
+                                    <i class="bi bi-download"></i> Télécharger le fichier
+                                </a>
+                            {% else %}
+                                <p class="text-muted">Aucun fichier disponible.</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-lock-fill"></i> Contenu payant</h5>
+                        <p>Ce contenu nécessite {{ course.xp_price }} XP pour y accéder.</p>
+                        <p>Votre XP actuel : {{ request.user.total_xp }} XP</p>
+                        <form method="post" action="{% url 'purchase_course' course.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-cart"></i> Acheter pour {{ course.xp_price }} XP
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                    {% if progress.is_completed %}
+                        <span class="badge bg-success">Terminé</span>
+                        <small class="text-muted">Terminé le {{ progress.completed_at|date:"M d, Y" }}</small>
+                    {% endif %}
+                </div>
+                {% if can_access and not progress.is_completed %}
+                    <form method="post" action="{% url 'course_complete' course.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Marquer comme Terminé</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .course-content {
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}

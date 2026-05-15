@@ -1,0 +1,20 @@
+        body {
+            background-color: rgb(242, 242, 242);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .skill-bar {
+            height: 20px;
+            border-radius: 10px;
+            background-color: #df4b0b;
+        }
+        .skill-progress {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .recommendation-card {
+            border-left: 4px solid #0d6efd;
+        }

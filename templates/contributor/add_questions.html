@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter des Questions - {{ exam.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:dashboard' %}">Dashboard Contributeur</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:exams' %}">Mes Examens</a></li>
+                <li class="breadcrumb-item active">Ajouter des Questions</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ exam.title }} - Ajouter des Questions</h1>
+            <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+        </div>
+
+        {% if exam.exam_type == 'file' and exam.question_file %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Fichier de Questions</h4>
+            </div>
+            <div class="card-body">
+                <div class="ratio ratio-16x9 mb-3">
+                    <iframe src="{{ exam.question_file.url }}" allowfullscreen></iframe>
+                </div>
+                <a href="{{ exam.question_file.url }}" class="btn btn-secondary" target="_blank">
+                    <i class="bi bi-download"></i> Télécharger le fichier
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Questions existantes -->
+        {% if questions %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Questions Existantes ({{ questions|length }})</h4>
+            </div>
+            <div class="card-body">
+                {% for question in questions %}
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Question {{ question.order }}</h5>
+                        <a href="{% url 'contributor:delete_question' exam.id question.id %}" class="btn btn-sm btn-danger">Supprimer</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for option in question.options.all %}
+                            <div class="col-md-6 mb-2">
+                                <div class="p-2 border rounded {% if option.is_correct %}border-success bg-success bg-opacity-10{% endif %}">
+                                    <strong>{{ option.label }})</strong> {{ option.text }}
+                                    {% if option.is_correct %}
+                                    <span class="badge bg-success ms-2">✓ Correct</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulaire pour ajouter une nouvelle question -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Ajouter une Nouvelle Question (Question {{ questions|length|add:1 }})</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="questionForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Options de Réponse</label>
+                        <div id="optionsContainer">
+                            <!-- Options will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addOption()">
+                            <i class="bi bi-plus-circle"></i> Ajouter une option
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Important :</strong> Cochez au moins une option comme réponse correcte.
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg">Ajouter la Question</button>
+                    <a href="{% url 'contributor:exams' %}" class="btn btn-secondary btn-lg">Terminer</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+let optionCount = 0;
+
+const labels = ['A', 'B', 'C', 'D', 'E', 'F', '1', '2', '3', '4', '5', '6'];
+
+function addOption() {
+    const container = document.getElementById('optionsContainer');
+    const optionDiv = document.createElement('div');
+    optionDiv.className = 'card mb-2 option-card';
+    optionDiv.id = `option_${optionCount}`;
+    
+    const labelOptions = labels.map(label => `<option value="${label}">${label}</option>`).join('');
+    
+    optionDiv.innerHTML = `
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <select name="option_label_${optionCount}" class="form-select" required>
+                        ${labelOptions}
+                    </select>
+                </div>
+                <div class="col-md-7">
+                    <input type="text" name="option_text_${optionCount}" class="form-control" placeholder="Texte de l'option" required>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="option_correct_${optionCount}" class="form-check-input" id="correct_${optionCount}">
+                        <label class="form-check-label" for="correct_${optionCount}">
+                            Correct
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeOption(${optionCount})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(optionDiv);
+    optionCount++;
+}
+
+function removeOption(id) {
+    const optionDiv = document.getElementById(`option_${id}`);
+    if (optionDiv) {
+        optionDiv.remove();
+    }
+}
+
+// Add 4 default options on page load
+document.addEventListener('DOMContentLoaded', function() {
+    for (let i = 0; i < 4; i++) {
+        addOption();
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

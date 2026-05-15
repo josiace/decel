@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if content %}Modifier le Contenu{% else %}Créer du Contenu{% endif %} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'my_content' %}">Mon Contenu</a></li>
+                <li class="breadcrumb-item active">{% if content %}Modifier{% else %}Créer{% endif %}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>{% if content %}Modifier le Contenu{% else %}Créer du Nouveau Contenu{% endif %}</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="content_type" class="form-label">Type de Contenu</label>
+                        <select class="form-select" name="content_type" id="content_type" required {% if content %}disabled{% endif %}>
+                            <option value="">Sélectionner le type...</option>
+                            <option value="course" {% if content and content.content_type == 'course' %}selected{% endif %}>Cours</option>
+                            <option value="td" {% if content and content.content_type == 'td' %}selected{% endif %}>TD (Travaux Dirigés)</option>
+                            <option value="corrected_td" {% if content and content.content_type == 'corrected_td' %}selected{% endif %}>TD Corrigé</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titre</label>
+                        <input type="text" class="form-control" name="title" id="title" value="{% if content %}{{ content.title }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Matière</label>
+                        <select class="form-select" name="subject" id="subject" required>
+                            <option value="">Sélectionner la matière...</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if content and content.subject.id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" name="description" id="description" rows="3">{% if content %}{{ content.description }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content_format" class="form-label">Format de Contenu</label>
+                        <select class="form-select" name="content_format" id="content_format" required>
+                            <option value="text" {% if content and content.content_format == 'text' %}selected{% endif %}>Texte brut</option>
+                            <option value="pdf" {% if content and content.content_format == 'pdf' %}selected{% endif %}>Fichier PDF</option>
+                            <option value="file" {% if content and content.content_format == 'file' %}selected{% endif %}>Autre fichier</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="text_content_field">
+                        <label for="content" class="form-label">Contenu Texte</label>
+                        <textarea class="form-control" name="content" id="content" rows="10">{% if content %}{{ content.content }}{% endif %}</textarea>
+                        <small class="form-text text-muted">Vous pouvez utiliser du texte brut ou du HTML basique.</small>
+                    </div>
+                    
+                    <div class="mb-3" id="file_content_field" style="display: none;">
+                        <label for="content_file" class="form-label">Fichier de Contenu</label>
+                        <input type="file" class="form-control" name="content_file" id="content_file" {% if content and content.content_format != 'text' %}required{% endif %}>
+                        <small class="form-text text-muted">Upload un fichier PDF ou autre.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="xp_price" class="form-label">Prix en XP</label>
+                        <input type="number" class="form-control" name="xp_price" id="xp_price" value="{% if content %}{{ content.xp_price }}{% else %}0{% endif %}" min="0" required>
+                        <small class="form-text text-muted">0 = gratuit. Mettez un prix > 0 pour rendre le contenu payant.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">{% if content %}Mettre à jour{% else %}Créer{% endif %} le Contenu</button>
+                    <a href="{% url 'my_content' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentFormat = document.getElementById('content_format');
+    const textContentField = document.getElementById('text_content_field');
+    const fileContentField = document.getElementById('file_content_field');
+    const contentTextarea = document.getElementById('content');
+    const contentFile = document.getElementById('content_file');
+    
+    function toggleFields() {
+        if (contentFormat.value === 'text') {
+            textContentField.style.display = 'block';
+            fileContentField.style.display = 'none';
+            contentTextarea.required = true;
+            contentFile.required = false;
+        } else {
+            textContentField.style.display = 'none';
+            fileContentField.style.display = 'block';
+            contentTextarea.required = false;
+            contentFile.required = true;
+        }
+    }
+    
+    contentFormat.addEventListener('change', toggleFields);
+    toggleFields(); // Initialize on page load
+});
+</script>
+{% endblock %}

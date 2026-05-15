@@ -1,0 +1,144 @@
+from django.db import transaction
+from .models import Exam, ExamSession, UserAnswer, Question, Choice, QuestionOption
+
+
+class ExamCorrectionService:
+    """
+    Service for strict QCM exam correction.
+    Enforces exact match scoring: selected_answers must equal correct_answers.
+    """
+    
+    @staticmethod
+    def validate_question_integrity(question: Question) -> bool:
+        """
+        Validate that a question has at least one correct choice or correct option.
+        Raises ValueError if validation fails.
+        """
+        # Check for file-based exam with QuestionOptions
+        if question.options.exists():
+            correct_options = question.options.filter(is_correct=True).count()
+            if correct_options == 0:
+                raise ValueError(f"Question {question.id} must have at least one correct option.")
+            return True
+        
+        # Check for manual exam with choices
+        correct_choices = question.choices.filter(is_correct=True).count()
+        if correct_choices == 0:
+            raise ValueError(f"Question {question.id} must have at least one correct choice.")
+        return True
+    
+    @staticmethod
+    def evaluate_answer(question: Question, selected_choice_ids: list) -> bool:
+        """
+        Evaluate a user's answer using strict QCM rules.
+        Supports both manual questions (with choices) and file-based questions (with QuestionOptions).
+        
+        Args:
+            question: The Question being answered
+            selected_choice_ids: List of choice IDs or option IDs selected by the user
+        
+        Returns:
+            bool: True if answer is correct (exact match), False otherwise
+        """
+        # Check if this is a file-based exam with QuestionOptions
+        if question.options.exists():
+            # File-based exam: compare selected option IDs with correct option IDs
+            correct_option_ids = set(
+                question.options.filter(is_correct=True).values_list('id', flat=True)
+            )
+            selected_option_ids_set = set(selected_choice_ids)
+            return selected_option_ids_set == correct_option_ids
+        else:
+            # Manual exam: compare choice IDs
+            correct_choice_ids = set(
+                question.choices.filter(is_correct=True).values_list('id', flat=True)
+            )
+            
+            # Convert selected IDs to set for comparison
+            selected_choice_ids_set = set(selected_choice_ids)
+            
+            # Strict evaluation: exact match required
+            return selected_choice_ids_set == correct_choice_ids
+    
+    @staticmethod
+    @transaction.atomic
+    def submit_exam(session: ExamSession, answers_data: dict) -> dict:
+        """
+        Submit and grade an exam session.
+        
+        Args:
+            session: The ExamSession to grade
+            answers_data: Dict mapping question_id -> list of selected choice_ids
+        
+        Returns:
+            dict: Correction results with score and per-question breakdown
+        """
+        exam = session.exam
+        total_questions = exam.questions.count()
+        correct_count = 0
+        question_results = []
+        
+        # Process each answer
+        for question in exam.questions.all():
+            # Validate question integrity
+            ExamCorrectionService.validate_question_integrity(question)
+            
+            # Get user's selected choices for this question
+            selected_choice_ids = answers_data.get(str(question.id), [])
+            
+            # Evaluate answer
+            is_correct = ExamCorrectionService.evaluate_answer(question, selected_choice_ids)
+            
+            if is_correct:
+                correct_count += 1
+            
+            # Create or update UserAnswer record
+            user_answer, created = UserAnswer.objects.get_or_create(
+                session=session,
+                question=question,
+                defaults={'is_correct': is_correct}
+            )
+            
+            if not created:
+                user_answer.is_correct = is_correct
+                user_answer.save()
+            
+            # Update selected choices or options based on exam type
+            if question.options.exists():
+                # File-based exam: store selected options
+                user_answer.selected_options.set(selected_choice_ids)
+            else:
+                # Manual exam: store selected choices
+                user_answer.selected_choices.set(selected_choice_ids)
+            
+            # Store result for response
+            question_results.append({
+                'question_id': question.id,
+                'question_text': question.text,
+                'is_correct': is_correct,
+                'correct_choice_ids': list(question.choices.filter(is_correct=True).values_list('id', flat=True)),
+                'selected_choice_ids': selected_choice_ids,
+            })
+        
+        # Calculate score (percentage)
+        score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
+        
+        # Update session
+        session.score = score
+        session.passed = score >= exam.passing_score
+        session.is_completed = True
+        session.completed_at = timezone.now()
+        session.save()
+        
+        return {
+            'session_id': session.id,
+            'score': score,
+            'passed': session.passed,
+            'correct_count': correct_count,
+            'total_questions': total_questions,
+            'question_results': question_results,
+        }
+
+
+# Import timezone for session completion
+from django.utils import timezone

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier l'Examen - {{ exam.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:dashboard' %}">Dashboard Contributeur</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:exams' %}">Mes Examens</a></li>
+                <li class="breadcrumb-item active">Modifier l'Examen</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Modifier l'Examen : {{ exam.title }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">Titre de l'examen *</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger">{{ form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">Matière *</label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger">{{ form.subject.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    <a href="/admin/skills/subject/add/" target="_blank">Créer une nouvelle matière</a> (admin)
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.exam_type.id_for_label }}" class="form-label">Type d'examen *</label>
+                                {{ form.exam_type }}
+                                {% if form.exam_type.errors %}
+                                    <div class="text-danger">{{ form.exam_type.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    <strong>Questions sur fichier</strong> : Uploadez un PDF/image avec les questions<br>
+                                    <strong>Questions manuelles</strong> : Saisissez les questions une par une
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.question_file.id_for_label }}" class="form-label">Fichier de questions (PDF/Image)</label>
+                                {{ form.question_file }}
+                                {% if form.question_file.errors %}
+                                    <div class="text-danger">{{ form.question_file.errors }}</div>
+                                {% endif %}
+                                {% if exam.question_file %}
+                                <small class="form-text text-muted">
+                                    Fichier actuel : <a href="{{ exam.question_file.url }}" target="_blank">{{ exam.question_file.name }}</a>
+                                </small>
+                                {% endif %}
+                                <small class="form-text text-muted">Uniquement si type = Questions sur fichier</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.difficulty.id_for_label }}" class="form-label">Difficulté (1-5) *</label>
+                                {{ form.difficulty }}
+                                {% if form.difficulty.errors %}
+                                    <div class="text-danger">{{ form.difficulty.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.time_limit.id_for_label }}" class="form-label">Limite de temps (minutes)</label>
+                                {{ form.time_limit }}
+                                {% if form.time_limit.errors %}
+                                    <div class="text-danger">{{ form.time_limit.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Laisser vide pour illimité</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.passing_score.id_for_label }}" class="form-label">Score de passage (%) *</label>
+                                {{ form.passing_score }}
+                                {% if form.passing_score.errors %}
+                                    <div class="text-danger">{{ form.passing_score.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Info :</strong> Pour modifier les questions et les options de réponse, allez dans la page "Ajouter des Questions".
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg">Enregistrer les modifications</button>
+                    <a href="{% url 'contributor:add_questions' exam.id %}" class="btn btn-success btn-lg">Modifier les Questions</a>
+                    <a href="{% url 'contributor:exams' %}" class="btn btn-secondary btn-lg">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

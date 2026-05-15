@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Modérer le Contenu - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'moderation_queue' %}">File de Modération</a></li>
+                <li class="breadcrumb-item active">Modérer</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>{{ content.title }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Type :</strong> {{ content.get_content_type_display }}
+                </div>
+                <div class="mb-3">
+                    <strong>Matière :</strong> {{ content.subject.name }}
+                </div>
+                <div class="mb-3">
+                    <strong>Auteur :</strong> {{ content.author.email }}
+                </div>
+                <div class="mb-3">
+                    <strong>Description :</strong>
+                    <p>{{ content.description|default:"Pas de description" }}</p>
+                </div>
+                <div class="mb-3">
+                    <strong>Contenu :</strong>
+                    <div class="p-3 bg-light rounded">
+                        {{ content.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4>Décision de Modération</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Action</label>
+                        <div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="action" id="approve" value="approve" required>
+                                <label class="form-check-label" for="approve">
+                                    <strong>Approuver</strong> - Le contenu sera publié
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="action" id="reject" value="reject">
+                                <label class="form-check-label" for="reject">
+                                    <strong>Rejeter</strong> - Le contenu sera rejeté
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="moderation_notes" class="form-label">Notes de Modération</label>
+                        <textarea class="form-control" name="moderation_notes" id="moderation_notes" rows="3"></textarea>
+                        <small class="form-text text-muted">Notes optionnelles pour l'auteur</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="moderation_rule" class="form-label">Règle Appliquée (Optionnel)</label>
+                        <select class="form-select" name="moderation_rule" id="moderation_rule">
+                            <option value="">Aucune règle spécifique</option>
+                            {% for rule in rules %}
+                                <option value="{{ rule.id }}">{{ rule.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">Soumettre la Décision</button>
+                    <a href="{% url 'moderation_queue' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

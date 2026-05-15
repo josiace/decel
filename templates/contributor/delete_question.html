@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer la Question - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:dashboard' %}">Dashboard Contributeur</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:exams' %}">Mes Examens</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:add_questions' exam.id %}">Ajouter des Questions</a></li>
+                <li class="breadcrumb-item active">Supprimer la Question</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2>⚠️ Confirmer la suppression</h2>
+            </div>
+            <div class="card-body">
+                <p>Êtes-vous sûr de vouloir supprimer la <strong>Question {{ question.order }}</strong> de l'examen <strong>{{ exam.title }}</strong> ?</p>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5>Options de cette question :</h5>
+                        <ul>
+                            {% for option in question.options.all %}
+                            <li>
+                                <strong>{{ option.label }})</strong> {{ option.text }}
+                                {% if option.is_correct %}
+                                <span class="badge bg-success">✓ Correct</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <p class="text-danger">Cette action est irréversible.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                    <a href="{% url 'contributor:add_questions' exam.id %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

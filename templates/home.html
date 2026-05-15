@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}DECEL - Plateforme d'Apprentissage Adaptatif{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-primary text-white py-5 mb-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">🧠 DECEL</h1>
+        <p class="lead mb-4">Plateforme d'Apprentissage Adaptatif Intelligente</p>
+        <p class="mb-4">Un système d'apprentissage qui s'adapte à vos performances</p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">Mon Tableau de Bord</a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg">Commencer</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Connexion</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-5">Fonctionnalités Principales</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">📝</div>
+                    <h4 class="card-title">Système d'Examens</h4>
+                    <p class="card-text">Examens QCM stricts avec évaluation précise. Chaque question exige une correspondance exacte pour être correcte.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">📚</div>
+                    <h4 class="card-title">Système d'Apprentissage</h4>
+                    <p class="card-text">Cours, TD (Travaux Dirigés) et TD corrigés pour un apprentissage complet et progressif.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">📊</div>
+                    <h4 class="card-title">Suivi des Compétences</h4>
+                    <p class="card-text">Suivi des performances par matière avec pondération temporelle. Vos compétences évoluent selon vos résultats récents.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="bg-light py-5 mb-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Comment ça marche ?</h2>
+        <div class="row">
+            <div class="col-md-3 mb-4 text-center">
+                <div class="display-4 mb-3">1️⃣</div>
+                <h5>Inscrivez-vous</h5>
+                <p>Créez votre compte en quelques secondes</p>
+            </div>
+            <div class="col-md-3 mb-4 text-center">
+                <div class="display-4 mb-3">2️⃣</div>
+                <h5>Apprenez</h5>
+                <p>Lisez des cours et pratiquez avec des TD</p>
+            </div>
+            <div class="col-md-3 mb-4 text-center">
+                <div class="display-4 mb-3">3️⃣</div>
+                <h5>Testez-vous</h5>
+                <p>Passez des examens pour évaluer vos connaissances</p>
+            </div>
+            <div class="col-md-3 mb-4 text-center">
+                <div class="display-4 mb-3">4️⃣</div>
+                <h5>Progressez</h5>
+                <p>Gagnez de l'XP, montez de niveau et recevez des recommandations personnalisées</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gamification Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-5">Système de Gamification</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">💎 Points d'Expérience (XP)</h5>
+                    <p class="card-text">Gagnez de l'XP pour chaque activité :</p>
+                    <ul>
+                        <li>Examen réussi : <strong>100 XP</strong></li>
+                        <li>Examen échoué : <strong>50 XP</strong></li>
+                        <li>TD complété : <strong>40 XP</strong></li>
+                        <li>Cours lu : <strong>20 XP</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🏆 Niveaux et Badges</h5>
+                    <p class="card-text">Montez de niveau en accumulant de l'XP et débloquez des badges pour vos accomplissements.</p>
+                    <p class="card-text"><strong>Formule de niveau :</strong> niveau = √(XP total / 100) + 1</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Section -->
+<div class="bg-info text-white py-5 mb-5">
+    <div class="container text-center">
+        <h2 class="mb-4">🎯 Recommandations Adaptatives</h2>
+        <p class="lead mb-4">Notre système d'intelligence artificielle analyse vos performances et vous suggère le meilleur parcours d'apprentissage.</p>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-white text-dark">
+                    <div class="card-body">
+                        <h6>📖 Réviser</h6>
+                        <p class="small mb-0">Pour les zones faibles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-white text-dark">
+                    <div class="card-body">
+                        <h6>🚀 Avancer</h6>
+                        <p class="small mb-0">Pour les domaines forts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-white text-dark">
+                    <div class="card-body">
+                        <h6>✏️ Pratiquer</h6>
+                        <p class="small mb-0">Pour améliorer les compétences</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-white text-dark">
+                    <div class="card-body">
+                        <h6>📚 Apprendre</h6>
+                        <p class="small mb-0">Pour de nouveaux sujets</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Community Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-5">Contenu Communautaire</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">👥 Partagez vos Connaissances</h5>
+                    <p class="card-text">Créez et partagez des cours, des TD et des corrections avec la communauté. Tout le contenu est modéré pour assurer la qualité.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Modération de Qualité</h5>
+                    <p class="card-text">Workflow de modération : Brouillon → En attente → Approuvé/Rejeté. Les administrateurs veillent à la qualité du contenu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Prêt à commencer votre parcours d'apprentissage ?</h2>
+        <p class="lead mb-4">Rejoignez DECEL dès maintenant et découvrez une nouvelle façon d'apprendre.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">Accéder à mon Tableau de Bord</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg">Créer un Compte Gratuit</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

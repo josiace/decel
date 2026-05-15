@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Passer l'Examen - {{ exam.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'exam_detail' exam.id %}">{{ exam.title }}</a></li>
+                <li class="breadcrumb-item active">Passer l'Examen</li>
+            </ol>
+        </nav>
+
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ exam.title }}</h2>
+                <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+            </div>
+            <div class="card-body">
+                {% if exam.exam_type == 'file' %}
+                    {% if exam.question_file %}
+                        <div class="ratio ratio-16x9 mb-4">
+                            <iframe src="{{ exam.question_file.url }}" allowfullscreen></iframe>
+                        </div>
+                        <a href="{{ exam.question_file.url }}" class="btn btn-secondary mb-4" target="_blank">
+                            <i class="bi bi-download"></i> Télécharger le fichier
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Aucun fichier de questions disponible.
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <form method="post" action="{% url 'exam_submit' exam.id %}">
+                    {% csrf_token %}
+                    
+                    {% for question in questions %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5>Question {{ forloop.counter }}</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if exam.exam_type == 'manual' %}
+                                    <p class="lead">{{ question.text }}</p>
+                                    
+                                    <div class="list-group">
+                                        {% for choice in question.choices.all %}
+                                            <div class="list-group-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           name="question_{{ question.id }}" 
+                                                           value="{{ choice.id }}" 
+                                                           id="choice_{{ choice.id }}">
+                                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                        {{ choice.text }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {% if question.options.exists %}
+                                        <p class="lead">Sélectionnez les bonnes réponses pour cette question :</p>
+                                        
+                                        <div class="list-group">
+                                            {% for option in question.options.all %}
+                                                <div class="list-group-item">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" 
+                                                               type="checkbox" 
+                                                               name="question_{{ question.id }}" 
+                                                               value="{{ option.id }}" 
+                                                               id="option_{{ option.id }}">
+                                                        <label class="form-check-label" for="option_{{ option.id }}">
+                                                            <strong>{{ option.label }})</strong> {{ option.text }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">Aucune option de réponse définie pour cette question.</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="alert alert-info">
+                        <strong>Note :</strong> Sélectionnez toutes les bonnes réponses. Une question est correcte SEULEMENT si votre sélection correspond exactement aux bonnes réponses.
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg">Soumettre l'Examen</button>
+                    <a href="{% url 'exam_detail' exam.id %}" class="btn btn-secondary btn-lg">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

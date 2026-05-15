@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}TDs - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">TDs Disponibles (Travaux Dirigés)</h2>
+        
+        {% if tds %}
+            <div class="row">
+                {% for td in tds %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ td.title }}</h5>
+                                <div>
+                                    <span class="badge bg-primary">{{ td.subject.name }}</span>
+                                    {% if td.xp_price > 0 %}
+                                        <span class="badge bg-warning">{{ td.xp_price }} XP</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Gratuit</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ td.description|default:"Pas de description disponible."|truncatewords:20 }}</p>
+                                <small class="text-muted">Par {{ td.author.get_full_name|default:td.author.username }}</small>
+                                <span class="mx-2">|</span>
+                                <small class="text-muted">Type : {{ td.get_content_type_display }}</small>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'td_detail' td.id %}" class="btn btn-primary w-100">Voir le TD</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Aucun TD disponible pour le moment.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

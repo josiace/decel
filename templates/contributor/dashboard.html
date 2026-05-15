@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Contributeur - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item active">Dashboard Contributeur</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Dashboard Contributeur</h1>
+            <span class="badge bg-success">Actif</span>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            {% if contributor.can_create_courses %}
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Cours Créés</h5>
+                        <p class="card-text display-4">{{ stats.courses_count }}</p>
+                        <a href="{% url 'contributor:courses' %}" class="btn btn-light btn-sm">Voir les cours</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if contributor.can_create_exams %}
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Examens Créés</h5>
+                        <p class="card-text display-4">{{ stats.exams_count }}</p>
+                        <a href="{% url 'contributor:exams' %}" class="btn btn-light btn-sm">Voir les examens</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if contributor.can_create_community_content %}
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Contenu Communautaire</h5>
+                        <p class="card-text display-4">{{ stats.community_content_count }}</p>
+                        <a href="{% url 'contributor:community' %}" class="btn btn-light btn-sm">Voir le contenu</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Actions Rapides</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if contributor.can_create_courses %}
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/learning/course/add/" class="btn btn-outline-primary btn-block">
+                            <i class="bi bi-plus-circle"></i> Créer un Cours
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if contributor.can_create_exams %}
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'contributor:create_exam' %}" class="btn btn-outline-success btn-block">
+                            <i class="bi bi-plus-circle"></i> Créer un Examen
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if contributor.can_create_community_content %}
+                    <div class="col-md-3 mb-3">
+                        <a href="/community/create/" class="btn btn-outline-info btn-block">
+                            <i class="bi bi-plus-circle"></i> Créer du Contenu
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Content -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Contenu Récent</h4>
+            </div>
+            <div class="card-body">
+                {% if recent_content %}
+                <div class="list-group">
+                    {% for item in recent_content %}
+                    <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ item.type }}</h5>
+                            <small class="text-muted">{{ item.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ item.title }}</p>
+                        <small class="text-muted">Matière : {{ item.subject }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Aucun contenu créé récemment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

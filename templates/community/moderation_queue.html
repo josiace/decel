@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}File de Modération - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">File de Modération</h2>
+        
+        {% if contents %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Type</th>
+                            <th>Matière</th>
+                            <th>Auteur</th>
+                            <th>Soumis</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for content in contents %}
+                            <tr>
+                                <td>{{ content.title }}</td>
+                                <td>{{ content.get_content_type_display }}</td>
+                                <td>{{ content.subject.name }}</td>
+                                <td>{{ content.author.email }}</td>
+                                <td>{{ content.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'moderate_content' content.id %}" class="btn btn-sm btn-primary">Modérer</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Aucun contenu en attente de modération.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

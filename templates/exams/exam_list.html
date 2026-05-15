@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Examens - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Examens Disponibles</h2>
+        
+        {% if exams %}
+            <div class="row">
+                {% for exam in exams %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ exam.title }}</h5>
+                                <span class="badge bg-primary">{{ exam.subject.name }}</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ exam.description|default:"Pas de description disponible." }}</p>
+                                <div class="mb-2">
+                                    <strong>Difficulté :</strong> {{ exam.difficulty }}/5
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Questions :</strong> {{ exam.question_count }}
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Note de passage :</strong> {{ exam.passing_score }}%
+                                </div>
+                                {% if exam.time_limit %}
+                                    <div class="mb-2">
+                                        <strong>Limite de temps :</strong> {{ exam.time_limit }} minutes
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'exam_detail' exam.id %}" class="btn btn-primary w-100">Voir l'Examen</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Aucun examen disponible pour le moment.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

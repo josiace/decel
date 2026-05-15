@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Examens - Contributeur - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contributor:dashboard' %}">Dashboard Contributeur</a></li>
+                <li class="breadcrumb-item active">Mes Examens</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Mes Examens</h1>
+            <a href="{% url 'contributor:create_exam' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Créer un Examen
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                {% if exams %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Type</th>
+                                <th>Matière</th>
+                                <th>Difficulté</th>
+                                <th>Questions</th>
+                                <th>Date de création</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in exams %}
+                            <tr>
+                                <td>{{ exam.title }}</td>
+                                <td><span class="badge bg-info">{{ exam.get_exam_type_display }}</span></td>
+                                <td>{{ exam.subject.name }}</td>
+                                <td>{{ exam.difficulty }}/5</td>
+                                <td>{{ exam.question_count }}</td>
+                                <td>{{ exam.created_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'contributor:edit_exam' exam.id %}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                                    <a href="{% url 'contributor:add_questions' exam.id %}" class="btn btn-sm btn-outline-success">Questions</a>
+                                    <a href="/exams/{{ exam.id }}/" class="btn btn-sm btn-outline-secondary">Voir</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Vous n'avez créé aucun examen pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- XP and Level Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Votre Progression</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h2>Level {{ user.level }}</h2>
+                    <p class="text-muted">{{ user.total_xp }} XP</p>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Progression de niveau</small>
+                    <div class="skill-bar">
+                        <div class="skill-progress bg-success" style="width: {{ level_progress.progress_percentage }}%"></div>
+                    </div>
+                    <small class="text-muted">{{ level_progress.xp_in_current_level }} / {{ level_progress.xp_needed_for_level }} XP</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Card -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Recommandations</h5>
+            </div>
+            <div class="card-body">
+                {% if recommendations %}
+                    {% for rec in recommendations %}
+                        <div class="recommendation-card p-3 mb-3 bg-light">
+                            <h6>{{ rec.title }}</h6>
+                            <p class="mb-0 text-muted small">{{ rec.description }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Aucune recommandation pour le moment. Complétez quelques activités pour obtenir des suggestions personnalisées !</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Skills Breakdown -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Compétences par Matière</h5>
+            </div>
+            <div class="card-body">
+                {% if user_skills %}
+                    {% for skill in user_skills %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ skill.subject.name }}</strong>
+                                <span>{{ skill.skill_percentage }}%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress {% if skill.skill_percentage >= 70 %}bg-success{% elif skill.skill_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     style="width: {{ skill.skill_percentage }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Aucune compétence enregistrée pour le moment. Commencez à apprendre !</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Weak Areas -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Zones à Améliorer</h5>
+            </div>
+            <div class="card-body">
+                {% if weak_areas %}
+                    <ul class="list-group">
+                        {% for skill in weak_areas %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ skill.subject.name }}
+                                <span class="badge bg-danger">{{ skill.skill_percentage }}%</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Excellent travail ! Aucune zone faible identifiée.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Activity -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Activité Récente</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_activity %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>XP</th>
+                                    <th>Heure</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activity %}
+                                    <tr>
+                                        <td>{{ activity.reason }}</td>
+                                        <td class="text-success">+{{ activity.amount }}</td>
+                                        <td>{{ activity.created_at|date:"M d, H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucune activité récente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
