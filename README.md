@@ -34,7 +34,19 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
   - Course read: 20 XP
 - Level calculation: `level = floor(sqrt(total_xp / 100)) + 1`
 
-### 5. Recommendation Engine
+### 5. DC (Decelcone) Currency System
+- DC is the platform currency for purchasing content
+- **Separation from XP**: XP is for leveling, DC is for purchases
+- **Earning DC**:
+  - **Content creators earn 75% commission** when users purchase their content
+  - **+5 DC** for each exam passed (score ≥ 50%)
+  - **Daily login bonus**: +5 DC + streak bonus (up to +10 DC)
+- **Spending DC**:
+  - Purchase courses, TDs, and corrections
+  - Prices set by admins or content creators
+- **Transaction tracking**: All DC transactions recorded in DCTransaction model
+
+### 6. Recommendation Engine
 - Adaptive learning suggestions generated after every action
 - Recommendation types:
   - **Review**: Suggest revision for weak areas
@@ -42,7 +54,7 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
   - **Practice**: Suggest TD for skill improvement
   - **Learn**: Suggest courses for new topics
 
-### 6. Community Content System
+### 7. Community Content System
 - Users can submit Courses, TDs, and Corrected TDs
 - Moderation workflow: DRAFT → PENDING → APPROVED/REJECTED
 - Admins can approve/reject content with notes
@@ -51,19 +63,21 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 ## 🏗️ Architecture
 
 ### Django Apps
-- **accounts**: Authentication + custom User model
-- **exams**: Exam engine with strict QCM evaluation
-- **learning**: Courses, TDs, Corrected TDs
-- **gamification**: XP, levels, badges
+- **accounts**: Authentication + custom User model + DC currency system
+- **exams**: Exam engine with strict QCM evaluation + anti-XP farming
+- **learning**: Courses, TDs, Corrected TDs with DC pricing
+- **gamification**: XP, levels, badges, leaderboards
 - **skills**: User performance tracking per subject
 - **recommendations**: Adaptive learning logic engine
 - **community**: Content publishing and moderation
+- **analytics**: User activity tracking and analytics
 
 ### Services Layer (Business Logic)
 - **ExamCorrectionService**: Strict QCM scoring and validation
 - **SkillService**: Subject skill calculation with recency weighting
 - **RecommendationService**: Adaptive learning suggestions
 - **XPService**: Progression tracking and level calculation
+- **DCService**: DC currency management, transactions, and rewards
 
 ## 🚀 Setup Instructions
 
@@ -117,22 +131,23 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 ## 📊 Database Models
 
 ### Core Models
-- **User** (custom): Email-based auth with XP, level, profile fields
+- **User** (custom): Email-based auth with XP, level, DC balance, profile fields
 - **Subject**: Learning domains (Mathematics, Physics, etc.)
 - **Exam**: Complete examinations with questions
 - **Question**: Individual QCM questions
 - **Choice**: Possible answers for questions
-- **ExamSession**: User's attempt at an exam
+- **ExamSession**: User's attempt at an exam with DC rewards
 - **UserAnswer**: User's selected choices per question
-- **Course**: Educational content
-- **TD**: Practice exercises
-- **CorrectedTD**: TD with solutions
+- **Course**: Educational content with DC pricing
+- **TD**: Practice exercises with DC pricing
+- **CorrectedTD**: TD with solutions and DC pricing
 - **XPLog**: XP awarded to users
+- **DCTransaction**: DC transactions (earnings, spendings, rewards)
 - **Badge**: Achievements
 - **UserBadge**: Badges earned by users
 - **UserSkill**: Performance per subject
 - **Recommendation**: Adaptive learning suggestions
-- **Content**: Community-submitted content
+- **Content**: Community-submitted content with DC pricing
 - **ModerationRule**: Content moderation guidelines
 
 ## 🎯 User Flow
@@ -160,6 +175,7 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 - Prevent empty or invalid submissions
 - Protect exam integrity
 - Staff-only moderation access
+- **Anti-XP farming**: Exam creators cannot take their own exams
 
 ## 🎨 Frontend
 
@@ -232,14 +248,16 @@ All data influences:
 
 ## 🚧 Future Enhancements
 
-- Real-time exam timer
-- Question bank randomization
-- Advanced analytics
-- Social features (leaderboards, study groups)
+- Real-time exam timer ✅ (implemented)
+- Question bank randomization ✅ (implemented)
+- Advanced analytics ✅ (implemented)
+- Social features (leaderboards, study groups) ✅ (leaderboards implemented)
 - Mobile app
-- Content versioning
-- Advanced recommendation algorithms
+- Content versioning ✅ (implemented)
+- Advanced recommendation algorithms ✅ (implemented)
 - Integration with external content providers
+- DC referral system
+- DC marketplace for user-to-user transactions
 
 ## 📄 License
 

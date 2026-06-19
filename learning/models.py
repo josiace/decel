@@ -11,6 +11,45 @@ CONTENT_TYPE_CHOICES = [
 ]
 
 
+class ContentVersion(models.Model):
+    """
+    ContentVersion model - tracks version history for learning content.
+    """
+    CONTENT_TYPE_CHOICES = [
+        ('course', 'Cours'),
+        ('td', 'TD'),
+        ('corrected_td', 'TD corrigé'),
+    ]
+    
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPE_CHOICES, verbose_name="Type de contenu")
+    content_id = models.IntegerField(verbose_name="ID du contenu")
+    
+    # Version information
+    version_number = models.IntegerField(verbose_name="Numéro de version")
+    title = models.CharField(max_length=255, verbose_name="Titre")
+    description = models.TextField(blank=True, verbose_name="Description")
+    
+    # Content snapshot
+    content = models.TextField(blank=True, verbose_name="Contenu texte")
+    content_file = models.FileField(upload_to='versions/', null=True, blank=True, verbose_name="Fichier de contenu")
+    
+    # Change log
+    change_summary = models.TextField(verbose_name="Résumé des modifications", help_text="Description des changements dans cette version")
+    
+    # Author and metadata
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name="Créé par")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    
+    class Meta:
+        ordering = ['-version_number']
+        verbose_name = "Version de contenu"
+        verbose_name_plural = "Versions de contenu"
+        unique_together = ['content_type', 'content_id', 'version_number']
+    
+    def __str__(self):
+        return f"{self.get_content_type_display()} v{self.version_number} - {self.title}"
+
+
 class Course(models.Model):
     """
     Modèle de cours - contenu éducatif pour l'apprentissage.
@@ -30,13 +69,16 @@ class Course(models.Model):
     content_file = models.FileField(upload_to='courses/', null=True, blank=True, verbose_name="Fichier de contenu", help_text="Fichier PDF ou autre (si type = PDF ou fichier)")
     
     # Pricing
-    xp_price = models.IntegerField(default=0, verbose_name="Prix en XP", help_text="XP requis pour accéder/télécharger ce cours (0 = gratuit)")
+    dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger ce cours (0 = gratuit)")
     
     # Metadata
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Auteur", help_text="Auteur du cours")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
     is_published = models.BooleanField(default=True, verbose_name="Publié", help_text="Cocher pour rendre le cours visible aux utilisateurs")
+    
+    # Versioning
+    current_version = models.IntegerField(default=1, verbose_name="Version actuelle", help_text="Numéro de version actuel du cours")
     
     class Meta:
         ordering = ['-created_at']
@@ -66,13 +108,16 @@ class TD(models.Model):
     content_file = models.FileField(upload_to='tds/', null=True, blank=True, verbose_name="Fichier de contenu", help_text="Fichier PDF ou autre (si type = PDF ou fichier)")
     
     # Pricing
-    xp_price = models.IntegerField(default=0, verbose_name="Prix en XP", help_text="XP requis pour accéder/télécharger ce TD (0 = gratuit)")
+    dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger ce TD (0 = gratuit)")
     
     # Metadata
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Auteur", help_text="Auteur du TD")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
     is_published = models.BooleanField(default=True, verbose_name="Publié", help_text="Cocher pour rendre le TD visible aux utilisateurs")
+    
+    # Versioning
+    current_version = models.IntegerField(default=1, verbose_name="Version actuelle", help_text="Numéro de version actuel du TD")
     
     class Meta:
         ordering = ['-created_at']
@@ -100,11 +145,14 @@ class CorrectedTD(models.Model):
     correction_file = models.FileField(upload_to='corrections/', null=True, blank=True, verbose_name="Fichier de correction", help_text="Fichier PDF ou autre de la correction (si type = PDF ou fichier)")
     
     # Pricing
-    xp_price = models.IntegerField(default=0, verbose_name="Prix en XP", help_text="XP requis pour accéder/télécharger cette correction (0 = gratuit)")
+    dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger cette correction (0 = gratuit)")
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
+    
+    # Versioning
+    current_version = models.IntegerField(default=1, verbose_name="Version actuelle", help_text="Numéro de version actuel de la correction")
     
     class Meta:
         ordering = ['-created_at']
@@ -179,7 +227,7 @@ class ContentPurchase(models.Model):
     corrected_td_id = models.IntegerField(null=True, blank=True, verbose_name="ID TD corrigé", help_text="ID du TD corrigé acheté")
     
     # Purchase details
-    xp_paid = models.IntegerField(verbose_name="XP payé", help_text="Quantité d'XP payée")
+    dc_paid = models.IntegerField(verbose_name="DC payé", help_text="Quantité de DC payée")
     purchased_at = models.DateTimeField(auto_now_add=True, verbose_name="Date d'achat", help_text="Date à laquelle le contenu a été acheté")
     
     class Meta:
@@ -188,4 +236,4 @@ class ContentPurchase(models.Model):
         verbose_name_plural = "Achats de contenu"
     
     def __str__(self):
-        return f"{self.user.email} - {self.content_type} - {self.xp_paid} XP"
+        return f"{self.user.email} - {self.content_type} - {self.dc_paid} DC"

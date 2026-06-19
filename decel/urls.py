@@ -19,6 +19,8 @@ urlpatterns = [
     path('learning/', include('learning.urls')),
     path('community/', include('community.urls')),
     path('contributor/', include('contributor.urls')),
+    path('gamification/', include('gamification.urls')),
+    path('analytics/', include('analytics.urls')),
 ]
 
 if settings.DEBUG:

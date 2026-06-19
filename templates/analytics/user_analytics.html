@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Analytics - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'dashboard' %}" style="color: var(--primary-color);">Tableau de Bord</a> &gt; 
+            <span>Mes Analytics</span>
+        </div>
+
+        <h1>📊 Mes Analytics</h1>
+        <p class="lead text-muted">Vue d'ensemble de votre progression et activité</p>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ analytics.total_activities }}</div>
+                    <div class="stat-label">Total Activités</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ analytics.total_exams_taken }}</div>
+                    <div class="stat-label">Examens Passés</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ analytics.exams_passed }}</div>
+                    <div class="stat-label">Examens Réussis</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ analytics.average_exam_score|default:"-" }}%</div>
+                    <div class="stat-label">Score Moyen</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Stats -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activité Récente</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Cette semaine:</strong> {{ analytics.activities_this_week }} activités</p>
+                        <p><strong>Ce mois:</strong> {{ analytics.activities_this_month }} activités</p>
+                        <p><strong>Temps d'étude total:</strong> {{ total_study_minutes }} minutes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Contenu Complété</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Cours complétés:</strong> {{ analytics.courses_completed }}</p>
+                        <p><strong>TDs complétés:</strong> {{ analytics.tds_completed }}</p>
+                        <p><strong>Compétence moyenne:</strong> {{ avg_skill|default:"-" }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Compétences par Matière</h3>
+            </div>
+            <div class="card-body">
+                {% if skills %}
+                <div class="row">
+                    {% for skill in skills %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>{{ skill.subject.name }}</strong>
+                            <span>{{ skill.skill_percentage }}%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: {{ skill.skill_percentage }}%;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Aucune donnée de compétence disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity by Type -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Activités par Type</h3>
+            </div>
+            <div class="card-body">
+                {% if activity_by_type %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type d'activité</th>
+                                <th>Nombre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in activity_by_type %}
+                            <tr>
+                                <td>{{ item.get_activity_type_display }}</td>
+                                <td>{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Aucune donnée d'activité disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Activités Récentes</h3>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.get_activity_type_display }}</td>
+                                <td>{{ activity.created_at|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{% url 'analytics:activity_log' %}" class="btn btn-primary mt-2">Voir tout l'historique</a>
+                {% else %}
+                <p class="text-muted">Aucune activité récente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

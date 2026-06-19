@@ -2,86 +2,92 @@
 <html lang="fr">
 <head>
     {% load static %}
-    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}DECEL - Plateforme d'Apprentissage Adaptatif{% endblock %}</title>
-    {% comment %} <style>
-        body {
-            background-color: #0178efff;
-        }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        .skill-bar {
-            height: 20px;
-            border-radius: 10px;
-            background-color: #e9ecef;
-        }
-        .skill-progress {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-        .recommendation-card {
-            border-left: 4px solid #0d6efd;
-        }
-    </style> {% endcomment %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">🧠 DECEL</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="navbar-logo">
+            </a>
+            <button class="navbar-toggler" type="button" onclick="toggleNavbar()">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+            <div class="navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Accueil</a>
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Tableau de Bord</a>
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Tableau de Bord
+                            </a>
                         </li>
                         {% if user.is_contributor %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'contributor:dashboard' %}">Dashboard Contributeur</a>
+                            <a class="nav-link" href="{% url 'contributor:dashboard' %}">
+                                <i class="fas fa-user-edit me-1"></i>Contributeur
+                            </a>
                         </li>
                         {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'exam_list' %}">Examens</a>
+                            <a class="nav-link" href="{% url 'exam_list' %}">
+                                <i class="fas fa-clipboard-list me-1"></i>Examens
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'course_list' %}">Cours</a>
+                            <a class="nav-link" href="{% url 'course_list' %}">
+                                <i class="fas fa-book me-1"></i>Cours
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'td_list' %}">TDs</a>
+                            <a class="nav-link" href="{% url 'td_list' %}">
+                                <i class="fas fa-tasks me-1"></i>TDs
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'content_list' %}">Communauté</a>
+                            <a class="nav-link" href="{% url 'content_list' %}">
+                                <i class="fas fa-users me-1"></i>Communauté
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                {{ user.email }}
+                            <a class="nav-link dropdown-toggle" href="#" onclick="toggleDropdown(event)">
+                                <i class="fas fa-user-circle me-1"></i>{{ user.email }}
+                                <span class="level-badge ms-2">Niveau {{ user.level }}</span>
+                                <span class="xp-badge ms-2">{{ user.total_xp }} XP</span>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                            <ul class="dropdown-menu" id="userDropdown">
+                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">Déconnexion</a></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                                </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Connexion</a>
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Inscription</a>
+                            <a class="btn btn-primary text-white ms-2" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus me-1"></i>Inscription
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -89,12 +95,15 @@
         </div>
     </nav>
 
-    <main class="container py-4">
+    <main class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                    <span>
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                    </span>
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()">&times;</button>
                 </div>
             {% endfor %}
         {% endif %}
@@ -102,13 +111,43 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-light text-center py-3 mt-5">
+    <footer>
         <div class="container">
-            <p class="text-muted mb-0">DECEL - Plateforme d'Apprentissage Adaptatif &copy; 2024</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="footer-logo">
+                    <p class="text-muted">Plateforme d'Apprentissage Adaptatif</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted mb-0">&copy; 2024 DECEL. Tous droits réservés.</p>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleNavbar() {
+            const navbarCollapse = document.getElementById('navbarNav');
+            navbarCollapse.classList.toggle('show');
+        }
+
+        function toggleDropdown(event) {
+            event.preventDefault();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const toggle = event.target.closest('.dropdown-toggle');
+            if (!toggle && !event.target.closest('.dropdown-menu')) {
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

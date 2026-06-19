@@ -1,5 +1,81 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+class Leaderboard(models.Model):
+    """
+    Leaderboard model - tracks rankings for different categories.
+    """
+    LEADERBOARD_TYPES = [
+        ('global_xp', 'XP Global'),
+        ('subject_skill', 'Compétence par Matière'),
+        ('exams_passed', 'Examens Réussis'),
+        ('badges_earned', 'Badges Obtenus'),
+        ('streak', 'Série Consécutive'),
+    ]
+    
+    name = models.CharField(max_length=255, unique=True, verbose_name="Nom", help_text="Nom du classement")
+    leaderboard_type = models.CharField(max_length=20, choices=LEADERBOARD_TYPES, verbose_name="Type de classement", help_text="Type de classement")
+    description = models.TextField(blank=True, verbose_name="Description", help_text="Description du classement")
+    
+    # For subject-specific leaderboards
+    subject = models.ForeignKey(
+        'skills.Subject',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='leaderboards',
+        verbose_name="Matière",
+        help_text="Matière concernée (pour les classements par compétence)"
+    )
+    
+    # Time period
+    TIME_PERIOD_CHOICES = [
+        ('all_time', 'Tout le temps'),
+        ('weekly', 'Hebdomadaire'),
+        ('monthly', 'Mensuel'),
+        ('yearly', 'Annuel'),
+    ]
+    time_period = models.CharField(max_length=20, choices=TIME_PERIOD_CHOICES, default='all_time', verbose_name="Période", help_text="Période du classement")
+    
+    # Metadata
+    is_active = models.BooleanField(default=True, verbose_name="Actif", help_text="Cocher pour rendre le classement visible")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
+    
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Classement"
+        verbose_name_plural = "Classements"
+    
+    def __str__(self):
+        return self.name
+
+
+class LeaderboardEntry(models.Model):
+    """
+    LeaderboardEntry model - stores user positions in leaderboards.
+    Updated periodically via management command or signal.
+    """
+    leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE, related_name='entries', verbose_name="Classement")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entries', verbose_name="Utilisateur")
+    
+    # Position and score
+    position = models.IntegerField(verbose_name="Position", help_text="Position dans le classement")
+    score = models.IntegerField(default=0, verbose_name="Score", help_text="Score de l'utilisateur")
+    
+    # Metadata
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
+    
+    class Meta:
+        unique_together = ['leaderboard', 'user']
+        ordering = ['position']
+        verbose_name = "Entrée de classement"
+        verbose_name_plural = "Entrées de classement"
+    
+    def __str__(self):
+        return f"{self.leaderboard.name} - {self.user.email} - Position {self.position}"
 
 
 class XPLog(models.Model):

@@ -46,7 +46,7 @@ class Content(models.Model):
     content_file = models.FileField(upload_to='community/', null=True, blank=True, verbose_name="Fichier de contenu", help_text="Fichier PDF ou autre (si format = PDF ou fichier)")
     
     # Pricing
-    xp_price = models.IntegerField(default=0, verbose_name="Prix en XP", help_text="XP requis pour accéder/télécharger ce contenu (0 = gratuit)")
+    dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger ce contenu (0 = gratuit)")
     
     # Author and moderation
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submitted_content', verbose_name="Auteur", help_text="Utilisateur qui a soumis le contenu")
@@ -89,7 +89,11 @@ class Content(models.Model):
     def can_edit(self, user):
         """Check if user can edit this content."""
         return user == self.author and self.status in ['draft', 'rejected']
-    
+
+    def can_submit(self, user):
+        """Check if user can submit content to community."""
+        return user.is_contributor() or user.is_staff or user.is_superuser
+
     def can_moderate(self, user):
         """Check if user can moderate this content."""
         return user.is_staff or user.is_superuser
@@ -102,20 +106,40 @@ class ModerationRule(models.Model):
     """
     name = models.CharField(max_length=255, unique=True, verbose_name="Nom", help_text="Nom unique de la règle")
     description = models.TextField(verbose_name="Description", help_text="Description de la règle")
-    
+
     # Rule criteria
     required_word_count = models.IntegerField(null=True, blank=True, verbose_name="Nombre de mots minimum", help_text="Nombre minimum de mots requis")
     allowed_subjects = models.ManyToManyField(Subject, blank=True, verbose_name="Matières autorisées", help_text="Restreindre à des matières spécifiques")
-    
+
     # Metadata
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Créé par", help_text="Utilisateur qui a créé la règle")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     is_active = models.BooleanField(default=True, verbose_name="Actif", help_text="Cocher pour activer la règle")
-    
+
     class Meta:
         ordering = ['name']
         verbose_name = "Règle de modération"
         verbose_name_plural = "Règles de modération"
-    
+
     def __str__(self):
         return self.name
+
+
+class ContentPurchase(models.Model):
+    """
+    Modèle ContentPurchase - suit les achats de contenu communautaire.
+    Empêche le double paiement et permet de vérifier si un utilisateur a acheté un contenu.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='community_content_purchases', verbose_name="Utilisateur", help_text="Utilisateur qui a acheté le contenu")
+    content = models.ForeignKey(Content, on_delete=models.CASCADE, related_name='purchases', verbose_name="Contenu", help_text="Contenu acheté")
+    price_paid = models.IntegerField(verbose_name="Prix payé", help_text="Prix en DC payé pour le contenu")
+    purchased_at = models.DateTimeField(auto_now_add=True, verbose_name="Date d'achat", help_text="Date à laquelle le contenu a été acheté")
+
+    class Meta:
+        unique_together = ['user', 'content']
+        ordering = ['-purchased_at']
+        verbose_name = "Achat de contenu"
+        verbose_name_plural = "Achats de contenu"
+
+    def __str__(self):
+        return f"{self.user.email} - {self.content.title}"

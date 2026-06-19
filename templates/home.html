@@ -4,50 +4,66 @@
 
 {% block content %}
 <!-- Hero Section -->
-<div class="bg-primary text-white py-5 mb-5">
+<div class="text-white py-5 mb-5" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(118, 75, 162, 0.9)); border-radius: var(--radius-xl);">
     <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-3">🧠 DECEL</h1>
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-brain me-2"></i>DECEL
+        </h1>
         <p class="lead mb-4">Plateforme d'Apprentissage Adaptatif Intelligente</p>
-        <p class="mb-4">Un système d'apprentissage qui s'adapte à vos performances</p>
+        <p class="mb-4" style="font-size: 1.25rem;">Un système d'apprentissage qui s'adapte à vos performances</p>
         <div class="d-flex justify-content-center gap-3">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">Mon Tableau de Bord</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Mon Tableau de Bord
+                </a>
             {% else %}
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg">Commencer</a>
-                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Connexion</a>
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Commencer
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                </a>
             {% endif %}
         </div>
     </div>
 </div>
 
 <!-- Features Section -->
-<div class="container mb-5">
-    <h2 class="text-center mb-5">Fonctionnalités Principales</h2>
+<div class="mb-5">
+    <h2 class="text-center mb-5">
+        <i class="fas fa-star me-2"></i>Fonctionnalités Principales
+    </h2>
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <div class="display-4 mb-3">📝</div>
-                    <h4 class="card-title">Système d'Examens</h4>
-                    <p class="card-text">Examens QCM stricts avec évaluation précise. Chaque question exige une correspondance exacte pour être correcte.</p>
+                    <div class="display-4 mb-3 text-primary">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h4>Système d'Examens</h4>
+                    <p>Examens QCM stricts avec évaluation précise. Chaque question exige une correspondance exacte pour être correcte.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <div class="display-4 mb-3">📚</div>
-                    <h4 class="card-title">Système d'Apprentissage</h4>
-                    <p class="card-text">Cours, TD (Travaux Dirigés) et TD corrigés pour un apprentissage complet et progressif.</p>
+                    <div class="display-4 mb-3 text-success">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h4>Système d'Apprentissage</h4>
+                    <p>Cours, TD (Travaux Dirigés) et TD corrigés pour un apprentissage complet et progressif.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <div class="display-4 mb-3">📊</div>
-                    <h4 class="card-title">Suivi des Compétences</h4>
-                    <p class="card-text">Suivi des performances par matière avec pondération temporelle. Vos compétences évoluent selon vos résultats récents.</p>
+                    <div class="display-4 mb-3 text-warning">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Suivi des Compétences</h4>
+                    <p>Suivi des performances par matière avec pondération temporelle. Vos compétences évoluent selon vos résultats récents.</p>
                 </div>
             </div>
         </div>
@@ -55,58 +71,93 @@
 </div>
 
 <!-- How It Works -->
-<div class="bg-light py-5 mb-5">
+<div class="py-5 mb-5" style="background: rgba(99, 102, 241, 0.05); border-radius: var(--radius-xl);">
     <div class="container">
-        <h2 class="text-center mb-5">Comment ça marche ?</h2>
+        <h2 class="text-center mb-5">
+            <i class="fas fa-cogs me-2"></i>Comment ça marche ?
+        </h2>
         <div class="row">
             <div class="col-md-3 mb-4 text-center">
-                <div class="display-4 mb-3">1️⃣</div>
-                <h5>Inscrivez-vous</h5>
-                <p>Créez votre compte en quelques secondes</p>
+                <div class="stat-card">
+                    <div class="display-4 mb-3 text-primary">1</div>
+                    <h5><i class="fas fa-user-plus me-2"></i>Inscrivez-vous</h5>
+                    <p class="text-muted">Créez votre compte en quelques secondes</p>
+                </div>
             </div>
             <div class="col-md-3 mb-4 text-center">
-                <div class="display-4 mb-3">2️⃣</div>
-                <h5>Apprenez</h5>
-                <p>Lisez des cours et pratiquez avec des TD</p>
+                <div class="stat-card">
+                    <div class="display-4 mb-3 text-success">2</div>
+                    <h5><i class="fas fa-graduation-cap me-2"></i>Apprenez</h5>
+                    <p class="text-muted">Lisez des cours et pratiquez avec des TD</p>
+                </div>
             </div>
             <div class="col-md-3 mb-4 text-center">
-                <div class="display-4 mb-3">3️⃣</div>
-                <h5>Testez-vous</h5>
-                <p>Passez des examens pour évaluer vos connaissances</p>
+                <div class="stat-card">
+                    <div class="display-4 mb-3 text-warning">3</div>
+                    <h5><i class="fas fa-tasks me-2"></i>Testez-vous</h5>
+                    <p class="text-muted">Passez des examens pour évaluer vos connaissances</p>
+                </div>
             </div>
             <div class="col-md-3 mb-4 text-center">
-                <div class="display-4 mb-3">4️⃣</div>
-                <h5>Progressez</h5>
-                <p>Gagnez de l'XP, montez de niveau et recevez des recommandations personnalisées</p>
+                <div class="stat-card">
+                    <div class="display-4 mb-3 text-danger">4</div>
+                    <h5><i class="fas fa-trophy me-2"></i>Progressez</h5>
+                    <p class="text-muted">Gagnez de l'XP, montez de niveau et recevez des recommandations personnalisées</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Gamification Section -->
-<div class="container mb-5">
-    <h2 class="text-center mb-5">Système de Gamification</h2>
+<div class="mb-5">
+    <h2 class="text-center mb-5">
+        <i class="fas fa-gamepad me-2"></i>Système de Gamification
+    </h2>
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-gem me-2"></i>Points d'Expérience (XP)
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">💎 Points d'Expérience (XP)</h5>
-                    <p class="card-text">Gagnez de l'XP pour chaque activité :</p>
-                    <ul>
-                        <li>Examen réussi : <strong>100 XP</strong></li>
-                        <li>Examen échoué : <strong>50 XP</strong></li>
-                        <li>TD complété : <strong>40 XP</strong></li>
-                        <li>Cours lu : <strong>20 XP</strong></li>
+                    <p>Gagnez de l'XP pour chaque activité :</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-check-circle text-success me-2"></i>Examen réussi</span>
+                            <span class="xp-badge">100 XP</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-times-circle text-danger me-2"></i>Examen échoué</span>
+                            <span class="xp-badge">50 XP</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-tasks text-primary me-2"></i>TD complété</span>
+                            <span class="xp-badge">40 XP</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-book text-info me-2"></i>Cours lu</span>
+                            <span class="xp-badge">20 XP</span>
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="col-md-6 mb-4">
             <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-medal me-2"></i>Niveaux et Badges
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">🏆 Niveaux et Badges</h5>
-                    <p class="card-text">Montez de niveau en accumulant de l'XP et débloquez des badges pour vos accomplissements.</p>
-                    <p class="card-text"><strong>Formule de niveau :</strong> niveau = √(XP total / 100) + 1</p>
+                    <p>Montez de niveau en accumulant de l'XP et débloquez des badges pour vos accomplissements.</p>
+                    <div class="alert alert-info">
+                        <strong>Formule de niveau :</strong> niveau = √(XP total / 100) + 1
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <span class="level-badge">Niveau 1</span>
+                        <span class="level-badge">Niveau 2</span>
+                        <span class="level-badge">Niveau 3</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,40 +165,42 @@
 </div>
 
 <!-- Recommendations Section -->
-<div class="bg-info text-white py-5 mb-5">
+<div class="text-white py-5 mb-5" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9)); border-radius: var(--radius-xl);">
     <div class="container text-center">
-        <h2 class="mb-4">🎯 Recommandations Adaptatives</h2>
+        <h2 class="mb-4">
+            <i class="fas fa-bullseye me-2"></i>Recommandations Adaptatives
+        </h2>
         <p class="lead mb-4">Notre système d'intelligence artificielle analyse vos performances et vous suggère le meilleur parcours d'apprentissage.</p>
         <div class="row">
             <div class="col-md-3 mb-3">
-                <div class="card bg-white text-dark">
+                <div class="card">
                     <div class="card-body">
-                        <h6>📖 Réviser</h6>
-                        <p class="small mb-0">Pour les zones faibles</p>
+                        <h6 style="color: black;"><i class="fas fa-book-reader me-2"></i>Réviser</h6>
+                        <p class="small mb-0" style="color: var(--text-secondary);">Pour les zones faibles</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-white text-dark">
+                <div class="card">
                     <div class="card-body">
-                        <h6>🚀 Avancer</h6>
-                        <p class="small mb-0">Pour les domaines forts</p>
+                        <h6 style="color: black;"><i class="fas fa-rocket me-2" ></i>Avancer</h6>
+                        <p class="small mb-0" style="color: var(--text-secondary);">Pour les domaines forts</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-white text-dark">
+                <div class="card">
                     <div class="card-body">
-                        <h6>✏️ Pratiquer</h6>
-                        <p class="small mb-0">Pour améliorer les compétences</p>
+                        <h6 style="color: black;"><i class="fas fa-pencil-alt me-2"></i>Pratiquer</h6>
+                        <p class="small mb-0" style="color: var(--text-secondary);">Pour améliorer les compétences</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-white text-dark">
+                <div class="card">
                     <div class="card-body">
-                        <h6>📚 Apprendre</h6>
-                        <p class="small mb-0">Pour de nouveaux sujets</p>
+                        <h6 style="color: black;"><i class="fas fa-lightbulb me-2"></i>Apprendre</h6>
+                        <p class="small mb-0" style="color: var(--text-secondary);">Pour de nouveaux sujets</p>
                     </div>
                 </div>
             </div>
@@ -156,22 +209,28 @@
 </div>
 
 <!-- Community Section -->
-<div class="container mb-5">
-    <h2 class="text-center mb-5">Contenu Communautaire</h2>
+<div class="mb-5">
+    <h2 class="text-center mb-5">
+        <i class="fas fa-users me-2"></i>Contenu Communautaire
+    </h2>
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-share-alt me-2"></i>Partagez vos Connaissances
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">👥 Partagez vos Connaissances</h5>
-                    <p class="card-text">Créez et partagez des cours, des TD et des corrections avec la communauté. Tout le contenu est modéré pour assurer la qualité.</p>
+                    <p>Créez et partagez des cours, des TD et des corrections avec la communauté. Tout le contenu est modéré pour assurer la qualité.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-6 mb-4">
             <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt me-2"></i>Modération de Qualité
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">✅ Modération de Qualité</h5>
-                    <p class="card-text">Workflow de modération : Brouillon → En attente → Approuvé/Rejeté. Les administrateurs veillent à la qualité du contenu.</p>
+                    <p>Workflow de modération : Brouillon → En attente → Approuvé/Rejeté. Les administrateurs veillent à la qualité du contenu.</p>
                 </div>
             </div>
         </div>
@@ -179,14 +238,20 @@
 </div>
 
 <!-- CTA Section -->
-<div class="bg-primary text-white py-5">
+<div class="text-white py-5" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(118, 75, 162, 0.9)); border-radius: var(--radius-xl);">
     <div class="container text-center">
-        <h2 class="mb-4">Prêt à commencer votre parcours d'apprentissage ?</h2>
+        <h2 class="mb-4">
+            <i class="fas fa-rocket me-2"></i>Prêt à commencer votre parcours d'apprentissage ?
+        </h2>
         <p class="lead mb-4">Rejoignez DECEL dès maintenant et découvrez une nouvelle façon d'apprendre.</p>
         {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">Accéder à mon Tableau de Bord</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>Accéder à mon Tableau de Bord
+            </a>
         {% else %}
-            <a href="{% url 'register' %}" class="btn btn-light btn-lg">Créer un Compte Gratuit</a>
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Créer un Compte Gratuit
+            </a>
         {% endif %}
     </div>
 </div>

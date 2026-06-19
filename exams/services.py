@@ -1,5 +1,6 @@
 from django.db import transaction
-from .models import Exam, ExamSession, UserAnswer, Question, Choice, QuestionOption
+from django.utils import timezone
+from .models import Exam, ExamSession, UserAnswer, Question, Choice
 
 
 class ExamCorrectionService:
@@ -11,17 +12,9 @@ class ExamCorrectionService:
     @staticmethod
     def validate_question_integrity(question: Question) -> bool:
         """
-        Validate that a question has at least one correct choice or correct option.
+        Validate that a question has at least one correct choice.
         Raises ValueError if validation fails.
         """
-        # Check for file-based exam with QuestionOptions
-        if question.options.exists():
-            correct_options = question.options.filter(is_correct=True).count()
-            if correct_options == 0:
-                raise ValueError(f"Question {question.id} must have at least one correct option.")
-            return True
-        
-        # Check for manual exam with choices
         correct_choices = question.choices.filter(is_correct=True).count()
         if correct_choices == 0:
             raise ValueError(f"Question {question.id} must have at least one correct choice.")
@@ -31,34 +24,24 @@ class ExamCorrectionService:
     def evaluate_answer(question: Question, selected_choice_ids: list) -> bool:
         """
         Evaluate a user's answer using strict QCM rules.
-        Supports both manual questions (with choices) and file-based questions (with QuestionOptions).
         
         Args:
             question: The Question being answered
-            selected_choice_ids: List of choice IDs or option IDs selected by the user
+            selected_choice_ids: List of choice IDs selected by the user
         
         Returns:
             bool: True if answer is correct (exact match), False otherwise
         """
-        # Check if this is a file-based exam with QuestionOptions
-        if question.options.exists():
-            # File-based exam: compare selected option IDs with correct option IDs
-            correct_option_ids = set(
-                question.options.filter(is_correct=True).values_list('id', flat=True)
-            )
-            selected_option_ids_set = set(selected_choice_ids)
-            return selected_option_ids_set == correct_option_ids
-        else:
-            # Manual exam: compare choice IDs
-            correct_choice_ids = set(
-                question.choices.filter(is_correct=True).values_list('id', flat=True)
-            )
-            
-            # Convert selected IDs to set for comparison
-            selected_choice_ids_set = set(selected_choice_ids)
-            
-            # Strict evaluation: exact match required
-            return selected_choice_ids_set == correct_choice_ids
+        # Get correct choice IDs
+        correct_choice_ids = set(
+            question.choices.filter(is_correct=True).values_list('id', flat=True)
+        )
+        
+        # Convert selected IDs to set for comparison
+        selected_choice_ids_set = set(selected_choice_ids)
+        
+        # Strict evaluation: exact match required
+        return selected_choice_ids_set == correct_choice_ids
     
     @staticmethod
     @transaction.atomic
@@ -71,11 +54,14 @@ class ExamCorrectionService:
             answers_data: Dict mapping question_id -> list of selected choice_ids
         
         Returns:
-            dict: Correction results with score and per-question breakdown
+            dict: Correction results with score, XP, and per-question breakdown
         """
         exam = session.exam
         total_questions = exam.questions.count()
         correct_count = 0
+        wrong_count = 0
+        total_xp_earned = 0
+        total_xp_penalty = 0
         question_results = []
         
         # Process each answer
@@ -91,6 +77,10 @@ class ExamCorrectionService:
             
             if is_correct:
                 correct_count += 1
+                total_xp_earned += exam.xp_per_correct
+            else:
+                wrong_count += 1
+                total_xp_penalty += exam.xp_penalty_per_wrong
             
             # Create or update UserAnswer record
             user_answer, created = UserAnswer.objects.get_or_create(
@@ -103,25 +93,25 @@ class ExamCorrectionService:
                 user_answer.is_correct = is_correct
                 user_answer.save()
             
-            # Update selected choices or options based on exam type
-            if question.options.exists():
-                # File-based exam: store selected options
-                user_answer.selected_options.set(selected_choice_ids)
-            else:
-                # Manual exam: store selected choices
-                user_answer.selected_choices.set(selected_choice_ids)
+            # Store selected choices
+            user_answer.selected_choices.set(selected_choice_ids)
             
             # Store result for response
             question_results.append({
                 'question_id': question.id,
                 'question_text': question.text,
                 'is_correct': is_correct,
+                'xp_earned': exam.xp_per_correct if is_correct else 0,
+                'xp_penalty': exam.xp_penalty_per_wrong if not is_correct else 0,
                 'correct_choice_ids': list(question.choices.filter(is_correct=True).values_list('id', flat=True)),
                 'selected_choice_ids': selected_choice_ids,
             })
         
         # Calculate score (percentage)
         score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
+        
+        # Calculate net XP
+        net_xp = total_xp_earned - total_xp_penalty
         
         # Update session
         session.score = score
@@ -135,10 +125,10 @@ class ExamCorrectionService:
             'score': score,
             'passed': session.passed,
             'correct_count': correct_count,
+            'wrong_count': wrong_count,
             'total_questions': total_questions,
+            'total_xp_earned': total_xp_earned,
+            'total_xp_penalty': total_xp_penalty,
+            'net_xp': net_xp,
             'question_results': question_results,
         }
-
-
-# Import timezone for session completion
-from django.utils import timezone

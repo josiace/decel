@@ -34,7 +34,7 @@ def course_detail(request, course_id):
         request.user,
         'course',
         course.id,
-        course.xp_price
+        course.dc_price
     )
     has_purchased = ContentPurchaseService.has_purchased(
         request.user,
@@ -127,7 +127,7 @@ def td_detail(request, td_id):
         request.user,
         'td',
         td.id,
-        td.xp_price
+        td.dc_price
     )
     
     # Check if user can access the correction
@@ -137,7 +137,7 @@ def td_detail(request, td_id):
             request.user,
             'corrected_td',
             correction.id,
-            correction.xp_price
+            correction.dc_price
         )
     
     return render(request, 'learning/td_detail.html', {
@@ -277,15 +277,15 @@ def download_file(request, content_type, content_id):
     if content_type == 'course':
         content = get_object_or_404(Course, id=content_id, is_published=True)
         file_field = content.content_file
-        price = content.xp_price
+        price = content.dc_price
     elif content_type == 'td':
         content = get_object_or_404(TD, id=content_id, is_published=True)
         file_field = content.content_file
-        price = content.xp_price
+        price = content.dc_price
     elif content_type == 'corrected_td':
         content = get_object_or_404(CorrectedTD, id=content_id)
         file_field = content.correction_file
-        price = content.xp_price
+        price = content.dc_price
     else:
         raise Http404("Type de contenu invalide")
     

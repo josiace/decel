@@ -5,16 +5,14 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'exam_detail' session.exam.id %}">{{ session.exam.title }}</a></li>
-                <li class="breadcrumb-item active">Résultats</li>
-            </ol>
-        </nav>
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'exam_list' %}" style="color: var(--primary-color);">Examens</a> &gt;
+            <a href="{% url 'exam_detail' session.exam.id %}" style="color: var(--primary-color);">{{ session.exam.title }}</a> &gt;
+            <span>Résultats</span>
+        </div>
 
         <div class="card mb-4">
-            <div class="card-header {% if session.passed %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+            <div class="card-header" style="{% if session.passed %}background: var(--secondary-color); color: white;{% else %}background: var(--danger-color); color: white;{% endif %}">
                 <h2 class="mb-0">
                     {% if session.passed %}
                         🎉 Réussi !
@@ -26,6 +24,20 @@
             <div class="card-body text-center">
                 <h1>{{ session.score }}%</h1>
                 <p class="lead">{{ answers|length }} questions répondues</p>
+                {% if session.is_best_attempt %}
+                    <div class="alert alert-success mt-3">
+                        <strong>🏆 Meilleure tentative !</strong> Les XP ont été accordés pour cette tentative.
+                        {% if session.xp_earned > 0 %}
+                            <br>+{{ session.xp_earned }} XP gagnés
+                        {% elif session.xp_earned < 0 %}
+                            <br>{{ session.xp_earned }} XP (pénalité)
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mt-3">
+                        <strong>Note :</strong> Cette tentative n'est pas votre meilleure. Les XP ne sont accordés que pour la meilleure tentative de chaque examen.
+                    </div>
+                {% endif %}
             </div>
         </div>
 
@@ -35,10 +47,10 @@
             </div>
             <div class="card-body">
                 {% for answer in answers %}
-                    <div class="card mb-3 {% if answer.is_correct %}border-success{% else %}border-danger{% endif %}">
-                        <div class="card-header {% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                    <div class="card mb-3" style="border: 2px solid {% if answer.is_correct %}var(--secondary-color){% else %}var(--danger-color){% endif %};">
+                        <div class="card-header" style="{% if answer.is_correct %}background: var(--secondary-color); color: white;{% else %}background: var(--danger-color); color: white;{% endif %}">
                             <h5 class="mb-0">
-                                Question {{ answer.question.order }}
+                                Question {{ forloop.counter }}
                                 {% if answer.is_correct %}
                                     ✓ Correct
                                 {% else %}
@@ -52,40 +64,33 @@
                             {% else %}
                                 <p class="text-muted">Question sur fichier</p>
                             {% endif %}
-                            
+
                             <h6>Vos Réponses :</h6>
                             <ul>
-                                {% if answer.selected_options.exists %}
-                                    {% for option in answer.selected_options.all %}
-                                        <li><strong>{{ option.label }})</strong> {{ option.text }}</li>
-                                    {% endfor %}
-                                {% else %}
-                                    {% for choice in answer.selected_choices.all %}
-                                        <li>{{ choice.text }}</li>
-                                    {% empty %}
-                                        <li class="text-muted">Aucune réponse sélectionnée</li>
-                                    {% endfor %}
-                                {% endif %}
+                                {% for choice in answer.selected_choices.all %}
+                                    <li>{{ choice.text }}</li>
+                                {% empty %}
+                                    <li class="text-muted">Aucune réponse sélectionnée</li>
+                                {% endfor %}
                             </ul>
-                            
-                            <h6>Bonnes Réponses :</h6>
+
+                            <h6 style="color: var(--secondary-color);">Bonnes Réponses :</h6>
                             <ul>
-                                {% if answer.question.options.exists %}
-                                    {% for option in answer.question.options.filter.is_correct %}
-                                        <li><strong>{{ option.label }})</strong> {{ option.text }}</li>
-                                    {% endfor %}
-                                {% else %}
-                                    {% for choice in answer.question.choices.filter.is_correct %}
-                                        <li>{{ choice.text }}</li>
-                                    {% endfor %}
-                                {% endif %}
+                                {% for choice in answer.question.choices.all %}
+                                    {% if choice.is_correct %}
+                                        <li style="color: var(--secondary-color); font-weight: bold;">{{ choice.text }}</li>
+                                    {% endif %}
+                                {% empty %}
+                                    <li class="text-muted">Aucune bonne réponse définie</li>
+                                {% endfor %}
                             </ul>
                         </div>
                     </div>
                 {% endfor %}
             </div>
             <div class="card-footer">
-                <a href="{% url 'exam_list' %}" class="btn btn-primary">Retour aux Examens</a>
+                <a href="{% url 'exam_detail' session.exam.id %}" class="btn btn-primary">Reprendre l'Examen</a>
+                <a href="{% url 'exam_list' %}" class="btn btn-secondary">Retour aux Examens</a>
                 <a href="{% url 'dashboard' %}" class="btn btn-secondary">Aller au Tableau de Bord</a>
             </div>
         </div>

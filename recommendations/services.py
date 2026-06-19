@@ -1,8 +1,14 @@
 from django.db import transaction
 from django.utils import timezone
+from django.db.models import Count, Avg, Q, F
 from .models import Recommendation
 from skills.services import SkillService
+from skills.models import UserSkill, Subject
+from accounts.models import User
+from exams.models import ExamSession
+from learning.models import Course, TD, CourseProgress, TDProgress
 from datetime import timedelta
+import math
 
 
 class RecommendationService:
@@ -195,3 +201,323 @@ class RecommendationService:
             created_at__lt=cutoff_date,
             is_active=True
         ).update(is_active=False)
+    
+    @staticmethod
+    def get_similar_users(user, limit: int = 10):
+        """
+        Find users with similar skill profiles using cosine similarity.
+        
+        Args:
+            user: The user to find similar users for
+            limit: Maximum number of similar users to return
+            
+        Returns:
+            List of similar users with similarity scores
+        """
+        # Get user's skills
+        user_skills = UserSkill.objects.filter(user=user).select_related('subject')
+        if not user_skills.exists():
+            return []
+        
+        # Create skill vector for user
+        user_skill_dict = {skill.subject_id: skill.skill_percentage for skill in user_skills}
+        
+        # Get all other users with skills
+        other_users = User.objects.annotate(
+            skill_count=Count('skills')
+        ).filter(skill_count__gt=0).exclude(id=user.id)[:100]  # Limit to 100 users for performance
+        
+        similar_users = []
+        
+        for other_user in other_users:
+            other_skills = UserSkill.objects.filter(user=other_user).select_related('subject')
+            other_skill_dict = {skill.subject_id: skill.skill_percentage for skill in other_skills}
+            
+            # Calculate cosine similarity
+            similarity = RecommendationService._calculate_cosine_similarity(
+                user_skill_dict, other_skill_dict
+            )
+            
+            if similarity > 0.3:  # Only include users with similarity > 0.3
+                similar_users.append({
+                    'user': other_user,
+                    'similarity': similarity
+                })
+        
+        # Sort by similarity and return top results
+        similar_users.sort(key=lambda x: x['similarity'], reverse=True)
+        return similar_users[:limit]
+    
+    @staticmethod
+    def _calculate_cosine_similarity(dict1: dict, dict2: dict) -> float:
+        """
+        Calculate cosine similarity between two skill dictionaries.
+        
+        Args:
+            dict1: First skill dictionary {subject_id: skill_percentage}
+            dict2: Second skill dictionary {subject_id: skill_percentage}
+            
+        Returns:
+            float: Cosine similarity score (0-1)
+        """
+        # Get common subjects
+        common_subjects = set(dict1.keys()) & set(dict2.keys())
+        
+        if not common_subjects:
+            return 0.0
+        
+        # Calculate dot product
+        dot_product = sum(dict1[subject] * dict2[subject] for subject in common_subjects)
+        
+        # Calculate magnitudes
+        magnitude1 = math.sqrt(sum(dict1[subject] ** 2 for subject in dict1))
+        magnitude2 = math.sqrt(sum(dict2[subject] ** 2 for subject in dict2))
+        
+        if magnitude1 == 0 or magnitude2 == 0:
+            return 0.0
+        
+        return dot_product / (magnitude1 * magnitude2)
+    
+    @staticmethod
+    @transaction.atomic
+    def generate_collaborative_recommendations(user):
+        """
+        Generate recommendations based on what similar users found helpful.
+        Uses collaborative filtering approach.
+        
+        Args:
+            user: The user to generate recommendations for
+        """
+        similar_users = RecommendationService.get_similar_users(user, limit=5)
+        
+        if not similar_users:
+            return
+        
+        # Get content that similar users completed successfully
+        similar_user_ids = [item['user'].id for item in similar_users]
+        
+        # Find courses completed by similar users with high skill
+        successful_courses = CourseProgress.objects.filter(
+            user_id__in=similar_user_ids,
+            is_completed=True
+        ).values('course_id').annotate(
+            completion_count=Count('id')
+        ).filter(completion_count__gte=2).order_by('-completion_count')[:5]
+        
+        # Find TDs completed by similar users with high scores
+        successful_tds = TDProgress.objects.filter(
+            user_id__in=similar_user_ids,
+            is_completed=True,
+            score__gte=70
+        ).values('td_id').annotate(
+            completion_count=Count('id')
+        ).filter(completion_count__gte=2).order_by('-completion_count')[:5]
+        
+        # Generate recommendations for courses
+        for course_data in successful_courses:
+            course = Course.objects.filter(id=course_data['course_id']).first()
+            if course:
+                # Check if user hasn't completed this course
+                if not CourseProgress.objects.filter(user=user, course=course, is_completed=True).exists():
+                    RecommendationService.generate_recommendation(
+                        user=user,
+                        recommendation_type='learn',
+                        context={
+                            'subject': course.subject.name,
+                            'course_id': course.id,
+                            'source': 'collaborative_filtering',
+                            'popularity': course_data['completion_count']
+                        }
+                    )
+        
+        # Generate recommendations for TDs
+        for td_data in successful_tds:
+            td = TD.objects.filter(id=td_data['td_id']).first()
+            if td:
+                # Check if user hasn't completed this TD
+                if not TDProgress.objects.filter(user=user, td=td, is_completed=True).exists():
+                    RecommendationService.generate_recommendation(
+                        user=user,
+                        recommendation_type='practice',
+                        context={
+                            'subject': td.subject.name,
+                            'td_id': td.id,
+                            'source': 'collaborative_filtering',
+                            'popularity': td_data['completion_count']
+                        }
+                    )
+    
+    @staticmethod
+    @transaction.atomic
+    def generate_content_based_recommendations(user):
+        """
+        Generate recommendations based on content similarity and user preferences.
+        Uses content-based filtering approach.
+        
+        Args:
+            user: The user to generate recommendations for
+        """
+        # Get user's completed content to understand preferences
+        completed_courses = CourseProgress.objects.filter(
+            user=user, is_completed=True
+        ).select_related('course__subject')
+        
+        completed_tds = TDProgress.objects.filter(
+            user=user, is_completed=True
+        ).select_related('td__subject')
+        
+        # Find preferred subjects
+        subject_preferences = {}
+        
+        for progress in completed_courses:
+            subject = progress.course.subject
+            subject_preferences[subject.id] = subject_preferences.get(subject.id, 0) + 1
+        
+        for progress in completed_tds:
+            subject = progress.td.subject
+            subject_preferences[subject.id] = subject_preferences.get(subject.id, 0) + 1
+        
+        if not subject_preferences:
+            return
+        
+        # Get most preferred subjects
+        preferred_subject_ids = sorted(subject_preferences.keys(), key=lambda x: subject_preferences[x], reverse=True)[:3]
+        
+        # Recommend content in preferred subjects that user hasn't completed
+        for subject_id in preferred_subject_ids:
+            # Recommend courses
+            uncompleted_courses = Course.objects.filter(
+                subject_id=subject_id,
+                is_published=True
+            ).exclude(
+                id__in=completed_courses.values_list('course_id', flat=True)
+            ).order_by('-created_at')[:2]
+            
+            for course in uncompleted_courses:
+                RecommendationService.generate_recommendation(
+                    user=user,
+                    recommendation_type='learn',
+                    context={
+                        'subject': course.subject.name,
+                        'course_id': course.id,
+                        'source': 'content_based_filtering',
+                        'reason': 'based_on_your_preferences'
+                    }
+                )
+            
+            # Recommend TDs
+            uncompleted_tds = TD.objects.filter(
+                subject_id=subject_id,
+                is_published=True
+            ).exclude(
+                id__in=completed_tds.values_list('td_id', flat=True)
+            ).order_by('-created_at')[:2]
+            
+            for td in uncompleted_tds:
+                RecommendationService.generate_recommendation(
+                    user=user,
+                    recommendation_type='practice',
+                    context={
+                        'subject': td.subject.name,
+                        'td_id': td.id,
+                        'source': 'content_based_filtering',
+                        'reason': 'based_on_your_preferences'
+                    }
+                )
+    
+    @staticmethod
+    @transaction.atomic
+    def generate_time_based_recommendations(user):
+        """
+        Generate recommendations based on time since last interaction.
+        Suggests review of content not visited recently.
+        
+        Args:
+            user: The user to generate recommendations for
+        """
+        # Find content completed more than 30 days ago
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        
+        old_course_progress = CourseProgress.objects.filter(
+            user=user,
+            is_completed=True,
+            completed_at__lt=thirty_days_ago
+        ).select_related('course__subject')[:5]
+        
+        old_td_progress = TDProgress.objects.filter(
+            user=user,
+            is_completed=True,
+            completed_at__lt=thirty_days_ago
+        ).select_related('td__subject')[:5]
+        
+        # Generate review recommendations
+        for progress in old_course_progress:
+            # Check current skill in this subject
+            current_skill = UserSkill.objects.filter(
+                user=user,
+                subject=progress.course.subject
+            ).first()
+            
+            if current_skill and current_skill.skill_percentage < 80:
+                RecommendationService.generate_recommendation(
+                    user=user,
+                    recommendation_type='review',
+                    context={
+                        'subject': progress.course.subject.name,
+                        'course_id': progress.course.id,
+                        'source': 'time_based',
+                        'last_completed': progress.completed_at.strftime('%Y-%m-%d'),
+                        'current_skill': current_skill.skill_percentage
+                    }
+                )
+        
+        for progress in old_td_progress:
+            # Check current skill in this subject
+            current_skill = UserSkill.objects.filter(
+                user=user,
+                subject=progress.td.subject
+            ).first()
+            
+            if current_skill and current_skill.skill_percentage < 80:
+                RecommendationService.generate_recommendation(
+                    user=user,
+                    recommendation_type='practice',
+                    context={
+                        'subject': progress.td.subject.name,
+                        'td_id': progress.td.id,
+                        'source': 'time_based',
+                        'last_completed': progress.completed_at.strftime('%Y-%m-%d'),
+                        'current_skill': current_skill.skill_percentage
+                    }
+                )
+    
+    @staticmethod
+    @transaction.atomic
+    def generate_hybrid_recommendations(user):
+        """
+        Generate recommendations using multiple algorithms for better personalization.
+        Combines collaborative filtering, content-based filtering, and time-based approaches.
+        
+        Args:
+            user: The user to generate recommendations for
+        """
+        # Clear old recommendations to avoid duplicates
+        Recommendation.objects.filter(user=user, is_active=True).update(is_active=False)
+        
+        # Generate recommendations using different approaches
+        RecommendationService.generate_recommendations_for_user(user)  # Original skill-based
+        RecommendationService.generate_collaborative_recommendations(user)  # Collaborative filtering
+        RecommendationService.generate_content_based_recommendations(user)  # Content-based filtering
+        RecommendationService.generate_time_based_recommendations(user)  # Time-based
+        
+        # Keep only the highest priority recommendations (avoid overwhelming user)
+        active_recommendations = Recommendation.objects.filter(
+            user=user,
+            is_active=True,
+            is_dismissed=False
+        ).order_by('-priority', '-created_at')
+        
+        # Keep top 10 recommendations
+        if active_recommendations.count() > 10:
+            to_deactivate = active_recommendations[10:]
+            to_deactivate.update(is_active=False)

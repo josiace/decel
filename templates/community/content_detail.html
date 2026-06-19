@@ -18,8 +18,8 @@
                 <div>
                     <span class="badge bg-primary">{{ content.subject.name }}</span>
                     <span class="badge bg-info">{{ content.get_content_type_display }}</span>
-                    {% if content.xp_price > 0 %}
-                        <span class="badge bg-warning">{{ content.xp_price }} XP</span>
+                    {% if content.dc_price > 0 %}
+                        <span class="badge bg-warning">{{ content.dc_price }} DC</span>
                     {% else %}
                         <span class="badge bg-success">Gratuit</span>
                     {% endif %}
@@ -35,11 +35,19 @@
                 </div>
                 
                 <hr>
-                
+
                 {% if can_access %}
+                    {% if has_purchased %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill"></i> Vous avez acheté ce contenu. Accès complet activé.
+                        </div>
+                    {% endif %}
+
                     <div class="content-body">
                         {% if content.content_format == 'text' %}
-                            {{ content.content|linebreaks }}
+                            <div class="text-content">
+                                {{ content.content|linebreaks }}
+                            </div>
                         {% elif content.content_format == 'pdf' %}
                             {% if content.content_file %}
                                 <div class="ratio ratio-16x9 mb-3">
@@ -64,12 +72,12 @@
                 {% else %}
                     <div class="alert alert-warning">
                         <h5><i class="bi bi-lock-fill"></i> Contenu payant</h5>
-                        <p>Ce contenu nécessite {{ content.xp_price }} XP pour y accéder.</p>
-                        <p>Votre XP actuel : {{ request.user.total_xp }} XP</p>
+                        <p>Ce contenu nécessite {{ content.dc_price }} DC pour y accéder.</p>
+                        <p>Votre solde DC actuel : {{ request.user.dc_balance }} DC</p>
                         <form method="post" action="{% url 'purchase_content' content.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-cart"></i> Acheter pour {{ content.xp_price }} XP
+                                <i class="bi bi-cart"></i> Acheter pour {{ content.dc_price }} DC
                             </button>
                         </form>
                     </div>

@@ -50,11 +50,15 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            {% for option in question.options.all %}
+                            {% for choice in question.choices.all %}
                             <div class="col-md-6 mb-2">
-                                <div class="p-2 border rounded {% if option.is_correct %}border-success bg-success bg-opacity-10{% endif %}">
-                                    <strong>{{ option.label }})</strong> {{ option.text }}
-                                    {% if option.is_correct %}
+                                <div class="p-2 border rounded {% if choice.is_correct %}border-success bg-success bg-opacity-10{% endif %}">
+                                    {% if choice.label %}
+                                    <strong>{{ choice.label }})</strong> {{ choice.text }}
+                                    {% else %}
+                                    <strong>{{ choice.text }}</strong>
+                                    {% endif %}
+                                    {% if choice.is_correct %}
                                     <span class="badge bg-success ms-2">✓ Correct</span>
                                     {% endif %}
                                 </div>

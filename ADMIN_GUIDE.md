@@ -57,7 +57,10 @@ Suivez les instructions pour définir :
 L'admin Django est organisé par applications. Voici la structure :
 
 ### 📁 **ACCOUNTS** - Gestion des Utilisateurs
-- **User** : Modèle d'utilisateur personnalisé avec XP, niveau, bio, avatar
+- **User** : Modèle d'utilisateur personnalisé avec XP, niveau, solde DC, bio, avatar
+- **DCTransaction** : Historique des transactions DC (gains, dépenses, récompenses)
+- **Contributor** : Gestion des contributeurs (créateurs de contenu)
+- **Country** : Liste des pays disponibles
 
 ### 📁 **SKILLS** - Gestion des Compétences
 - **Subject** : Matières (Mathématiques, Physique, etc.)
@@ -81,6 +84,8 @@ L'admin Django est organisé par applications. Voici la structure :
 - **XPLog** : Journal des gains d'XP
 - **Badge** : Badges à débloquer
 - **UserBadge** : Badges obtenus par les utilisateurs
+- **Leaderboard** : Classements sociaux
+- **LeaderboardEntry** : Entrées de classement
 
 ### 📁 **RECOMMENDATIONS** - Gestion des Recommandations
 - **Recommendation** : Suggestions d'apprentissage générées automatiquement
@@ -102,6 +107,7 @@ L'admin Django est organisé par applications. Voici la structure :
 - **Last Name** : Nom
 - **Total XP** : Points d'expérience cumulés
 - **Level** : Niveau actuel (calculé automatiquement)
+- **DC Balance** : Solde en Decelcone (DC) - monnaie pour les achats
 - **Bio** : Biographie de l'utilisateur
 - **Avatar** : Photo de profil
 - **Is Staff** : Cocher pour donner accès à l'admin
@@ -116,7 +122,44 @@ L'admin Django est organisé par applications. Voici la structure :
 
 **⚠️ Important :**
 - Ne modifiez pas manuellement le XP ou le niveau - ils sont calculés automatiquement
+- Le solde DC peut être ajusté manuellement si nécessaire (avec prudence)
 - Utilisez "Is Staff" pour donner accès à l'admin sans tous les droits
+
+---
+
+### 📌 DCTransaction (Transactions DC)
+
+**Affichage et monitoring :**
+- Enregistre toutes les transactions DC (gains, dépenses, récompenses)
+- Champs :
+  - **User** : Utilisateur concerné
+  - **Transaction Type** : Type (purchase, sale, exam_reward, daily_bonus, referral, admin_grant, admin_deduct)
+  - **Amount** : Montant (positif pour gain, négatif pour dépense)
+  - **Balance After** : Solde DC après la transaction
+  - **Description** : Description de la transaction
+  - **Related Content Type** : Type de contenu lié (course, td, etc.)
+  - **Related Content ID** : ID du contenu lié
+  - **Created At** : Date de la transaction
+
+**Types de transactions :**
+- **purchase** : Achat de contenu par l'utilisateur
+- **sale** : Vente de contenu par le créateur (75% commission)
+- **exam_reward** : Récompense pour examen réussi (+5 DC)
+- **daily_bonus** : Bonus quotidien de connexion (+5 DC + streak)
+- **referral** : Bonus de parrainage (à implémenter)
+- **admin_grant** : Octroi manuel de DC par l'admin
+- **admin_deduct** : Déduction manuelle de DC par l'admin
+
+**Utilisation :**
+- Consultez l'historique des transactions DC
+- Identifiez les patterns de gain/dépense
+- Ajustez manuellement les soldes si nécessaire (avec prudence)
+- Analysez l'activité économique de la plateforme
+
+**⚠️ Important :**
+- Les transactions sont créées automatiquement par le système
+- Évitez de modifier manuellement les transactions existantes
+- Utilisez les transactions admin_grant/admin_deduct pour les ajustements manuels
 
 ---
 

@@ -17,8 +17,8 @@
                 <h2>{{ td.title }}</h2>
                 <div>
                     <span class="badge bg-primary">{{ td.subject.name }}</span>
-                    {% if td.xp_price > 0 %}
-                        <span class="badge bg-warning">{{ td.xp_price }} XP</span>
+                    {% if td.dc_price > 0 %}
+                        <span class="badge bg-warning">{{ td.dc_price }} DC</span>
                     {% else %}
                         <span class="badge bg-success">Gratuit</span>
                     {% endif %}
@@ -63,12 +63,12 @@
                 {% else %}
                     <div class="alert alert-warning">
                         <h5><i class="bi bi-lock-fill"></i> Contenu payant</h5>
-                        <p>Ce TD nécessite {{ td.xp_price }} XP pour y accéder.</p>
-                        <p>Votre XP actuel : {{ request.user.total_xp }} XP</p>
+                        <p>Ce TD nécessite {{ td.dc_price }} DC pour y accéder.</p>
+                        <p>Votre solde DC actuel : {{ request.user.dc_balance }} DC</p>
                         <form method="post" action="{% url 'purchase_td' td.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-cart"></i> Acheter pour {{ td.xp_price }} XP
+                                <i class="bi bi-cart"></i> Acheter pour {{ td.dc_price }} DC
                             </button>
                         </form>
                     </div>
@@ -80,8 +80,8 @@
             <div class="card mt-4">
                 <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
                     <h4 class="mb-0">Correction</h4>
-                    {% if correction.xp_price > 0 %}
-                        <span class="badge bg-warning">{{ correction.xp_price }} XP</span>
+                    {% if correction.dc_price > 0 %}
+                        <span class="badge bg-warning">{{ correction.dc_price }} DC</span>
                     {% else %}
                         <span class="badge bg-light text-dark">Gratuit</span>
                     {% endif %}
@@ -113,12 +113,12 @@
                     {% else %}
                         <div class="alert alert-warning">
                             <h5><i class="bi bi-lock-fill"></i> Correction payante</h5>
-                            <p>Cette correction nécessite {{ correction.xp_price }} XP pour y accéder.</p>
-                            <p>Votre XP actuel : {{ request.user.total_xp }} XP</p>
+                            <p>Cette correction nécessite {{ correction.dc_price }} DC pour y accéder.</p>
+                            <p>Votre solde DC actuel : {{ request.user.dc_balance }} DC</p>
                             <form method="post" action="{% url 'purchase_correction' correction.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-warning">
-                                    <i class="bi bi-cart"></i> Acheter pour {{ correction.xp_price }} XP
+                                    <i class="bi bi-cart"></i> Acheter pour {{ correction.dc_price }} DC
                                 </button>
                             </form>
                         </div>

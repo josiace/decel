@@ -32,6 +32,15 @@ class Exam(models.Model):
     # Passing score percentage
     passing_score = models.IntegerField(default=60, verbose_name="Score de passage", help_text="Pourcentage minimum pour réussir l'examen")
     
+    # XP System (per question)
+    xp_per_correct = models.IntegerField(default=10, verbose_name="XP par bonne réponse", help_text="XP gagné pour chaque bonne réponse")
+    xp_penalty_per_wrong = models.IntegerField(default=5, verbose_name="Pénalité XP par mauvaise réponse", help_text="XP perdu pour chaque mauvaise réponse (0 = pas de pénalité)")
+    xp_reward_for_contributor = models.IntegerField(default=0, verbose_name="XP récompense pour contributeur", help_text="XP donnés au contributeur créateur quand un utilisateur rate l'examen")
+    
+    # Randomization
+    randomize_questions = models.BooleanField(default=False, verbose_name="Randomiser les questions", help_text="Cocher pour mélanger l'ordre des questions à chaque tentative")
+    randomize_choices = models.BooleanField(default=False, verbose_name="Randomiser les choix", help_text="Cocher pour mélanger l'ordre des choix de réponse à chaque tentative")
+
     # Metadata
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Créé par", help_text="Utilisateur qui a créé l'examen")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
@@ -70,10 +79,11 @@ class Question(models.Model):
         return f"Q{self.order}: Question sur fichier"
 
 
-class QuestionOption(models.Model):
+class Choice(models.Model):
     """
-    Modèle d'option de réponse pour les questions sur fichier.
-    Permet à l'admin d'ajouter visuellement des options (A, B, C, D, etc.) et de cocher les correctes.
+    Modèle de choix - réponses possibles pour une question.
+    Fonctionne pour les questions manuelles et les questions sur fichier.
+    Au moins un choix doit être marqué comme correct.
     """
     QUESTION_LABEL_CHOICES = [
         ('A', 'A'),
@@ -90,27 +100,8 @@ class QuestionOption(models.Model):
         ('6', '6'),
     ]
     
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options', verbose_name="Question", help_text="Question à laquelle cette option appartient")
-    label = models.CharField(max_length=10, choices=QUESTION_LABEL_CHOICES, verbose_name="Label", help_text="Label de l'option (A, B, C, D, 1, 2, 3, etc.)")
-    text = models.CharField(max_length=500, verbose_name="Texte de l'option", help_text="Texte de l'option de réponse")
-    is_correct = models.BooleanField(default=False, verbose_name="Réponse correcte", help_text="Cocher si cette option est une bonne réponse")
-    order = models.IntegerField(default=0, verbose_name="Ordre", help_text="Ordre d'affichage de l'option")
-    
-    class Meta:
-        ordering = ['order']
-        verbose_name = "Option de réponse"
-        verbose_name_plural = "Options de réponse"
-    
-    def __str__(self):
-        return f"{self.label}: {self.text}"
-
-
-class Choice(models.Model):
-    """
-    Modèle de choix - réponses possibles pour une question.
-    Au moins un choix doit être marqué comme correct.
-    """
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices', verbose_name="Question", help_text="Question à laquelle ce choix appartient")
+    label = models.CharField(max_length=10, choices=QUESTION_LABEL_CHOICES, blank=True, null=True, verbose_name="Label", help_text="Label optionnel (A, B, C, D, etc.) - utile pour les questions sur fichier")
     text = models.CharField(max_length=500, verbose_name="Texte", help_text="Texte de la réponse")
     is_correct = models.BooleanField(default=False, verbose_name="Correct", help_text="⚠️ Cocher SEULEMENT pour les bonnes réponses")
     order = models.IntegerField(default=0, verbose_name="Ordre", help_text="Ordre d'affichage du choix")
@@ -121,6 +112,8 @@ class Choice(models.Model):
         verbose_name_plural = "Choix de réponses"
     
     def __str__(self):
+        if self.label:
+            return f"{self.label}: {self.text}"
         return self.text
 
 
@@ -136,16 +129,22 @@ class ExamSession(models.Model):
     started_at = models.DateTimeField(auto_now_add=True, verbose_name="Heure de début")
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Heure de fin")
     
+    # Timer tracking
+    time_remaining_seconds = models.IntegerField(null=True, blank=True, verbose_name="Temps restant (secondes)", help_text="Temps restant en secondes (pour les examens chronométrés)")
+    
     # Results
     score = models.IntegerField(null=True, blank=True, verbose_name="Score", help_text="Score en pourcentage")
     passed = models.BooleanField(null=True, blank=True, verbose_name="Réussi", help_text="Indique si l'examen a été réussi")
+    xp_earned = models.IntegerField(default=0, verbose_name="XP gagné", help_text="XP gagné pour cette tentative")
+    dc_earned = models.IntegerField(default=0, verbose_name="DC gagné", help_text="DC gagné pour cette tentative")
     
     # Status
     is_completed = models.BooleanField(default=False, verbose_name="Terminé", help_text="Indique si la session est terminée")
+    is_time_expired = models.BooleanField(default=False, verbose_name="Temps expiré", help_text="Indique si le temps de l'examen a expiré")
+    is_best_attempt = models.BooleanField(default=False, verbose_name="Meilleure tentative", help_text="Indique si c'est la meilleure tentative de l'utilisateur pour cet examen")
     
     class Meta:
         ordering = ['-started_at']
-        unique_together = ['user', 'exam']  # One active session per user per exam
         verbose_name = "Session d'examen"
         verbose_name_plural = "Sessions d'examen"
     
@@ -160,10 +159,7 @@ class UserAnswer(models.Model):
     """
     session = models.ForeignKey(ExamSession, on_delete=models.CASCADE, related_name='answers', verbose_name="Session", help_text="Session d'examen associée")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Question", help_text="Question répondue")
-    selected_choices = models.ManyToManyField(Choice, related_name='user_answers', blank=True, verbose_name="Choix sélectionnés", help_text="Choix de réponse sélectionnés par l'utilisateur (pour examens manuels)")
-    
-    # For file-based exams: selected answer options (A, B, C, D, etc.)
-    selected_options = models.ManyToManyField(QuestionOption, related_name='user_answers', blank=True, verbose_name="Options sélectionnées", help_text="Options de réponse sélectionnées par l'utilisateur (pour examens sur fichier)")
+    selected_choices = models.ManyToManyField(Choice, related_name='user_answers', blank=True, verbose_name="Choix sélectionnés", help_text="Choix de réponse sélectionnés par l'utilisateur")
     
     # Result of strict evaluation
     is_correct = models.BooleanField(default=False, verbose_name="Correct", help_text="Indique si la réponse est correcte (évaluation stricte)")

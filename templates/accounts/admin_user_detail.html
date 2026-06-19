@@ -1,0 +1,220 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Détails Utilisateur - {{ user.email }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Détails Utilisateur : {{ user.email }}</h1>
+
+    <div class="module">
+        <h2>Informations Personnelles</h2>
+        <table class="table">
+            <tr>
+                <th>Email</th>
+                <td>{{ user.email }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ user.first_name }} {{ user.last_name }}</td>
+            </tr>
+            <tr>
+                <th>Pays</th>
+                <td>{{ user.country.name|default:"Non spécifié" }}</td>
+            </tr>
+            <tr>
+                <th>Téléphone</th>
+                <td>{{ user.phone_number|default:"Non spécifié" }}</td>
+            </tr>
+            <tr>
+                <th>XP Total</th>
+                <td>{{ user.total_xp }}</td>
+            </tr>
+            <tr>
+                <th>Niveau</th>
+                <td>{{ user.level }}</td>
+            </tr>
+            <tr>
+                <th>Solde DC</th>
+                <td>{{ user.dc_balance }}</td>
+            </tr>
+            <tr>
+                <th>Est Contributeur</th>
+                <td>{{ user.is_contributor|yesno }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>
+                    {% if user.is_active %}Actif{% else %}Inactif{% endif %}
+                    {% if user.is_staff %} (Staff){% endif %}
+                    {% if user.is_superuser %} (Superuser){% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Date de création</th>
+                <td>{{ user.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            <tr>
+                <th>Dernière connexion</th>
+                <td>{{ user.last_login|date:"d/m/Y H:i"|default:"Jamais" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if contributor %}
+    <div class="module">
+        <h2>Informations Contributeur</h2>
+        <table class="table">
+            <tr>
+                <th>Actif</th>
+                <td>{{ contributor.is_active|yesno }}</td>
+            </tr>
+            <tr>
+                <th>Peut créer des cours</th>
+                <td>{{ contributor.can_create_courses|yesno }}</td>
+            </tr>
+            <tr>
+                <th>Peut créer des examens</th>
+                <td>{{ contributor.can_create_exams|yesno }}</td>
+            </tr>
+            <tr>
+                <th>Peut créer du contenu communautaire</th>
+                <td>{{ contributor.can_create_community_content|yesno }}</td>
+            </tr>
+            <tr>
+                <th>Date de création</th>
+                <td>{{ contributor.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="module">
+        <h2>Sessions d'Examen ({{ exam_sessions|length }})</h2>
+        {% if exam_sessions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Examen</th>
+                    <th>Score</th>
+                    <th>Réussi</th>
+                    <th>XP Gagné</th>
+                    <th>Meilleure Tentative</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in exam_sessions %}
+                <tr>
+                    <td>{{ session.exam.title }}</td>
+                    <td>{{ session.score }}%</td>
+                    <td>{{ session.passed|yesno }}</td>
+                    <td>{{ session.xp_earned }}</td>
+                    <td>{{ session.is_best_attempt|yesno }}</td>
+                    <td>{{ session.started_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucune session d'examen.</p>
+        {% endif %}
+    </div>
+
+    <div class="module">
+        <h2>Logs XP (20 derniers)</h2>
+        {% if xp_logs %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>XP</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in xp_logs %}
+                <tr>
+                    <td>{{ log.reason }}</td>
+                    <td class="{% if log.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ log.amount }}
+                    </td>
+                    <td>{{ log.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun log XP.</p>
+        {% endif %}
+    </div>
+
+    <div class="module">
+        <h2>Transactions DC (20 dernières)</h2>
+        {% if dc_transactions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Montant</th>
+                    <th>Solde après</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in dc_transactions %}
+                <tr>
+                    <td>{{ transaction.get_transaction_type_display }}</td>
+                    <td class="{% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ transaction.amount }}
+                    </td>
+                    <td>{{ transaction.balance_after }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucune transaction DC.</p>
+        {% endif %}
+    </div>
+
+    <div class="module">
+        <h2>Contenu Communautaire ({{ community_content|length }})</h2>
+        {% if community_content %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Type</th>
+                    <th>Matière</th>
+                    <th>Statut</th>
+                    <th>Prix XP</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for content in community_content %}
+                <tr>
+                    <td>{{ content.title }}</td>
+                    <td>{{ content.get_content_type_display }}</td>
+                    <td>{{ content.subject.name }}</td>
+                    <td>{{ content.get_status_display }}</td>
+                    <td>{{ content.xp_price }}</td>
+                    <td>{{ content.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun contenu communautaire.</p>
+        {% endif %}
+    </div>
+
+    <div class="submit-row">
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="button">Retour à la liste</a>
+        <a href="{% url 'admin:accounts_user_change' user.id %}" class="button">Modifier l'utilisateur</a>
+    </div>
+</div>
+{% endblock %}

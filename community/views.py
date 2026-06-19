@@ -40,7 +40,7 @@ def content_create(request):
         content_format = request.POST.get('content_format')
         content = request.POST.get('content', '')
         content_file = request.FILES.get('content_file')
-        xp_price = request.POST.get('xp_price', 0)
+        dc_price = request.POST.get('dc_price', 0)
         subject_id = request.POST.get('subject')
         
         if not all([content_type, title, subject_id]):
@@ -68,7 +68,7 @@ def content_create(request):
             content_format=content_format,
             content=content,
             content_file=content_file,
-            xp_price=int(xp_price),
+            dc_price=int(dc_price),
             subject=subject,
             author=request.user,
             status='draft'
@@ -97,7 +97,7 @@ def content_edit(request, content_id):
         content.content_format = request.POST.get('content_format')
         content.content = request.POST.get('content', '')
         content_file = request.FILES.get('content_file')
-        content.xp_price = int(request.POST.get('xp_price', 0))
+        content.dc_price = int(request.POST.get('dc_price', 0))
         content.subject_id = request.POST.get('subject')
         
         # Validate content based on format
@@ -197,14 +197,17 @@ def moderate_content(request, content_id):
 def content_detail(request, content_id):
     """Show community content details."""
     content = get_object_or_404(Content, id=content_id, status='approved')
-    
-    # Check if user can access the content
-    can_access = content.xp_price == 0 or content.author == request.user
-    
-    # Check if user has purchased (we'll need a purchase model for community)
-    # For now, we'll use a simple check
-    has_purchased = False
-    
+
+    # Check if user can access the content (free or author)
+    can_access = content.dc_price == 0 or content.author == request.user
+
+    # Check if user has purchased the content
+    from .models import ContentPurchase
+    has_purchased = ContentPurchase.objects.filter(user=request.user, content=content).exists()
+
+    # User can access if free, author, or has purchased
+    can_access = can_access or has_purchased
+
     return render(request, 'community/content_detail.html', {
         'content': content,
         'can_access': can_access,
@@ -214,34 +217,46 @@ def content_detail(request, content_id):
 
 @login_required
 def purchase_content(request, content_id):
-    """Purchase community content with XP."""
+    """Purchase community content with DC."""
+    from accounts.services import DCService
+    from .models import ContentPurchase
+
     content = get_object_or_404(Content, id=content_id, status='approved')
-    
-    if content.xp_price == 0:
+
+    if content.dc_price == 0:
         messages.success(request, 'Ce contenu est gratuit.')
         return redirect('content_detail', content_id=content.id)
-    
+
     if content.author == request.user:
         messages.success(request, 'Vous êtes l\'auteur de ce contenu.')
         return redirect('content_detail', content_id=content.id)
-    
-    if request.user.total_xp < content.xp_price:
-        messages.error(request, f'XP insuffisant. Vous avez {request.user.total_xp} XP, mais il faut {content.xp_price} XP.')
+
+    # Check if user has already purchased this content
+    if ContentPurchase.objects.filter(user=request.user, content=content).exists():
+        messages.info(request, 'Vous avez déjà acheté ce contenu.')
         return redirect('content_detail', content_id=content.id)
-    
-    # Deduct XP
-    request.user.total_xp -= content.xp_price
-    request.user.save()
-    
-    # Log the purchase
-    XPService.award_xp(
-        user=request.user,
-        amount=-content.xp_price,
-        reason=f"Achat de contenu communautaire : {content.title}",
-        action_type='purchase'
+
+    # Traiter l'achat avec DCService (débiter acheteur, créditer créateur)
+    success, message = DCService.process_content_purchase(
+        purchaser=request.user,
+        content_type='community_content',
+        content_id=content.id,
+        price=content.dc_price,
+        author=content.author
     )
-    
-    messages.success(request, f'Contenu acheté avec succès pour {content.xp_price} XP.')
+
+    if not success:
+        messages.error(request, message)
+        return redirect('content_detail', content_id=content.id)
+
+    # Create purchase record
+    ContentPurchase.objects.create(
+        user=request.user,
+        content=content,
+        price_paid=content.dc_price
+    )
+
+    messages.success(request, f'Contenu acheté avec succès pour {content.dc_price} DC.')
     return redirect('content_detail', content_id=content.id)
 
 
@@ -249,17 +264,19 @@ def purchase_content(request, content_id):
 def download_file(request, content_id):
     """Download community content file."""
     content = get_object_or_404(Content, id=content_id, status='approved')
-    
-    # Check if user can access
-    if content.xp_price > 0 and content.author != request.user:
-        # For now, we'll allow access if the user has enough XP (simplified)
-        # In a real implementation, we'd check a purchase record
+
+    # Check if user can access (free, author, or has purchased)
+    from .models import ContentPurchase
+    has_purchased = ContentPurchase.objects.filter(user=request.user, content=content).exists()
+    can_access = content.dc_price == 0 or content.author == request.user or has_purchased
+
+    if not can_access:
         messages.error(request, "Vous devez acheter ce contenu pour le télécharger.")
         return redirect('content_detail', content_id=content.id)
-    
+
     if not content.content_file:
         raise Http404("Aucun fichier disponible")
-    
+
     try:
         response = FileResponse(content.content_file.open('rb'), as_attachment=True)
         response['Content-Disposition'] = f'attachment; filename="{content.content_file.name.split("/")[-1]}"'

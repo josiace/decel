@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique d'Activité - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'dashboard' %}" style="color: var(--primary-color);">Tableau de Bord</a> &gt; 
+            <a href="{% url 'analytics:user_analytics' %}" style="color: var(--primary-color);">Mes Analytics</a> &gt; 
+            <span>Historique d'Activité</span>
+        </div>
+
+        <h1>📋 Historique d'Activité</h1>
+        <p class="lead text-muted">Toutes vos activités sur la plateforme</p>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="d-flex gap-2">
+                    <select name="type" class="form-control" style="width: auto;">
+                        <option value="">Tous les types</option>
+                        <option value="login" {% if activity_type == 'login' %}selected{% endif %}>Connexion</option>
+                        <option value="exam_start" {% if activity_type == 'exam_start' %}selected{% endif %}>Début examen</option>
+                        <option value="exam_complete" {% if activity_type == 'exam_complete' %}selected{% endif %}>Fin examen</option>
+                        <option value="course_start" {% if activity_type == 'course_start' %}selected{% endif %}>Début cours</option>
+                        <option value="course_complete" {% if activity_type == 'course_complete' %}selected{% endif %}>Fin cours</option>
+                        <option value="td_start" {% if activity_type == 'td_start' %}selected{% endif %}>Début TD</option>
+                        <option value="td_complete" {% if activity_type == 'td_complete' %}selected{% endif %}>Fin TD</option>
+                        <option value="badge_earned" {% if activity_type == 'badge_earned' %}selected{% endif %}>Badge obtenu</option>
+                        <option value="level_up" {% if activity_type == 'level_up' %}selected{% endif %}>Niveau supérieur</option>
+                    </select>
+                    <select name="days" class="form-control" style="width: auto;">
+                        <option value="7" {% if days == '7' %}selected{% endif %}>7 derniers jours</option>
+                        <option value="30" {% if days == '30' %}selected{% endif %}>30 derniers jours</option>
+                        <option value="90" {% if days == '90' %}selected{% endif %}>90 derniers jours</option>
+                        <option value="365" {% if days == '365' %}selected{% endif %}>365 derniers jours</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <a href="{% url 'analytics:activity_log' %}" class="btn btn-secondary">Réinitialiser</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Activity List -->
+        <div class="card">
+            <div class="card-body">
+                {% if activities %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in activities %}
+                            <tr>
+                                <td>{{ activity.get_activity_type_display }}</td>
+                                <td>{{ activity.created_at|date:"d/m/Y H:i:s" }}</td>
+                                <td>{{ activity.ip_address|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Aucune activité trouvée pour les filtres sélectionnés.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

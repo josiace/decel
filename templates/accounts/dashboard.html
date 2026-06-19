@@ -2,40 +2,220 @@
 
 {% block title %}Tableau de Bord - DECEL{% endblock %}
 
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+    }
+    .kpi-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .kpi-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .streak-day {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+    .streak-day.active {
+        background: #28a745;
+        color: white;
+    }
+    .streak-day.inactive {
+        background: #e9ecef;
+        color: #6c757d;
+    }
+    .badge-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <!-- XP and Level Card -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Votre Progression</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-3">
-                    <h2>Level {{ user.level }}</h2>
-                    <p class="text-muted">{{ user.total_xp }} XP</p>
-                </div>
-                <div class="mb-2">
-                    <small class="text-muted">Progression de niveau</small>
-                    <div class="skill-bar">
-                        <div class="skill-progress bg-success" style="width: {{ level_progress.progress_percentage }}%"></div>
-                    </div>
-                    <small class="text-muted">{{ level_progress.xp_in_current_level }} / {{ level_progress.xp_needed_for_level }} XP</small>
-                </div>
+<!-- KPIs Section -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card kpi-card bg-primary text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">{{ user.total_xp }}</div>
+                <div class="kpi-label">XP Total</div>
+                <small class="text-white-50">+{{ xp_7d }} cette semaine</small>
             </div>
         </div>
     </div>
+    <div class="col-md-2">
+        <div class="card kpi-card bg-success text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">Level {{ user.level }}</div>
+                <div class="kpi-label">Niveau</div>
+                <small class="text-white-50">{{ level_progress.progress_percentage }}% complété</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card kpi-card bg-warning text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">{{ user.dc_balance }}</div>
+                <div class="kpi-label">DC Solde</div>
+                <small class="text-white-50">Decelcone</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card kpi-card bg-info text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">{{ user.current_streak }}</div>
+                <div class="kpi-label">Série Actuelle</div>
+                <small class="text-white-50">jours consécutifs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card kpi-card bg-danger text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">{{ exams_7d }}</div>
+                <div class="kpi-label">Examens (7j)</div>
+                <small class="text-white-50">{{ exams_30d }} ce mois</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card kpi-card bg-secondary text-white">
+            <div class="card-body text-center">
+                <div class="kpi-value">{{ study_time_7d }}</div>
+                <div class="kpi-label">Temps Étude</div>
+                <small class="text-white-50">minutes totales</small>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Recommendations Card -->
-    <div class="col-md-8 mb-4">
+<!-- Charts Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">XP Accordé (30 jours)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="xpChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Activité Examens (30 jours)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="activityChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Streak and Badges Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Série Hebdomadaire</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    {% for day in streak_data %}
+                        <div class="streak-day {% if day.active %}active{% else %}inactive{% endif %}">
+                            {{ day.date }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="text-muted mt-3 text-center">
+                    <small>🔥 Maintenez votre série pour gagner des bonus XP !</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">Badges Obtenus</h5>
+            </div>
+            <div class="card-body">
+                {% if user_badges %}
+                    <div class="d-flex flex-wrap gap-3">
+                        {% for user_badge in user_badges %}
+                            <div class="text-center">
+                                <div class="badge-icon mb-1">🏆</div>
+                                <small>{{ user_badge.badge.name }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">Aucun badge obtenu. Continuez à apprendre pour en débloquer !</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skills and Recommendations Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="background: var(--accent-color); color: white;">
+                <h5 class="mb-0">Compétences par Matière</h5>
+            </div>
+            <div class="card-body">
+                {% if user_skills %}
+                    {% for skill in user_skills %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ skill.subject.name }}</strong>
+                                <span>{{ skill.skill_percentage }}%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress"
+                                     style="width: {{ skill.skill_percentage }}%; background: {% if skill.skill_percentage >= 70 %}var(--secondary-color){% elif skill.skill_percentage >= 50 %}var(--accent-color){% else %}var(--danger-color){% endif %};"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Aucune compétence enregistrée pour le moment. Commencez à apprendre !</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="background: #3b82f6; color: white;">
                 <h5 class="mb-0">Recommandations</h5>
             </div>
             <div class="card-body">
                 {% if recommendations %}
                     {% for rec in recommendations %}
-                        <div class="recommendation-card p-3 mb-3 bg-light">
+                        <div class="recommendation-card p-3 mb-3" style="background: var(--light-bg);">
                             <h6>{{ rec.title }}</h6>
                             <p class="mb-0 text-muted small">{{ rec.description }}</p>
                         </div>
@@ -48,36 +228,27 @@
     </div>
 </div>
 
-<div class="row">
-    <!-- Skills Breakdown -->
-    <div class="col-md-6 mb-4">
+<!-- Competition and Leaderboard Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">Compétences par Matière</h5>
+            <div class="card-header bg-purple text-white" style="background: #8b5cf6;">
+                <h5 class="mb-0">Classement</h5>
             </div>
             <div class="card-body">
-                {% if user_skills %}
-                    {% for skill in user_skills %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <strong>{{ skill.subject.name }}</strong>
-                                <span>{{ skill.skill_percentage }}%</span>
-                            </div>
-                            <div class="skill-bar">
-                                <div class="skill-progress {% if skill.skill_percentage >= 70 %}bg-success{% elif skill.skill_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                     style="width: {{ skill.skill_percentage }}%"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
+                {% if leaderboard_position %}
+                    <div class="text-center">
+                        <h2 class="display-4">#{{ leaderboard_position.position }}</h2>
+                        <p class="text-muted">Votre position dans le classement global</p>
+                        <p class="text-muted">Score: {{ leaderboard_position.score }} XP</p>
+                    </div>
                 {% else %}
-                    <p class="text-muted">Aucune compétence enregistrée pour le moment. Commencez à apprendre !</p>
+                    <p class="text-muted text-center">Vous n'êtes pas encore classé. Gagnez de l'XP pour apparaître dans le classement !</p>
                 {% endif %}
             </div>
         </div>
     </div>
-
-    <!-- Weak Areas -->
-    <div class="col-md-6 mb-4">
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-danger text-white">
                 <h5 class="mb-0">Zones à Améliorer</h5>
@@ -88,7 +259,7 @@
                         {% for skill in weak_areas %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 {{ skill.subject.name }}
-                                <span class="badge bg-danger">{{ skill.skill_percentage }}%</span>
+                                <span class="badge" style="background: var(--danger-color); color: white;">{{ skill.skill_percentage }}%</span>
                             </li>
                         {% endfor %}
                     </ul>
@@ -100,8 +271,54 @@
     </div>
 </div>
 
-<div class="row">
-    <!-- Recent Activity -->
+<!-- Community Content Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-teal text-white" style="background: #14b8a6;">
+                <h5 class="mb-0">Vos Achats de Contenu</h5>
+            </div>
+            <div class="card-body">
+                {% if content_purchases %}
+                    <ul class="list-group">
+                        {% for purchase in content_purchases %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ purchase.content.title }}
+                                <span class="badge" style="background: #14b8a6; color: white;">{{ purchase.price_paid }} DC</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Aucun achat de contenu pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-indigo text-white" style="background: #6366f1;">
+                <h5 class="mb-0">Votre Contenu Communautaire</h5>
+            </div>
+            <div class="card-body">
+                {% if user_content %}
+                    <ul class="list-group">
+                        {% for content in user_content %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ content.title }}
+                                <span class="badge" style="background: #6366f1; color: white;">{{ content.content_type }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Vous n'avez pas encore créé de contenu communautaire.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Timeline -->
+<div class="row mb-4">
     <div class="col-md-12">
         <div class="card">
             <div class="card-header bg-secondary text-white">
@@ -136,4 +353,53 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+// XP Chart
+const xpCtx = document.getElementById('xpChart').getContext('2d');
+new Chart(xpCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'XP',
+            data: [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Activity Chart
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+new Chart(activityCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in activity_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Examens',
+            data: [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
 {% endblock %}

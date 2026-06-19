@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-12">
         <h2 class="mb-4">Examens Disponibles</h2>
-        
+
         {% if exams %}
             <div class="row">
                 {% for exam in exams %}
@@ -14,10 +14,10 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">{{ exam.title }}</h5>
-                                <span class="badge bg-primary">{{ exam.subject.name }}</span>
+                                <span class="badge" style="background: var(--primary-color); color: white;">{{ exam.subject.name }}</span>
                             </div>
                             <div class="card-body">
-                                <p class="card-text">{{ exam.description|default:"Pas de description disponible." }}</p>
+                                <p>{{ exam.description|default:"Pas de description disponible." }}</p>
                                 <div class="mb-2">
                                     <strong>Difficulté :</strong> {{ exam.difficulty }}/5
                                 </div>

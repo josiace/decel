@@ -1,5 +1,5 @@
 from django import forms
-from exams.models import Exam, Question, QuestionOption
+from exams.models import Exam, Question, Choice
 from skills.models import Subject
 
 
@@ -32,11 +32,11 @@ class QuestionCreateForm(forms.ModelForm):
         }
 
 
-class QuestionOptionForm(forms.ModelForm):
-    """Formulaire de création d'option de question pour les contributeurs."""
+class ChoiceForm(forms.ModelForm):
+    """Formulaire de création de choix de réponse pour les contributeurs."""
     
     class Meta:
-        model = QuestionOption
+        model = Choice
         fields = ['label', 'text', 'is_correct']
         widgets = {
             'label': forms.Select(attrs={'class': 'form-select'}),

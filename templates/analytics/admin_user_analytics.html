@@ -1,0 +1,295 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Analytiques Utilisateur - {{ user.email }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stat-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+    }
+    .stat-card .value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+    }
+    .stat-card .trend {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .trend.positive { color: #28a745; }
+    .trend.negative { color: #dc3545; }
+    .chart-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .table-container table {
+        width: 100%;
+    }
+    .table-container th, .table-container td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    .table-container th {
+        background: #f8f9fa;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <a href="/admin/accounts/user/" class="btn btn-secondary mb-3">← Retour aux utilisateurs</a>
+            <h1>Analytiques Utilisateur : {{ user.email }}</h1>
+            <p class="text-muted">Vue d'ensemble des statistiques et performances de l'utilisateur</p>
+        </div>
+    </div>
+
+    <!-- User Info Card -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="stat-card">
+                <h3>Informations Utilisateur</h3>
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Email:</strong> {{ user.email }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Nom:</strong> {{ user.first_name }} {{ user.last_name }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Niveau:</strong> {{ user.level }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Série actuelle:</strong> {{ user.current_streak }} jours
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <!-- XP Statistics -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>XP Total</h3>
+                <div class="value">{{ xp_stats.total }}</div>
+                <div class="trend positive">+{{ xp_stats.xp_7d }} cette semaine</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Examens Totaux</h3>
+                <div class="value">{{ exam_stats.total }}</div>
+                <div class="trend">{{ exam_stats.passed }} réussis</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Taux de Réussite</h3>
+                <div class="value">{{ exam_stats.pass_rate }}%</div>
+                <div class="trend">Score moyen: {{ exam_stats.avg_score }}%</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Achats Contenu</h3>
+                <div class="value">{{ purchase_stats.total }}</div>
+                <div class="trend">{{ purchase_stats.total_spent }} DC dépensés</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>XP Accordé (30 jours)</h3>
+                <canvas id="xpOverTimeChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Performance Examens (30 jours)</h3>
+                <canvas id="examPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>XP par Type d'Action</h3>
+                <canvas id="xpByActionChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Performance par Matière</h3>
+                <canvas id="subjectPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="table-container">
+                <h3>Activité XP Récente</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                            <th>XP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_xp_logs %}
+                        <tr>
+                            <td>{{ log.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>{{ log.action_type }}</td>
+                            <td>+{{ log.amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="table-container">
+                <h3>Examens Récents</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Examen</th>
+                            <th>Score</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in recent_exams %}
+                        <tr>
+                            <td>{{ session.started_at|date:"d/m/Y H:i" }}</td>
+                            <td>{{ session.exam.title }}</td>
+                            <td>{{ session.score }}%</td>
+                            <td>{% if session.passed %}<span style="color: green">Réussi</span>{% else %}<span style="color: red">Échoué</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// XP Over Time Chart
+const xpOverTimeCtx = document.getElementById('xpOverTimeChart').getContext('2d');
+new Chart(xpOverTimeCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'XP',
+            data: [{% for item in xp_over_time %}{{ item.amount }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Exam Performance Chart
+const examPerformanceCtx = document.getElementById('examPerformanceChart').getContext('2d');
+new Chart(examPerformanceCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in exam_performance %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Score moyen',
+            data: [{% for item in exam_performance %}{{ item.avg_score }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+
+// XP By Action Chart
+const xpByActionCtx = document.getElementById('xpByActionChart').getContext('2d');
+new Chart(xpByActionCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for item in xp_by_action %}'{{ item.action }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for item in xp_by_action %}{{ item.amount }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+
+// Subject Performance Chart
+const subjectPerformanceCtx = document.getElementById('subjectPerformanceChart').getContext('2d');
+new Chart(subjectPerformanceCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in subject_performance %}'{{ item.subject }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Compétence (%)',
+            data: [{% for item in subject_performance %}{{ item.skill_percentage }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(153, 102, 255, 0.5)',
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+</script>
+{% endblock %}

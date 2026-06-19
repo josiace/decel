@@ -5,28 +5,26 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
-                <li class="breadcrumb-item active">{{ exam.title }}</li>
-            </ol>
-        </nav>
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'exam_list' %}" style="color: var(--primary-color);">Examens</a> &gt; 
+            <span>{{ exam.title }}</span>
+        </div>
 
         <div class="card">
             <div class="card-header">
                 <h2>{{ exam.title }}</h2>
-                <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+                <span class="badge" style="background: #3b82f6; color: white;">{{ exam.get_exam_type_display }}</span>
             </div>
             <div class="card-body">
                 <p class="lead">{{ exam.description|default:"Pas de description disponible." }}</p>
                 
                 {% if exam.exam_type == 'file' %}
                     {% if exam.question_file %}
-                        <div class="ratio ratio-16x9 mb-4">
-                            <iframe src="{{ exam.question_file.url }}" allowfullscreen></iframe>
+                        <div style="margin-bottom: 1rem; position: relative; padding-bottom: 56.25%; height: 0;">
+                            <iframe src="{{ exam.question_file.url }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
                         </div>
                         <a href="{{ exam.question_file.url }}" class="btn btn-secondary mb-4" target="_blank">
-                            <i class="bi bi-download"></i> Télécharger le fichier
+                            <i class="fas fa-download"></i> Télécharger le fichier
                         </a>
                     {% else %}
                         <div class="alert alert-warning">

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Classements - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'dashboard' %}" style="color: var(--primary-color);">Tableau de Bord</a> &gt; 
+            <span>Classements</span>
+        </div>
+
+        <h1>🏆 Classements</h1>
+        <p class="lead text-muted">Comparez vos performances avec les autres apprenants</p>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>🌍 Classement Global XP</h3>
+                        <p class="text-muted">Les meilleurs apprenants par XP total</p>
+                        <a href="{% url 'gamification:global_leaderboard' %}" class="btn btn-primary">Voir le classement</a>
+                    </div>
+                </div>
+            </div>
+            
+            {% for leaderboard in leaderboards %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>{{ leaderboard.name }}</h3>
+                        <p class="text-muted">{{ leaderboard.description }}</p>
+                        <p class="small text-muted">
+                            Type: {{ leaderboard.get_leaderboard_type_display }} | 
+                            Période: {{ leaderboard.get_time_period_display }}
+                        </p>
+                        {% if leaderboard.subject %}
+                        <p class="small">
+                            <span class="badge badge-info">{{ leaderboard.subject.name }}</span>
+                        </p>
+                        {% endif %}
+                        {% if leaderboard.id in user_positions %}
+                        <p class="text-success">
+                            <strong>Votre position:</strong> #{{ user_positions|get_item:leaderboard.id }}
+                        </p>
+                        {% endif %}
+                        <a href="{% url 'gamification:leaderboard_detail' leaderboard.id %}" class="btn btn-primary">Voir le classement</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

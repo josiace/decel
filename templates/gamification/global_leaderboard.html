@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Classement Global XP - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'dashboard' %}" style="color: var(--primary-color);">Tableau de Bord</a> &gt; 
+            <a href="{% url 'gamification:leaderboard_list' %}" style="color: var(--primary-color);">Classements</a> &gt; 
+            <span>Classement Global XP</span>
+        </div>
+
+        <h1>🌍 Classement Global XP</h1>
+        <p class="lead text-muted">Les meilleurs apprenants par XP total</p>
+
+        {% if user_rank %}
+        <div class="alert alert-info">
+            <strong>Votre position:</strong> #{{ user_rank }}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rang</th>
+                                <th>Utilisateur</th>
+                                <th>Niveau</th>
+                                <th>XP Total</th>
+                                <th>Examens</th>
+                                <th>Badges</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_users %}
+                            <tr {% if user.id == request.user.id %}style="background: rgba(99, 102, 241, 0.1);"{% endif %}>
+                                <td>
+                                    {% if forloop.counter == 1 %}
+                                    🥇
+                                    {% elif forloop.counter == 2 %}
+                                    🥈
+                                    {% elif forloop.counter == 3 %}
+                                    🥉
+                                    {% else %}
+                                    #{{ forloop.counter }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ user.get_full_name|default:user.email }}</strong>
+                                    {% if user.id == request.user.id %}
+                                    <span class="badge badge-primary ms-2">Vous</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="level-badge">{{ user.level }}</span>
+                                </td>
+                                <td>
+                                    <span class="xp-badge">{{ user.total_xp }} XP</span>
+                                </td>
+                                <td>{{ user.exam_count }}</td>
+                                <td>{{ user.badge_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

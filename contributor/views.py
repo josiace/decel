@@ -4,9 +4,9 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from accounts.models import User, Contributor
 from learning.models import Course, TD, CorrectedTD
-from exams.models import Exam, Question, QuestionOption
+from exams.models import Exam, Question, Choice
 from community.models import Content
-from .forms import ExamCreateForm, QuestionCreateForm, QuestionOptionForm
+from .forms import ExamCreateForm, QuestionCreateForm, ChoiceForm
 
 
 @login_required
@@ -167,8 +167,8 @@ def add_questions(request, exam_id):
             text=''  # Empty for file-based exams
         )
         
-        # Create options from POST data
-        option_count = 0
+        # Create choices from POST data
+        choice_count = 0
         for key in request.POST:
             if key.startswith('option_label_'):
                 index = key.split('_')[-1]
@@ -176,30 +176,30 @@ def add_questions(request, exam_id):
                 text = request.POST.get(f'option_text_{index}')
                 is_correct = request.POST.get(f'option_correct_{index}') == 'on'
                 
-                if label and text:
-                    QuestionOption.objects.create(
+                if text:
+                    Choice.objects.create(
                         question=question,
-                        label=label,
+                        label=label if label else None,
                         text=text,
                         is_correct=is_correct,
-                        order=option_count
+                        order=choice_count
                     )
-                    option_count += 1
+                    choice_count += 1
         
-        if option_count > 0:
-            # Check if at least one option is correct
-            correct_count = question.options.filter(is_correct=True).count()
+        if choice_count > 0:
+            # Check if at least one choice is correct
+            correct_count = question.choices.filter(is_correct=True).count()
             if correct_count == 0:
                 messages.warning(request, "Attention : Aucune réponse correcte cochée pour cette question.")
             else:
-                messages.success(request, f"Question {next_order} ajoutée avec {option_count} options !")
+                messages.success(request, f"Question {next_order} ajoutée avec {choice_count} choix !")
         else:
             question.delete()
             messages.error(request, "Veuillez ajouter au moins une option de réponse.")
         
         return redirect('contributor:add_questions', exam_id=exam.id)
     
-    questions = exam.questions.all().prefetch_related('options').order_by('order')
+    questions = exam.questions.all().prefetch_related('choices').order_by('order')
     
     return render(request, 'contributor/add_questions.html', {
         'exam': exam,

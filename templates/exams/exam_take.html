@@ -5,13 +5,11 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'exam_detail' exam.id %}">{{ exam.title }}</a></li>
-                <li class="breadcrumb-item active">Passer l'Examen</li>
-            </ol>
-        </nav>
+        <div style="margin-bottom: 1rem;">
+            <a href="{% url 'exam_list' %}" style="color: var(--primary-color);">Examens</a> &gt; 
+            <a href="{% url 'exam_detail' exam.id %}" style="color: var(--primary-color);">{{ exam.title }}</a> &gt; 
+            <span>Passer l'Examen</span>
+        </div>
 
         {% if error %}
             <div class="alert alert-danger">
@@ -19,19 +17,29 @@
             </div>
         {% endif %}
 
+        {% if time_limit_minutes %}
+        <div class="card mb-4" style="background: linear-gradient(135deg, var(--danger-color), #dc2626); color: white;">
+            <div class="card-body text-center">
+                <h3>⏱️ Temps Restant</h3>
+                <div id="timer" style="font-size: 2.5rem; font-weight: bold;">{{ time_limit_minutes }}:00</div>
+                <p class="mb-0">minutes</p>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card">
             <div class="card-header">
                 <h2>{{ exam.title }}</h2>
-                <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+                <span class="badge" style="background: #3b82f6; color: white;">{{ exam.get_exam_type_display }}</span>
             </div>
             <div class="card-body">
                 {% if exam.exam_type == 'file' %}
                     {% if exam.question_file %}
-                        <div class="ratio ratio-16x9 mb-4">
-                            <iframe src="{{ exam.question_file.url }}" allowfullscreen></iframe>
+                        <div style="margin-bottom: 1rem; position: relative; padding-bottom: 56.25%; height: 0;">
+                            <iframe src="{{ exam.question_file.url }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
                         </div>
                         <a href="{{ exam.question_file.url }}" class="btn btn-secondary mb-4" target="_blank">
-                            <i class="bi bi-download"></i> Télécharger le fichier
+                            <i class="fas fa-download"></i> Télécharger le fichier
                         </a>
                     {% else %}
                         <div class="alert alert-warning">
@@ -40,12 +48,12 @@
                     {% endif %}
                 {% endif %}
                 
-                <form method="post" action="{% url 'exam_submit' exam.id %}">
+                <form method="post" action="{% url 'exam_submit' exam.id %}" id="examForm">
                     {% csrf_token %}
                     
                     {% for question in questions %}
                         <div class="card mb-4">
-                            <div class="card-header bg-light">
+                            <div class="card-header" style="background: var(--light-bg);">
                                 <h5>Question {{ forloop.counter }}</h5>
                             </div>
                             <div class="card-body">
@@ -55,13 +63,13 @@
                                     <div class="list-group">
                                         {% for choice in question.choices.all %}
                                             <div class="list-group-item">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" 
-                                                           type="checkbox" 
+                                                <div style="display: flex; align-items: center;">
+                                                    <input type="checkbox" 
                                                            name="question_{{ question.id }}" 
                                                            value="{{ choice.id }}" 
-                                                           id="choice_{{ choice.id }}">
-                                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                           id="choice_{{ choice.id }}"
+                                                           style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;">
+                                                    <label for="choice_{{ choice.id }}" style="margin: 0; cursor: pointer;">
                                                         {{ choice.text }}
                                                     </label>
                                                 </div>
@@ -69,20 +77,20 @@
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {% if question.options.exists %}
+                                    {% if question.choices.exists %}
                                         <p class="lead">Sélectionnez les bonnes réponses pour cette question :</p>
                                         
                                         <div class="list-group">
-                                            {% for option in question.options.all %}
+                                            {% for choice in question.choices.all %}
                                                 <div class="list-group-item">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" 
-                                                               type="checkbox" 
+                                                    <div style="display: flex; align-items: center;">
+                                                        <input type="checkbox" 
                                                                name="question_{{ question.id }}" 
-                                                               value="{{ option.id }}" 
-                                                               id="option_{{ option.id }}">
-                                                        <label class="form-check-label" for="option_{{ option.id }}">
-                                                            <strong>{{ option.label }})</strong> {{ option.text }}
+                                                               value="{{ choice.id }}" 
+                                                               id="choice_{{ choice.id }}"
+                                                               style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;">
+                                                        <label for="choice_{{ choice.id }}" style="margin: 0; cursor: pointer;">
+                                                            <strong>{{ choice.label }})</strong> {{ choice.text }}
                                                         </label>
                                                     </div>
                                                 </div>
@@ -107,4 +115,33 @@
         </div>
     </div>
 </div>
+
+{% if time_limit_minutes %}
+<script>
+let timeRemaining = {{ time_limit_minutes }} * 60;
+{% if time_remaining_seconds %}
+timeRemaining = {{ time_remaining_seconds }};
+{% endif %}
+const timerElement = document.getElementById('timer');
+const examForm = document.getElementById('examForm');
+
+function updateTimer() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (timeRemaining <= 0) {
+        // Time expired - auto submit
+        examForm.action = "{% url 'exam_time_expired' exam.id %}";
+        examForm.submit();
+    }
+    
+    timeRemaining--;
+}
+
+// Update timer every second
+setInterval(updateTimer, 1000);
+updateTimer(); // Initial call
+</script>
+{% endif %}
 {% endblock %}
