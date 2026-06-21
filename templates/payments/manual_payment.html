@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-header">
     <h1><i class="fas fa-mobile-alt me-2" style="color: var(--accent-color);"></i>Paiement manuel</h1>
-    <p class="text-secondary">Acheter {{ pack.dc_amount }} DC pour {{ pack.price_eur }} €</p>
+    <p class="text-secondary">Acheter {{ pack.dc_amount }} DC pour {{ pack.price_cfa }} FCFA</p>
 </div>
 
 <div class="row">
@@ -19,7 +19,7 @@
                     <div class="p-3 rounded" style="background: var(--light-bg);">
                         <h4 class="mb-1">{{ pack.name }}</h4>
                         <div style="font-size: 1.5rem; color: var(--accent-color); font-weight: 700;">{{ pack.dc_amount }} DC</div>
-                        <div style="font-size: 1.2rem;">{{ pack.price_eur }} €</div>
+                        <div style="font-size: 1.2rem;">{{ pack.price_cfa }} FCFA</div>
                     </div>
                 </div>
 
@@ -88,10 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const instructionsDiv = document.getElementById('payment-instructions');
     
     const instructions = {
-        'orange_money': '<div class="alert alert-info"><i class="fas fa-orange me-2"></i><strong>Orange Money</strong><br>Envoyez {{ pack.price_eur }} € au numéro : <strong>+223 XX XX XX XX XX</strong><br><small>Indiquez votre email dans le message.</small></div>',
-        'wave': '<div class="alert alert-info"><i class="fas fa-mobile-alt me-2"></i><strong>Wave</strong><br>Envoyez {{ pack.price_eur }} € au numéro : <strong>+223 XX XX XX XX XX</strong><br><small>Indiquez votre email dans le message.</small></div>',
-        'bank_transfer': '<div class="alert alert-info"><i class="fas fa-university me-2"></i><strong>Virement bancaire</strong><br>Compte : <strong>BSAO 1234567890</strong><br>Montant : {{ pack.price_eur }} €<br><small>Indiquez votre email dans la référence.</small></div>',
-        'cash': '<div class="alert alert-info"><i class="fas fa-money-bill me-2"></i><strong>Espèces</strong><br>Contactez-nous pour organiser un paiement en espèces.<br><small>Veuillez nous contacter par email ou téléphone.</small></div>'
+        'orange_money': '<div class="alert alert-info"><i class="fas fa-orange me-2"></i><strong>Orange Money</strong><br>Envoyez {{ pack.price_cfa }} FCFA au numéro : <strong>+223 74 15 20 49</strong><br><small>Contactez-nous sur WhatsApp ou par email pour confirmer.</small></div>',
+        'wave': '<div class="alert alert-info"><i class="fas fa-mobile-alt me-2"></i><strong>Wave</strong><br>Envoyez {{ pack.price_cfa }} FCFA au numéro : <strong>+223 69 54 93 91</strong><br><small>Contactez-nous sur WhatsApp ou par email pour confirmer.</small></div>',
+        'bank_transfer': '<div class="alert alert-info"><i class="fas fa-university me-2"></i><strong>Virement bancaire</strong><br>Contactez-nous pour les informations bancaires.<br>Email : <strong>afletounoudouprince5@gmail.com</strong><br>Téléphone/WhatsApp : <strong>+223 69 54 93 91</strong></div>',
+        'cash': '<div class="alert alert-info"><i class="fas fa-money-bill me-2"></i><strong>Espèces</strong><br>Contactez-nous pour organiser un paiement en espèces.<br>Email : <strong>afletounoudouprince5@gmail.com</strong><br>Téléphone/WhatsApp : <strong>+223 69 54 93 91</strong></div>'
     };
     
     paymentMethodSelect.addEventListener('change', function() {

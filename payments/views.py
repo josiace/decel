@@ -411,10 +411,10 @@ def manual_payment(request, pack_id):
             ('cash', 'Espèces'),
         ],
         'payment_instructions': {
-            'orange_money': 'Envoyez le montant au numéro Orange Money : +223 XX XX XX XX XX',
-            'wave': 'Envoyez le montant au numéro Wave : +223 XX XX XX XX XX',
-            'bank_transfer': 'Effectuez un virement vers le compte bancaire : BSAO 1234567890',
-            'cash': 'Contactez-nous pour un paiement en espèces.',
+            'orange_money': 'Envoyez le montant au numéro Orange Money : +223 74 15 20 49. Contactez-nous sur WhatsApp pour confirmer.',
+            'wave': 'Envoyez le montant au numéro Wave : +223 69 54 93 91. Contactez-nous sur WhatsApp pour confirmer.',
+            'bank_transfer': 'Contactez-nous par email (afletounoudouprince5@gmail.com) ou WhatsApp (+223 69 54 93 91) pour les informations bancaires.',
+            'cash': 'Contactez-nous par email (afletounoudouprince5@gmail.com) ou WhatsApp (+223 69 54 93 91) pour un paiement en espèces.',
         }
     }
     return render(request, 'payments/manual_payment.html', context)
