@@ -74,6 +74,31 @@
                             <div class="text-danger">{{ form.password2.errors }}</div>
                         {% endif %}
                     </div>
+                    <div class="mb-3">
+                        <label for="referral_code" class="form-label">Code de Parrainage (Optionnel)</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="referral_code" 
+                            name="referral_code" 
+                            placeholder="Entrez votre code de parrainage"
+                            value="{{ referral_code }}"
+                            style="text-transform: uppercase;"
+                        >
+                        <small class="text-muted">Utilisez un code de parrainage pour recevoir 25 DC de bonus !</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="promo_code" class="form-label">Code Promo (Optionnel)</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="promo_code" 
+                            name="promo_code" 
+                            placeholder="Entrez votre code promo"
+                            style="text-transform: uppercase;"
+                        >
+                        <small class="text-muted">Utilisez un code promo pour recevoir des bonus DC ou XP !</small>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
                 </form>
             </div>

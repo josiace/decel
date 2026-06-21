@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}Créateur Pro — DECEL{% endblock %}
+
+{% block content %}
+<div class="page-header text-center">
+    <h1><i class="fas fa-crown me-2" style="color: var(--accent-color);"></i>Passer au niveau supérieur</h1>
+    <p class="text-secondary">Débloquez des outils professionnels pour développer votre audience et vos revenus.</p>
+</div>
+
+{% if is_pro %}
+<div class="alert-pro text-center mb-4">
+    <i class="fas fa-check-circle me-2"></i>
+    Vous êtes déjà abonné au plan <strong>{{ contributor.get_plan_display }}</strong>.
+    Expiration : {{ contributor.plan_expires_at|date:"d/m/Y" }}
+    <br><a href="{% url 'contributor:analytics' %}" class="btn btn-primary mt-2">
+        <i class="fas fa-chart-bar me-2"></i>Voir mes analytics
+    </a>
+</div>
+{% endif %}
+
+<!-- Comparaison des plans -->
+<div class="row mb-5">
+
+    <!-- Gratuit -->
+    <div class="col-12 col-md-4 mb-4">
+        <div class="plan-card">
+            <div class="plan-header">
+                <div class="plan-name">Créateur Gratuit</div>
+                <div class="plan-price">0 €<span>/mois</span></div>
+            </div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check text-success me-2"></i>Soumettre du contenu</li>
+                <li><i class="fas fa-check text-success me-2"></i>Commission 75 %</li>
+                <li><i class="fas fa-check text-success me-2"></i>3 dernières ventes visibles</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Analytics détaillés</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Badge vérifié ✓</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Priorité modération</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Export CSV</li>
+            </ul>
+            <div class="plan-cta">
+                <span class="btn btn-outline w-100" style="cursor:default;">Plan actuel</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pro -->
+    <div class="col-12 col-md-4 mb-4">
+        <div class="plan-card plan-popular">
+            <div class="popular-label"><i class="fas fa-star me-1"></i>Recommandé</div>
+            <div class="plan-header">
+                <div class="plan-name">Créateur Pro</div>
+                <div class="plan-price">5 €<span>/mois</span></div>
+            </div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check text-success me-2"></i>Tout du plan Gratuit</li>
+                <li><i class="fas fa-check text-success me-2"></i>Analytics complets</li>
+                <li><i class="fas fa-check text-success me-2"></i>Badge vérifié ✓</li>
+                <li><i class="fas fa-check text-success me-2"></i>Priorité modération (24 h)</li>
+                <li><i class="fas fa-check text-success me-2"></i>1 Content Boost/mois offert</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Multi-comptes</li>
+                <li><i class="fas fa-times text-danger me-2"></i>Dashboard classe</li>
+            </ul>
+            <div class="plan-cta">
+                {% if is_pro and contributor.plan == 'pro' %}
+                <span class="btn btn-accent w-100" style="cursor:default;">Plan actuel</span>
+                {% else %}
+                <form method="post" action="{% url 'payments:create_subscription_session' 'pro' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-accent w-100">
+                        <i class="fas fa-crown me-2"></i>Passer au Pro
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Académie -->
+    <div class="col-12 col-md-4 mb-4">
+        <div class="plan-card">
+            <div class="plan-header">
+                <div class="plan-name">Académie</div>
+                <div class="plan-price">20 €<span>/mois</span></div>
+            </div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check text-success me-2"></i>Tout du plan Pro</li>
+                <li><i class="fas fa-check text-success me-2"></i>Multi-comptes (classe/promo)</li>
+                <li><i class="fas fa-check text-success me-2"></i>Dashboard classe</li>
+                <li><i class="fas fa-check text-success me-2"></i>Rapports élèves PDF</li>
+                <li><i class="fas fa-check text-success me-2"></i>Examens privés</li>
+                <li><i class="fas fa-check text-success me-2"></i>Priorité modération (12 h)</li>
+                <li><i class="fas fa-check text-success me-2"></i>Support dédié</li>
+            </ul>
+            <div class="plan-cta">
+                {% if is_pro and contributor.plan == 'academy' %}
+                <span class="btn btn-primary w-100" style="cursor:default;">Plan actuel</span>
+                {% else %}
+                <form method="post" action="{% url 'payments:create_subscription_session' 'academy' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-school me-2"></i>Passer Académie
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3"><i class="fas fa-question-circle me-2"></i>Questions fréquentes</h5>
+        <div class="faq-item">
+            <strong>Mon contenu gratuit sera-t-il affecté si je ne m'abonne pas ?</strong>
+            <p class="text-secondary mt-1">Non. Vous gardez votre commission de 75 % et votre contenu reste en ligne.</p>
+        </div>
+        <div class="faq-item">
+            <strong>Puis-je annuler à tout moment ?</strong>
+            <p class="text-secondary mt-1">Oui. L'annulation est immédiate depuis votre portail Stripe. Votre plan reste actif jusqu'à la fin de la période payée.</p>
+        </div>
+        <div class="faq-item">
+            <strong>Le badge vérifié est-il visible par les utilisateurs ?</strong>
+            <p class="text-secondary mt-1">Oui, un ✓ apparaît à côté de votre nom sur vos contenus et votre profil.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header { margin-bottom: 2.5rem; padding: 2rem 0; }
+    .alert-pro { background: rgba(16,185,129,0.1); border: 1px solid var(--secondary-color); border-radius: var(--radius-lg); padding: 1.5rem; color: var(--secondary-color); }
+    .plan-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 2rem; height: 100%; position: relative; box-shadow: var(--shadow-md); }
+    .plan-popular { border: 2px solid var(--accent-color); }
+    .popular-label { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: white; padding: 0.2rem 1rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+    .plan-header { text-align: center; margin-bottom: 1.5rem; }
+    .plan-name { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
+    .plan-price { font-size: 2.5rem; font-weight: 800; color: var(--primary-color); margin-top: 0.5rem; }
+    .plan-price span { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
+    .plan-features { list-style: none; padding: 0; margin: 0 0 1.5rem 0; }
+    .plan-features li { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-cta { margin-top: auto; }
+    .btn { padding: 0.7rem 1.2rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; text-decoration: none; display: inline-block; transition: all 0.2s; }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-accent { background: var(--accent-color); color: white; }
+    .btn-accent:hover { background: #d97706; }
+    .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+    .w-100 { width: 100%; }
+    .row { display: flex; flex-wrap: wrap; margin: 0 -0.75rem; }
+    .col-12 { width: 100%; padding: 0 0.75rem; }
+    .mb-4 { margin-bottom: 1.5rem; }
+    .mb-5 { margin-bottom: 3rem; }
+    .mb-3 { margin-bottom: 1rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .me-1 { margin-right: 0.25rem; }
+    .me-2 { margin-right: 0.5rem; }
+    .text-success { color: var(--secondary-color) !important; }
+    .text-danger { color: var(--danger-color) !important; }
+    .text-secondary { color: var(--text-secondary) !important; }
+    .text-center { text-align: center; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+    .card-body { padding: 1.5rem; }
+    .faq-item { padding: 1rem 0; border-bottom: 1px solid var(--border-color); }
+    .faq-item:last-child { border-bottom: none; }
+    @media (min-width: 768px) { .col-md-4 { width: 33.333%; padding: 0 0.75rem; } }
+</style>
+{% endblock %}

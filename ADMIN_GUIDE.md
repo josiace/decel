@@ -583,6 +583,39 @@ Similaire aux cours, mais pour les exercices pratiques
 ### Problème : Le contenu communautaire ne s'affiche pas
 **Solution :** Vérifiez que le statut est "approved"
 
+### Problème : Erreur "no such table: sessions_cache"
+**Solution :** Le cache utilise maintenant le système de fichiers. Vérifiez que le dossier `cache` existe dans le répertoire racine du projet.
+
+---
+
+## ⚡ Optimisations de Performance
+
+### Configuration du Cache
+Le système utilise maintenant un cache basé sur fichiers pour améliorer la performance :
+- **Cache par défaut** : Stocké dans le dossier `cache/`
+- **Cache de sessions** : Sessions stockées dans le cache pour une meilleure performance
+- **1000 entrées maximum** : Configuration optimisée pour l'utilisation
+- **Pas de surcharge database** : Pas de table de cache database nécessaire
+
+### Optimisations Database
+Les requêtes database ont été optimisées avec `select_related` et `prefetch_related` :
+- **accounts/views.py** : Optimisation des requêtes pour le dashboard
+- **exams/views.py** : Optimisation des requêtes pour les examens
+- **community/views.py** : Optimisation des requêtes pour le contenu communautaire
+- **Réduction des requêtes N+1** : Meilleure performance globale
+
+### Optimisations CSS
+Le CSS a été optimisé pour une meilleure maintenance et performance :
+- **Mobile-first approach** : Styles de base pour mobile, améliorations pour écrans plus grands
+- **Design tokens** : Variables CSS centralisées pour une maintenance facile
+- **Documentation complète** : Commentaires français pour une meilleure compréhension
+- **Code propre** : Sections bien organisées et documentées
+
+### Optimisations Assets
+- **Images minimales** : Seulement 2 images optimisées (logos)
+- **Chargement efficace** : Assets optimisés pour un chargement rapide
+- **Fichiers statiques** : Gestion optimisée des fichiers statiques
+
 ---
 
 ## 📞 Support
@@ -594,5 +627,5 @@ Pour toute question ou problème technique :
 
 ---
 
-**Dernière mise à jour :** 14 Mai 2026
-**Version :** 1.0
+**Dernière mise à jour :** 19 Juin 2026
+**Version :** 2.0 (Optimisations de performance)

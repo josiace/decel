@@ -16,7 +16,7 @@ def is_staff_user(user):
 
 @login_required
 def content_list(request):
-    """List approved community content."""
+    """List approved community content - optimisé."""
     contents = Content.objects.filter(status='approved').select_related('subject', 'author')
     return render(request, 'community/content_list.html', {'contents': contents})
 

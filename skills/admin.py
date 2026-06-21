@@ -4,10 +4,11 @@ from .models import Subject, UserSkill
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ['name', 'icon', 'created_at']
+    list_display = ['name', 'icon', 'use_image', 'created_at']
     search_fields = ['name']
     fieldsets = (
-        ('Informations de la matière', {'fields': ('name', 'description', 'icon'), 'description': 'Détails de la matière d\'apprentissage'}),
+        ('Informations de la matière', {'fields': ('name', 'description'), 'description': 'Détails de la matière d\'apprentissage'}),
+        ('Icône', {'fields': ('icon', 'icon_image', 'use_image'), 'description': 'Choisir entre icône texte ou image personnalisée'}),
         ('Horodatage', {'fields': ('created_at',), 'description': 'Date de création'}),
     )
     readonly_fields = ['created_at']

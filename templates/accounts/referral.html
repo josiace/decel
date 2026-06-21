@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Parrainage - DECEL{% endblock %}
+
+{% block extrahead %}
+<style>
+    .referral-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: var(--radius-xl);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .referral-code-display {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+
+    .referral-code {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        color: white;
+        margin: 1rem 0;
+    }
+
+    .copy-button {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .copy-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .referral-link {
+        background: var(--light-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin: 1rem 0;
+        word-break: break-all;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+
+    .referrals-list {
+        margin-top: 2rem;
+    }
+
+    .referral-item {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .referral-date {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="referral-hero">
+        <h1>🎁 Programme de Parrainage</h1>
+        <p class="lead">Invitez vos amis et gagnez des DC !</p>
+    </div>
+
+    <div class="referral-code-display">
+        <h3>Votre code de parrainage</h3>
+        <div class="referral-code">{{ referral_code }}</div>
+        <button class="copy-button" onclick="copyReferralCode()">
+            <i class="fas fa-copy me-2"></i>Copier le code
+        </button>
+        
+        <div class="referral-link mt-3">
+            <small>Liens de partage :</small><br>
+            <code>{{ request.build_absolute_uri }}?ref={{ referral_code }}</code>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_referrals }}</div>
+            <div class="stat-label">Parrainages</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_earned_dc }}</div>
+            <div class="stat-label">DC Gagnés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">50</div>
+            <div class="stat-label">DC par parrainage</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">25</div>
+            <div class="stat-label">DC pour le filleul</div>
+        </div>
+    </div>
+
+    <div class="referrals-list">
+        <h3>Vos parrainages</h3>
+        {% if referrals_made %}
+            {% for referral in referrals_made %}
+            <div class="referral-item">
+                <div>
+                    <strong>{{ referral.referred.email }}</strong>
+                    {% if referral.is_completed %}
+                        <span class="badge badge-success ms-2">Complété</span>
+                    {% else %}
+                        <span class="badge badge-warning ms-2">En cours</span>
+                    {% endif %}
+                </div>
+                <div class="referral-date">{{ referral.created_at|date:"d/m/Y" }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">Vous n'avez pas encore parrainé d'amis. Partagez votre code pour commencer !</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyReferralCode() {
+    const code = '{{ referral_code }}';
+    const link = '{{ request.build_absolute_uri }}?ref={{ referral_code }}';
+    
+    navigator.clipboard.writeText(link).then(() => {
+        alert('Lien de parrainage copié !');
+    }).catch(() => {
+        // Fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Lien de parrainage copié !');
+    });
+}
+</script>
+{% endblock %}

@@ -22,22 +22,47 @@
         color: #6c757d;
     }
     .streak-day {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+        width: 50px;
+        height: 60px;
+        border-radius: 12px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         font-size: 0.8rem;
+        cursor: default;
+        transition: all 0.3s ease;
+    }
+    .streak-day:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .streak-day.active {
-        background: #28a745;
+        background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
     .streak-day.inactive {
-        background: #e9ecef;
+        background: #f8f9fa;
         color: #6c757d;
+        border: 2px solid #e9ecef;
+    }
+    .streak-day.future {
+        background: #e3f2fd;
+        color: #90caf9;
+        border: 2px dashed #bbdefb;
+        opacity: 0.7;
+    }
+    .day-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+    .day-date {
+        font-size: 0.75rem;
+        font-weight: 500;
+        opacity: 0.9;
     }
     .badge-icon {
         width: 50px;
@@ -56,7 +81,7 @@
 {% block content %}
 <!-- KPIs Section -->
 <div class="row mb-4">
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-primary text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">{{ user.total_xp }}</div>
@@ -65,7 +90,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-success text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">Level {{ user.level }}</div>
@@ -74,7 +99,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-warning text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">{{ user.dc_balance }}</div>
@@ -83,7 +108,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-info text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">{{ user.current_streak }}</div>
@@ -92,7 +117,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-danger text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">{{ exams_7d }}</div>
@@ -101,7 +126,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="card kpi-card bg-secondary text-white">
             <div class="card-body text-center">
                 <div class="kpi-value">{{ study_time_7d }}</div>
@@ -114,7 +139,7 @@
 
 <!-- Charts Section -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">XP Accordé (30 jours)</h5>
@@ -124,7 +149,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">Activité Examens (30 jours)</h5>
@@ -136,9 +161,36 @@
     </div>
 </div>
 
+<!-- Evolution Charts Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📈 Courbes d'Évolution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4">
+                        <h6 class="mb-3">Évolution XP Cumulé</h6>
+                        <canvas id="xpEvolutionChart" height="250"></canvas>
+                    </div>
+                    <div class="col-12 col-md-6 mb-4">
+                        <h6 class="mb-3">Évolution des Compétences</h6>
+                        {% for subject_name, subject_data in skill_evolution.items %}
+                            <div class="mb-4">
+                                <canvas id="skillEvolutionChart{{ forloop.counter }}" height="150"></canvas>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Streak and Badges Section -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0">Série Hebdomadaire</h5>
@@ -146,8 +198,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     {% for day in streak_data %}
-                        <div class="streak-day {% if day.active %}active{% else %}inactive{% endif %}">
-                            {{ day.date }}
+                        <div class="streak-day {% if day.is_future %}future{% elif day.active %}active{% else %}inactive{% endif %}" title="{{ day.full_date }}">
+                            <div class="day-name">{{ day.date }}</div>
+                            <div class="day-date">{{ day.full_date }}</div>
                         </div>
                     {% endfor %}
                 </div>
@@ -157,7 +210,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-warning text-white">
                 <h5 class="mb-0">Badges Obtenus</h5>
@@ -182,7 +235,7 @@
 
 <!-- Skills and Recommendations Section -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header" style="background: var(--accent-color); color: white;">
                 <h5 class="mb-0">Compétences par Matière</h5>
@@ -207,7 +260,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header" style="background: #3b82f6; color: white;">
                 <h5 class="mb-0">Recommandations</h5>
@@ -230,7 +283,7 @@
 
 <!-- Competition and Leaderboard Section -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-purple text-white" style="background: #8b5cf6;">
                 <h5 class="mb-0">Classement</h5>
@@ -248,7 +301,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-danger text-white">
                 <h5 class="mb-0">Zones à Améliorer</h5>
@@ -273,7 +326,7 @@
 
 <!-- Community Content Section -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-teal text-white" style="background: #14b8a6;">
                 <h5 class="mb-0">Vos Achats de Contenu</h5>
@@ -294,7 +347,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card">
             <div class="card-header bg-indigo text-white" style="background: #6366f1;">
                 <h5 class="mb-0">Votre Contenu Communautaire</h5>
@@ -401,5 +454,70 @@ new Chart(activityCtx, {
         }
     }
 });
+
+// XP Evolution Chart (Cumulative)
+const xpEvolutionCtx = document.getElementById('xpEvolutionChart').getContext('2d');
+new Chart(xpEvolutionCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in xp_evolution %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'XP Cumulé',
+            data: [{% for item in xp_evolution %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(99, 102, 241)',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Évolution XP Cumulé (30 derniers jours)'
+            }
+        }
+    }
+});
+
+// Skill Evolution Charts
+{% for subject_name, subject_data in skill_evolution.items %}
+const skillCtx{{ forloop.counter }} = document.getElementById('skillEvolutionChart{{ forloop.counter }}').getContext('2d');
+new Chart(skillCtx{{ forloop.counter }}, {
+    type: 'line',
+    data: {
+        labels: [{% for item in subject_data %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: '{{ subject_name }}',
+            data: [{% for item in subject_data %}{{ item.skill }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %})',
+            backgroundColor: 'rgba({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %}, 0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Évolution Compétence: {{ subject_name }}'
+            }
+        }
+    }
+});
+{% endfor %}
 </script>
 {% endblock %}

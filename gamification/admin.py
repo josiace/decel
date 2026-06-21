@@ -17,11 +17,12 @@ class XPLogAdmin(admin.ModelAdmin):
 
 @admin.register(Badge)
 class BadgeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'icon', 'xp_threshold', 'exam_count_threshold', 'skill_threshold', 'is_active']
+    list_display = ['name', 'icon', 'use_image', 'xp_threshold', 'exam_count_threshold', 'skill_threshold', 'is_active']
     list_filter = ['is_active']
     search_fields = ['name', 'description']
     fieldsets = (
-        ('Badge', {'fields': ('name', 'description', 'icon'), 'description': 'Informations du badge'}),
+        ('Badge', {'fields': ('name', 'description'), 'description': 'Informations du badge'}),
+        ('Icône', {'fields': ('icon', 'icon_image', 'use_image'), 'description': 'Choisir entre icône texte ou image personnalisée'}),
         ('Critères d\'obtention', {'fields': ('xp_threshold', 'exam_count_threshold', 'skill_threshold'), 'description': 'Seuils requis pour obtenir le badge'}),
         ('Publication', {'fields': ('is_active',), 'description': 'Cocher pour rendre le badge disponible'}),
         ('Horodatage', {'fields': ('created_at',), 'description': 'Date de création'}),

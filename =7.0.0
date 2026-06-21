@@ -1,0 +1,11 @@
+Collecting stripe
+  Downloading stripe-15.2.1-py3-none-any.whl.metadata (18 kB)
+Requirement already satisfied: typing_extensions>=4.7.0 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from stripe) (4.15.0)
+Requirement already satisfied: requests>=2.20 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from stripe) (2.32.5)
+Requirement already satisfied: charset_normalizer<4,>=2 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from requests>=2.20->stripe) (3.4.4)
+Requirement already satisfied: idna<4,>=2.5 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from requests>=2.20->stripe) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from requests>=2.20->stripe) (2.6.3)
+Requirement already satisfied: certifi>=2017.4.17 in C:\Users\prince josiace\AppData\Local\Programs\Python\Python311\Lib\site-packages (from requests>=2.20->stripe) (2026.2.25)
+Downloading stripe-15.2.1-py3-none-any.whl (2.2 MB)
+   ---------------------------------------- 2.2/2.2 MB 288.5 kB/s  0:00:08
+Installing collected packages: stripe

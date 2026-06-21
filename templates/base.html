@@ -1,46 +1,117 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}DECEL - Plateforme d'Apprentissage Adaptatif{% endblock %}</title>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="navbar-logo">
-            </a>
-            <button class="navbar-toggler" type="button" onclick="toggleNavbar()">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i>Accueil
-                        </a>
-                    </li>
-                    {% if user.is_authenticated %}
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {% block extrahead %}
+<style>
+    /* Protection contre les captures d'écran et copies */
+    body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    /* Empêcher la sélection de texte */
+    * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    /* Empêcher le clic droit */
+    body {
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Empêcher la copie avec Ctrl+C */
+    body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    /* Protection supplémentaire contre les copies */
+    ::selection {
+        background: transparent;
+    }
+    
+    ::-moz-selection {
+        background: transparent;
+    }
+    
+    /* Empêcher l'impression */
+    @media print {
+        body {
+            display: none !important;
+        }
+    }
+    
+    /* Protection contre les outils de développement */
+    .protected-content {
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+        <title>{% block title %}DECEL{% endblock %}</title>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <img
+                        src="{% static 'images/logodecel.png' %}"
+                        alt="DECEL Logo"
+                        class="navbar-logo"
+                    />
+                </a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    onclick="toggleNavbar()"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home' %}">
+                                <i class="fas fa-home me-1"></i>Accueil
+                            </a>
+                        </li>
+                        {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Tableau de Bord
+                                <i class="fas fa-tachometer-alt me-1"></i
+                                >Tableau de Bord
                             </a>
                         </li>
                         {% if user.is_contributor %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'contributor:dashboard' %}">
-                                <i class="fas fa-user-edit me-1"></i>Contributeur
+                            <a
+                                class="nav-link"
+                                href="{% url 'contributor:dashboard' %}"
+                            >
+                                <i class="fas fa-user-edit me-1"></i
+                                >Contributeur
                             </a>
                         </li>
                         {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'exam_list' %}">
-                                <i class="fas fa-clipboard-list me-1"></i>Examens
+                                <i class="fas fa-clipboard-list me-1"></i
+                                >Examens
                             </a>
                         </li>
                         <li class="nav-item">
@@ -58,96 +129,302 @@
                                 <i class="fas fa-users me-1"></i>Communauté
                             </a>
                         </li>
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'payments:packs' %}">
+                                <i class="fas fa-coins me-1"></i>Acheter des DC
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'referral' %}">
+                                <i class="fas fa-gift me-1"></i>Parrainage
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'promo_codes' %}">
+                                <i class="fas fa-ticket-alt me-1"></i>Codes Promo
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" onclick="toggleDropdown(event)">
-                                <i class="fas fa-user-circle me-1"></i>{{ user.email }}
-                                <span class="level-badge ms-2">Niveau {{ user.level }}</span>
-                                <span class="xp-badge ms-2">{{ user.total_xp }} XP</span>
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                onclick="toggleDropdown(event)"
+                            >
+                                <i class="fas fa-user-circle me-1"></i>
+                                <span id="username-display">Chargement...</span>
+                                <span class="level-badge ms-2">Niveau <span id="level-display">1</span></span>
+                                <span class="xp-badge ms-2"><span id="xp-display">0</span> XP</span>
+                                <span class="dc-badge ms-2"><i class="fas fa-coins me-1"></i><span id="dc-display">0</span> DC</span>
                             </a>
                             <ul class="dropdown-menu" id="userDropdown">
-                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
-                                </a></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'dashboard' %}"
+                                    >
+                                        <i
+                                            class="fas fa-tachometer-alt me-2"
+                                        ></i
+                                        >Tableau de Bord
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'wallet' %}"
+                                    >
+                                        <i class="fas fa-wallet me-2"></i>Mon
+                                        Portefeuille
+                                        <span
+                                            style="
+                                                float: right;
+                                                color: var(--accent-color);
+                                                font-weight: 600;
+                                            "
+                                            >{{ user.dc_balance }} DC</span
+                                        >
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'payments:packs' %}"
+                                    >
+                                        <i class="fas fa-plus-circle me-2"></i
+                                        >Acheter des DC
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'referral' %}"
+                                    >
+                                        <i class="fas fa-gift me-2"></i
+                                        >Parrainage
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'promo_codes' %}"
+                                    >
+                                        <i class="fas fa-ticket-alt me-2"></i
+                                        >Codes Promo
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="{% url 'logout' %}"
+                                    >
+                                        <i class="fas fa-sign-out-alt me-2"></i
+                                        >Déconnexion
+                                    </a>
+                                </li>
                             </ul>
                         </li>
-                    {% else %}
+                        {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">
                                 <i class="fas fa-sign-in-alt me-1"></i>Connexion
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary text-white ms-2" href="{% url 'register' %}">
+                            <a
+                                class="btn btn-primary text-white ms-2"
+                                href="{% url 'register' %}"
+                            >
                                 <i class="fas fa-user-plus me-1"></i>Inscription
                             </a>
                         </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <main class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
-                    <span>
-                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-                        {{ message }}
-                    </span>
-                    <button type="button" class="btn-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="footer-logo">
-                    <p class="text-muted">Plateforme d'Apprentissage Adaptatif</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p class="text-muted mb-0">&copy; 2024 DECEL. Tous droits réservés.</p>
+                        {% endif %}
+                    </ul>
                 </div>
             </div>
-        </div>
-    </footer>
+        </nav>
 
-    <script>
-        function toggleNavbar() {
-            const navbarCollapse = document.getElementById('navbarNav');
-            navbarCollapse.classList.toggle('show');
-        }
+        <main class="container">
+            {% if messages %} {% for message in messages %}
+            <div
+                class="alert alert-{{ message.tags }} alert-dismissible"
+                role="alert"
+            >
+                <span>
+                    <i
+                        class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"
+                    ></i>
+                    {{ message }}
+                </span>
+                <button
+                    type="button"
+                    class="btn-close"
+                    onclick="this.parentElement.remove()"
+                >
+                    &times;
+                </button>
+            </div>
+            {% endfor %} {% endif %} {% block content %}{% endblock %}
+        </main>
 
-        function toggleDropdown(event) {
-            event.preventDefault();
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
-        }
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-md-6 text-center text-md-start">
+                        <img
+                            src="{% static 'images/logodecel.png' %}"
+                            alt="DECEL Logo"
+                            class="footer-logo"
+                        />
+                        <p class="text-muted">
+                            Plateforme d'Apprentissage Adaptatif
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-6 text-center text-md-end">
+                        <p class="text-muted mb-0">
+                            &copy; 2024 DECEL. Tous droits réservés.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('userDropdown');
-            const toggle = event.target.closest('.dropdown-toggle');
-            if (!toggle && !event.target.closest('.dropdown-menu')) {
-                if (dropdown) {
-                    dropdown.classList.remove('show');
-                }
+        <script>
+            function toggleNavbar() {
+                const navbarCollapse = document.getElementById("navbarNav");
+                const navbarNav = navbarCollapse.querySelector('.navbar-nav');
+                navbarCollapse.classList.toggle("show");
+                navbarNav.classList.toggle("show");
             }
-        });
-    </script>
-    {% block scripts %}{% endblock %}
-</body>
+
+            function toggleDropdown(event) {
+                event.preventDefault();
+                const dropdown = event.target.closest('.dropdown').querySelector('.dropdown-menu');
+                dropdown.classList.toggle("show");
+            }
+
+            document.addEventListener("click", function (event) {
+                const dropdowns = document.querySelectorAll('.dropdown-menu');
+                dropdowns.forEach(dropdown => {
+                    const toggle = event.target.closest(".dropdown-toggle");
+                    if (!toggle && !event.target.closest(".dropdown-menu")) {
+                        dropdown.classList.remove("show");
+                    }
+                });
+            });
+
+            // Fermer la navbar mobile lors du clic sur un lien
+            document.addEventListener("DOMContentLoaded", function() {
+                const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        const navbarCollapse = document.getElementById("navbarNav");
+                        const navbarNav = navbarCollapse.querySelector('.navbar-nav');
+                        if (window.innerWidth < 768) {
+                            navbarCollapse.classList.remove("show");
+                            navbarNav.classList.remove("show");
+                        }
+                    });
+                });
+
+                // Remplir les données utilisateur dans la navbar
+                {% if user.is_authenticated %}
+                const usernameDisplay = document.getElementById('username-display');
+                const levelDisplay = document.getElementById('level-display');
+                const xpDisplay = document.getElementById('xp-display');
+                const dcDisplay = document.getElementById('dc-display');
+
+                if (usernameDisplay) {
+                    usernameDisplay.textContent = '{{ user.first_name|default:user.username|escapejs }}';
+                }
+                if (levelDisplay) {
+                    levelDisplay.textContent = '{{ user.level|escapejs }}';
+                }
+                if (xpDisplay) {
+                    xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
+                }
+                if (dcDisplay) {
+                    dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
+                }
+                {% endif %}
+
+                // Protection contre les captures d'écran
+                // Empêcher le clic droit
+                document.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+
+                // Empêcher les raccourcis clavier pour captures d'écran
+                document.addEventListener('keydown', function(e) {
+                    // Ctrl+Shift+I (DevTools)
+                    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+Shift+J (Console)
+                    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+Shift+C (Inspect Element)
+                    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+U (View Source)
+                    if (e.ctrlKey && e.key === 'u') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // F12 (DevTools)
+                    if (e.key === 'F12') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Print Screen (sur certains navigateurs)
+                    if (e.key === 'PrintScreen') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+C (Copy)
+                    if (e.ctrlKey && e.key === 'c') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+V (Paste)
+                    if (e.ctrlKey && e.key === 'v') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+A (Select All)
+                    if (e.ctrlKey && e.key === 'a') {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                // Empêcher le drag and drop d'images
+                document.addEventListener('dragstart', function(e) {
+                    if (e.target.tagName === 'IMG') {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                // Détecter les tentatives de capture d'écran (mobile)
+                window.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        // La page est cachée - possible capture d'écran
+                        console.log('Page cachée - possible capture d\'écran détectée');
+                    }
+                });
+            });
+        </script>
+        {% block scripts %}{% endblock %}
+    </body>
 </html>

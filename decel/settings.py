@@ -10,12 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-change-this-in-production-use-environment-variable'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production-use-environment-variable')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -31,6 +31,7 @@ INSTALLED_APPS = [
 
     # DECEL Apps
     'accounts',
+    'payments',
     'exams',
     'learning',
     'gamification',
@@ -119,8 +120,36 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Cache Configuration - Optimisé pour la performance
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
+
+# Session Cache - Utilise le cache par défaut basé sur fichiers
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================
+# Stripe — Paiements
+# Remplacer par vos vraies clés via variables d'environnement
+# ============================================================
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_YOUR_STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_YOUR_STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_YOUR_WEBHOOK_SECRET')
+
+# Prix Stripe pour les abonnements créateurs
+# Créer les prix dans Stripe Dashboard puis renseigner les IDs ici
+STRIPE_PRICE_CREATOR_PRO = os.environ.get('STRIPE_PRICE_CREATOR_PRO', '')    # ex: price_xxx
+STRIPE_PRICE_ACADEMY = os.environ.get('STRIPE_PRICE_ACADEMY', '')             # ex: price_xxx
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'

@@ -119,6 +119,8 @@ class Badge(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Nom", help_text="Nom unique du badge")
     description = models.TextField(verbose_name="Description", help_text="Description du badge")
     icon = models.CharField(max_length=50, blank=True, verbose_name="Icône", help_text="Nom de l'icône ou emoji")
+    icon_image = models.ImageField(upload_to='badge_icons/', blank=True, null=True, verbose_name="Image de l'icône", help_text="Image personnalisée pour l'icône du badge")
+    use_image = models.BooleanField(default=False, verbose_name="Utiliser l'image", help_text="Cocher pour utiliser l'image au lieu de l'icône")
     
     # Badge criteria
     xp_threshold = models.IntegerField(null=True, blank=True, verbose_name="Seuil XP", help_text="XP requis pour obtenir ce badge")

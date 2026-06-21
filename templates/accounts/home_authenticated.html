@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Bienvenue {{ user.first_name|default:user.username }} - DECEL{% endblock %}
+
+{% block extrahead %}
+<style>
+    .welcome-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 3rem 2rem;
+        border-radius: var(--radius-xl);
+        background:
+            radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+            linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        color: white;
+        box-shadow: 
+            0 25px 50px -12px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .welcome-title {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        margin-bottom: 1rem;
+    }
+
+    .welcome-subtitle {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .action-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+
+    .action-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .action-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .action-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .recent-activity {
+        margin-top: 3rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-lg);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .activity-item:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    @media (min-width: 768px) {
+        .welcome-hero {
+            padding: 4rem 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="welcome-hero">
+    <h1 class="welcome-title">Bienvenue, {{ user.first_name|default:user.username }} 👋</h1>
+    <p class="welcome-subtitle">Prêt à continuer votre apprentissage ? Voici un aperçu de votre progression.</p>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value">{{ user.total_xp }}</div>
+            <div class="stat-label">XP Total</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--secondary-color), #059669);">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-value">Niveau {{ user.level }}</div>
+            <div class="stat-label">Niveau Actuel</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--accent-color), #d97706);">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-value">{{ user.streak_days }}</div>
+            <div class="stat-label">Jours de Suite</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-value">{{ user.dc_balance }}</div>
+            <div class="stat-label">Solde DC</div>
+        </div>
+    </div>
+</section>
+
+<div class="quick-actions">
+    <a href="{% url 'dashboard' %}" class="action-card">
+        <div class="action-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+            <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <div class="action-title">Tableau de Bord</div>
+        <div class="action-description">Voir votre progression détaillée et vos analytics</div>
+    </a>
+    <a href="{% url 'exam_list' %}" class="action-card">
+        <div class="action-icon" style="background: linear-gradient(135deg, var(--secondary-color), #059669);">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="action-title">Passer un Examen</div>
+        <div class="action-description">Testez vos connaissances avec des examens stricts</div>
+    </a>
+    <a href="{% url 'course_list' %}" class="action-card">
+        <div class="action-icon" style="background: linear-gradient(135deg, var(--accent-color), #d97706);">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="action-title">Apprendre</div>
+        <div class="action-description">Explorez les cours et TD disponibles</div>
+    </a>
+    <a href="{% url 'wallet' %}" class="action-card">
+        <div class="action-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="action-title">Mon Portefeuille</div>
+        <div class="action-description">Gérez vos DC et vos transactions</div>
+    </a>
+</div>
+
+{% if recommendations %}
+<div class="recent-activity">
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Recommandations pour vous</h2>
+    <div class="quick-actions">
+        {% for recommendation in recommendations %}
+        <div class="action-card">
+            <div class="action-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="action-title">{{ recommendation.get_type_display }}</div>
+            <div class="action-description">{{ recommendation.description }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if recent_xp %}
+<div class="recent-activity">
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Activité Récente</h2>
+    {% for xp_log in recent_xp %}
+    <div class="activity-item">
+        <div class="activity-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+            <i class="fas fa-star"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-title">{{ xp_log.reason }}</div>
+            <div class="activity-time">{{ xp_log.created_at|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div style="font-weight: 700; color: var(--primary-color);">+{{ xp_log.amount }} XP</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if recent_exams %}
+<div class="recent-activity">
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Examens Récents</h2>
+    {% for exam_session in recent_exams %}
+    <div class="activity-item">
+        <div class="activity-icon" style="background: linear-gradient(135deg, var(--secondary-color), #059669);">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-title">{{ exam_session.exam.title }}</div>
+            <div class="activity-time">{{ exam_session.completed_at|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div style="font-weight: 700; color: {% if exam_session.passed %}var(--secondary-color){% else %}var(--danger-color){% endif %};">
+            {{ exam_session.score }}%
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

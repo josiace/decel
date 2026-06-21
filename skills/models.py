@@ -10,6 +10,8 @@ class Subject(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Nom", help_text="Nom unique de la matière")
     description = models.TextField(blank=True, verbose_name="Description", help_text="Description détaillée de la matière")
     icon = models.CharField(max_length=50, blank=True, verbose_name="Icône", help_text="Nom de l'icône ou emoji")
+    icon_image = models.ImageField(upload_to='subject_icons/', blank=True, null=True, verbose_name="Image de l'icône", help_text="Image personnalisée pour l'icône de la matière")
+    use_image = models.BooleanField(default=False, verbose_name="Utiliser l'image", help_text="Cocher pour utiliser l'image au lieu de l'icône")
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     

@@ -28,7 +28,7 @@
                 <p class="lead">{{ course.description|default:"" }}</p>
                 
                 <div class="mb-3">
-                    <small class="text-muted">Par {{ course.author.get_full_name|default:course.author.username }}</small>
+                    <small class="text-muted">Par {% if course.author %}{{ course.author.get_full_name|default:course.author.username }}{% else %}Inconnu{% endif %}</small>
                     <span class="mx-2">|</span>
                     <small class="text-muted">Type : {{ course.get_content_type_display }}</small>
                 </div>

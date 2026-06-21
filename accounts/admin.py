@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
-from .models import User, Contributor, Country, DCTransaction
+from .models import User, Contributor, Country, DCTransaction, Referral, PromoCode, PromoCodeUsage
 
 
 @admin.register(Country)
@@ -76,4 +76,45 @@ class DCTransactionAdmin(admin.ModelAdmin):
         ('Transaction', {'fields': ('user', 'transaction_type', 'amount', 'balance_after'), 'description': 'Détails de la transaction'}),
         ('Description', {'fields': ('description', 'related_content_type', 'related_content_id'), 'description': 'Informations supplémentaires'}),
         ('Horodatage', {'fields': ('created_at',), 'description': 'Date de transaction'}),
+    )
+
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ['referrer', 'referred', 'referral_code', 'reward_dc', 'referred_reward_dc', 'is_completed', 'completed_at', 'created_at']
+    list_filter = ['is_completed', 'created_at']
+    search_fields = ['referrer__email', 'referred__email', 'referral_code']
+    readonly_fields = ['created_at']
+    fieldsets = (
+        ('Parrainage', {'fields': ('referrer', 'referred', 'referral_code'), 'description': 'Relation parrain-filleul'}),
+        ('Récompenses', {'fields': ('reward_dc', 'referred_reward_dc'), 'description': 'Montants DC distribués'}),
+        ('Statut', {'fields': ('is_completed', 'completed_at'), 'description': 'État du parrainage'}),
+        ('Horodatage', {'fields': ('created_at',), 'description': 'Date de création'}),
+    )
+
+
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'code_type', 'value', 'max_uses', 'used_count', 'is_active', 'valid_from', 'valid_until', 'created_at']
+    list_filter = ['code_type', 'is_active', 'valid_from', 'valid_until']
+    search_fields = ['code', 'description']
+    readonly_fields = ['used_count', 'created_at']
+    fieldsets = (
+        ('Code Promo', {'fields': ('code', 'code_type', 'value'), 'description': 'Informations du code'}),
+        ('Limitations', {'fields': ('max_uses', 'used_count', 'is_active'), 'description': 'Utilisations et statut'}),
+        ('Validité', {'fields': ('valid_from', 'valid_until'), 'description': 'Période de validité'}),
+        ('Description', {'fields': ('description',), 'description': 'Description du code'}),
+        ('Création', {'fields': ('created_by', 'created_at'), 'description': 'Informations de création'}),
+    )
+
+
+@admin.register(PromoCodeUsage)
+class PromoCodeUsageAdmin(admin.ModelAdmin):
+    list_display = ['user', 'promo_code', 'reward_given', 'used_at']
+    list_filter = ['used_at', 'promo_code__code_type']
+    search_fields = ['user__email', 'promo_code__code']
+    readonly_fields = ['used_at']
+    fieldsets = (
+        ('Utilisation', {'fields': ('user', 'promo_code', 'reward_given'), 'description': 'Détails de l\'utilisation'}),
+        ('Horodatage', {'fields': ('used_at',), 'description': 'Date d\'utilisation'}),
     )

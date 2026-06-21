@@ -180,10 +180,36 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 ## 🎨 Frontend
 
 - Django templates with Bootstrap 5
-- Responsive design
+- **Mobile-first responsive design** - Optimisé pour tous les appareils
 - Clean, modern UI
 - Real-time skill visualization
 - Progress tracking displays
+- **Optimized CSS** - Documentation complète et design tokens centralisés
+
+## ⚡ Performance Optimizations
+
+### CSS Optimizations
+- **Mobile-first approach** - Styles de base pour mobile, améliorations pour écrans plus grands
+- **Design tokens** - Variables CSS centralisées pour une maintenance facile
+- **Code documentation** - Commentaires français pour une meilleure compréhension
+- **Clean architecture** - Sections bien organisées et documentées
+
+### Database Optimizations
+- **select_related** - Réduction des requêtes N+1 pour les relations ForeignKey
+- **prefetch_related** - Optimisation des relations ManyToMany
+- **Query optimization** - Vues optimisées dans accounts, exams, et community apps
+- **Performance improvement** - Temps de réponse réduits
+
+### Cache Configuration
+- **File-based cache** - Cache par défaut basé sur fichiers pour la performance
+- **Session cache** - Sessions stockées dans le cache pour une meilleure performance
+- **1000 entries max** - Configuration optimisée pour l'utilisation
+- **No database overhead** - Pas de table de cache database nécessaire
+
+### Asset Optimization
+- **Minimal images** - Seulement 2 images optimisées (logos)
+- **Efficient loading** - Assets optimisés pour un chargement rapide
+- **Static files** - Gestion optimisée des fichiers statiques
 
 ## 📝 Admin Configuration
 

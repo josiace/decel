@@ -1,258 +1,731 @@
 {% extends 'base.html' %}
 
-{% block title %}DECEL - Plateforme d'Apprentissage Adaptatif{% endblock %}
+{% block title %}DECEL - Apprentissage adaptatif, examens stricts et progression{% endblock %}
+
+{% block extrahead %}
+<style>
+    /* Premium Design System */
+    .home-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 3rem 2rem;
+        border-radius: var(--radius-xl);
+        background:
+            radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+            radial-gradient(circle at 40% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 35%),
+            linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        color: white;
+        box-shadow: 
+            0 25px 50px -12px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .home-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        align-items: stretch;
+    }
+
+    .hero-copy {
+        flex: 1 1 450px;
+        min-width: 0;
+    }
+
+    .hero-panel {
+        flex: 1 1 350px;
+        min-width: 0;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        backdrop-filter: blur(20px);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: slideInRight 0.8s ease-out;
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(129, 140, 248, 0.1));
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        animation: fadeInDown 0.6s ease-out;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-title {
+        margin-top: 1.5rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-subtitle {
+        margin-top: 1.5rem;
+        max-width: 45rem;
+        font-size: 1.15rem;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.85);
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 2rem;
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .hero-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        animation: fadeInUp 0.8s ease-out 0.8s both;
+    }
+
+    .hero-pill {
+        padding: 0.6rem 1rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .hero-pill:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .hero-stack {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .stack-card {
+        border-radius: var(--radius-lg);
+        padding: 1.1rem 1.25rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stack-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+    }
+
+    .stack-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+    }
+
+    .stack-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        line-height: 1.4;
+    }
+
+    .home-section {
+        margin-top: 4rem;
+    }
+
+    .section-kicker {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+        margin-top: 0.5rem;
+        font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+        letter-spacing: -0.04em;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .section-lead {
+        margin-top: 1rem;
+        max-width: 55rem;
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+
+    .metric-grid,
+    .pillar-grid,
+    .step-grid,
+    .value-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .metric-card,
+    .pillar-card,
+    .step-card,
+    .value-card {
+        height: 100%;
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before,
+    .pillar-card::before,
+    .step-card::before,
+    .value-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+
+    .metric-card:hover::before,
+    .pillar-card:hover::before,
+    .step-card:hover::before,
+    .value-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .metric-card:hover,
+    .pillar-card:hover,
+    .step-card:hover,
+    .value-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .metric-icon,
+    .pillar-icon,
+    .step-index,
+    .value-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        color: white;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        font-size: 1.25rem;
+    }
+
+    .pillar-card:nth-child(2) .pillar-icon,
+    .value-card:nth-child(2) .value-icon {
+        background: linear-gradient(135deg, var(--secondary-color), #059669);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .pillar-card:nth-child(3) .pillar-icon {
+        background: linear-gradient(135deg, var(--accent-color), #d97706);
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .pillar-card:nth-child(4) .pillar-icon,
+    .value-card:nth-child(4) .value-icon {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .metric-card h3,
+    .pillar-card h3,
+    .step-card h3,
+    .value-card h3 {
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: 1.15rem;
+    }
+
+    .metric-card p,
+    .pillar-card p,
+    .step-card p,
+    .value-card p {
+        color: var(--text-secondary);
+        margin-bottom: 0;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .workflow {
+        position: relative;
+        padding: 2rem;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05));
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .workflow-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .workflow-item {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .workflow-item:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+        background: white;
+    }
+
+    .workflow-badge {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .cta-panel {
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        color: white;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 50%, #0f766e 100%);
+        box-shadow: 
+            0 25px 50px -12px rgba(99, 102, 241, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-panel::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    .cta-panel p {
+        color: rgba(255, 255, 255, 0.9);
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-panel h2 {
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (min-width: 768px) {
+        .home-hero {
+            padding: 4rem 3rem;
+        }
+
+        .hero-panel {
+            padding: 2rem;
+        }
+
+        .workflow {
+            padding: 2.5rem;
+        }
+
+        .metric-grid,
+        .pillar-grid,
+        .step-grid,
+        .value-grid {
+            gap: 2rem;
+        }
+    }
+
+    /* Premium Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .slide-up {
+        animation: slideUp 0.8s ease-out forwards;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Premium Button Styles */
+    .btn-light {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-light:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        background: #f8fafc;
+    }
+
+    .btn-outline-light {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-outline-light:hover {
+        background: white;
+        color: var(--primary-color);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="text-white py-5 mb-5" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(118, 75, 162, 0.9)); border-radius: var(--radius-xl);">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-3">
-            <i class="fas fa-brain me-2"></i>DECEL
-        </h1>
-        <p class="lead mb-4">Plateforme d'Apprentissage Adaptatif Intelligente</p>
-        <p class="mb-4" style="font-size: 1.25rem;">Un système d'apprentissage qui s'adapte à vos performances</p>
-        <div class="d-flex justify-content-center gap-3">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
-                    <i class="fas fa-tachometer-alt me-2"></i>Mon Tableau de Bord
-                </a>
-            {% else %}
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg">
-                    <i class="fas fa-rocket me-2"></i>Commencer
-                </a>
-                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>Connexion
-                </a>
-            {% endif %}
+<section class="home-hero fade-in">
+    <div class="hero-grid">
+        <div class="hero-copy">
+            <span class="eyebrow">
+                <i class="fas fa-brain"></i>
+                Learning intelligence system
+            </span>
+            <h1 class="hero-title">
+                Apprenez avec un moteur qui s'adapte a vos performances.
+            </h1>
+            <p class="hero-subtitle">
+                DECEL combine examens stricts, suivi des competences, recommandations adaptatives,
+                contenu communautaire et economie DC pour transformer chaque action en progression utile.
+            </p>
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Ouvrir mon tableau de bord
+                    </a>
+                    <a href="{% url 'exam_list' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-clipboard-list me-2"></i>Commencer un examen
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Creer un compte
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hero-pills">
+                <span class="hero-pill">Examens QCM stricts</span>
+                <span class="hero-pill">XP pour la progression</span>
+                <span class="hero-pill">DC pour les achats</span>
+                <span class="hero-pill">Recommandations adaptees</span>
+            </div>
+        </div>
+
+        <div class="hero-panel">
+            <div class="hero-stack">
+                <div class="stack-card">
+                    <span class="stack-label">Boucle d'apprentissage</span>
+                    <div class="stack-value">Cours, TD, examens, feedback instantane</div>
+                </div>
+                <div class="stack-card">
+                    <span class="stack-label">Ce que le systeme mesure</span>
+                    <div class="stack-value">XP, niveau, competences par matiere, streaks, activite</div>
+                </div>
+                <div class="stack-card">
+                    <span class="stack-label">Ce que les recommandations visent</span>
+                    <div class="stack-value">Reviser, pratiquer, avancer, apprendre</div>
+                </div>
+                <div class="stack-card">
+                    <span class="stack-label">Economie interne</span>
+                    <div class="stack-value">DC separes de l'XP pour acheter du contenu</div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Features Section -->
-<div class="mb-5">
-    <h2 class="text-center mb-5">
-        <i class="fas fa-star me-2"></i>Fonctionnalités Principales
-    </h2>
+<section class="home-section">
+    <div class="section-kicker">Pourquoi DECEL</div>
+    <h2 class="section-title">Une plateforme centree sur la progression, pas sur la simple consultation.</h2>
+    <p class="section-lead">
+        Chaque interaction alimente le moteur pedagogique: score, competence, recommandation,
+        monnaie interne et suivi des habitudes d'apprentissage.
+    </p>
+
+    <div class="metric-grid mt-4">
+        <article class="metric-card">
+            <div class="metric-icon"><i class="fas fa-clipboard-check"></i></div>
+            <h3>Examens stricts</h3>
+            <p>Correction server-side avec correspondance exacte des reponses pour garder une evaluation fiable.</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Competences vivantes</h3>
+            <p>Le niveau de chaque matiere evolue selon les examens, les TD et la recence des actions.</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="fas fa-coins"></i></div>
+            <h3>XP et DC separes</h3>
+            <p>L'XP sert a progresser, les DC servent a acheter du contenu et a soutenir les createurs.</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="fas fa-users-cog"></i></div>
+            <h3>Contenu modere</h3>
+            <p>La communaute publie du contenu, mais la moderation garde le niveau de qualite sous controle.</p>
+        </article>
+    </div>
+</section>
+
+<section class="home-section">
     <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-3 text-primary">
-                        <i class="fas fa-clipboard-list"></i>
+        <div class="col-12 col-md-6 mb-4">
+            <div class="workflow h-100">
+                <div class="section-kicker">Moteur pedagogique</div>
+                <h2 class="section-title">Ce que DECEL fait apres chaque action.</h2>
+                <div class="workflow-list mt-4">
+                    <div class="workflow-item">
+                        <div class="workflow-badge">1</div>
+                        <div>
+                            <h3 class="mb-1">Vous apprenez</h3>
+                            <p class="mb-0">Cours, TD et contenu communautaire enrichissent la base de travail.</p>
+                        </div>
                     </div>
-                    <h4>Système d'Examens</h4>
-                    <p>Examens QCM stricts avec évaluation précise. Chaque question exige une correspondance exacte pour être correcte.</p>
+                    <div class="workflow-item">
+                        <div class="workflow-badge">2</div>
+                        <div>
+                            <h3 class="mb-1">Vous vous testez</h3>
+                            <p class="mb-0">Les examens stricts mesurent la maitrise reelle, sans approximation.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-item">
+                        <div class="workflow-badge">3</div>
+                        <div>
+                            <h3 class="mb-1">Le systeme s'ajuste</h3>
+                            <p class="mb-0">XP, competences et recommandations se mettent a jour automatiquement.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-item">
+                        <div class="workflow-badge">4</div>
+                        <div>
+                            <h3 class="mb-1">Vous avancez plus vite</h3>
+                            <p class="mb-0">Le prochain contenu suggere correspond a votre niveau et a vos points faibles.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-3 text-success">
-                        <i class="fas fa-book-open"></i>
-                    </div>
-                    <h4>Système d'Apprentissage</h4>
-                    <p>Cours, TD (Travaux Dirigés) et TD corrigés pour un apprentissage complet et progressif.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-3 text-warning">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h4>Suivi des Compétences</h4>
-                    <p>Suivi des performances par matière avec pondération temporelle. Vos compétences évoluent selon vos résultats récents.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- How It Works -->
-<div class="py-5 mb-5" style="background: rgba(99, 102, 241, 0.05); border-radius: var(--radius-xl);">
-    <div class="container">
-        <h2 class="text-center mb-5">
-            <i class="fas fa-cogs me-2"></i>Comment ça marche ?
-        </h2>
-        <div class="row">
-            <div class="col-md-3 mb-4 text-center">
-                <div class="stat-card">
-                    <div class="display-4 mb-3 text-primary">1</div>
-                    <h5><i class="fas fa-user-plus me-2"></i>Inscrivez-vous</h5>
-                    <p class="text-muted">Créez votre compte en quelques secondes</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4 text-center">
-                <div class="stat-card">
-                    <div class="display-4 mb-3 text-success">2</div>
-                    <h5><i class="fas fa-graduation-cap me-2"></i>Apprenez</h5>
-                    <p class="text-muted">Lisez des cours et pratiquez avec des TD</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4 text-center">
-                <div class="stat-card">
-                    <div class="display-4 mb-3 text-warning">3</div>
-                    <h5><i class="fas fa-tasks me-2"></i>Testez-vous</h5>
-                    <p class="text-muted">Passez des examens pour évaluer vos connaissances</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4 text-center">
-                <div class="stat-card">
-                    <div class="display-4 mb-3 text-danger">4</div>
-                    <h5><i class="fas fa-trophy me-2"></i>Progressez</h5>
-                    <p class="text-muted">Gagnez de l'XP, montez de niveau et recevez des recommandations personnalisées</p>
-                </div>
+        <div class="col-12 col-md-6 mb-4">
+            <div class="value-grid h-100">
+                <article class="value-card">
+                    <div class="value-icon"><i class="fas fa-book-open"></i></div>
+                    <h3>Cours et TD</h3>
+                    <p>Des contenus a lire ou a pratiquer, avec progression suivie et versioning pour les mises a jour.</p>
+                </article>
+                <article class="value-card">
+                    <div class="value-icon"><i class="fas fa-gem"></i></div>
+                    <h3>XP et badges</h3>
+                    <p>Une couche de progression claire pour rendre l'effort visible et maintenir la motivation.</p>
+                </article>
+                <article class="value-card">
+                    <div class="value-icon"><i class="fas fa-store"></i></div>
+                    <h3>Monetisation interne</h3>
+                    <p>Les DC permettent de monnayer les contenus sans melanger monnaie de progression et monnaie d'achat.</p>
+                </article>
+                <article class="value-card">
+                    <div class="value-icon"><i class="fas fa-lightbulb"></i></div>
+                    <h3>Recommandations</h3>
+                    <p>Le systeme pousse des actions utiles: reviser, pratiquer, avancer ou decouvrir une nouvelle matiere.</p>
+                </article>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Gamification Section -->
-<div class="mb-5">
-    <h2 class="text-center mb-5">
-        <i class="fas fa-gamepad me-2"></i>Système de Gamification
-    </h2>
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-gem me-2"></i>Points d'Expérience (XP)
-                </div>
-                <div class="card-body">
-                    <p>Gagnez de l'XP pour chaque activité :</p>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-check-circle text-success me-2"></i>Examen réussi</span>
-                            <span class="xp-badge">100 XP</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-times-circle text-danger me-2"></i>Examen échoué</span>
-                            <span class="xp-badge">50 XP</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-tasks text-primary me-2"></i>TD complété</span>
-                            <span class="xp-badge">40 XP</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-book text-info me-2"></i>Cours lu</span>
-                            <span class="xp-badge">20 XP</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-medal me-2"></i>Niveaux et Badges
-                </div>
-                <div class="card-body">
-                    <p>Montez de niveau en accumulant de l'XP et débloquez des badges pour vos accomplissements.</p>
-                    <div class="alert alert-info">
-                        <strong>Formule de niveau :</strong> niveau = √(XP total / 100) + 1
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <span class="level-badge">Niveau 1</span>
-                        <span class="level-badge">Niveau 2</span>
-                        <span class="level-badge">Niveau 3</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<section class="home-section">
+    <div class="section-kicker">Parcours utilisateur</div>
+    <h2 class="section-title">Un flux simple pour tester, progresser et revenir apprendre.</h2>
+    <p class="section-lead">
+        L'accueil doit montrer en une lecture ce que la plateforme promet: une boucle
+        d'apprentissage intelligible, mesurable et monetisable.
+    </p>
 
-<!-- Recommendations Section -->
-<div class="text-white py-5 mb-5" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9)); border-radius: var(--radius-xl);">
-    <div class="container text-center">
-        <h2 class="mb-4">
-            <i class="fas fa-bullseye me-2"></i>Recommandations Adaptatives
-        </h2>
-        <p class="lead mb-4">Notre système d'intelligence artificielle analyse vos performances et vous suggère le meilleur parcours d'apprentissage.</p>
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 style="color: black;"><i class="fas fa-book-reader me-2"></i>Réviser</h6>
-                        <p class="small mb-0" style="color: var(--text-secondary);">Pour les zones faibles</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 style="color: black;"><i class="fas fa-rocket me-2" ></i>Avancer</h6>
-                        <p class="small mb-0" style="color: var(--text-secondary);">Pour les domaines forts</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 style="color: black;"><i class="fas fa-pencil-alt me-2"></i>Pratiquer</h6>
-                        <p class="small mb-0" style="color: var(--text-secondary);">Pour améliorer les compétences</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 style="color: black;"><i class="fas fa-lightbulb me-2"></i>Apprendre</h6>
-                        <p class="small mb-0" style="color: var(--text-secondary);">Pour de nouveaux sujets</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="step-grid mt-4">
+        <article class="step-card">
+            <div class="step-index"><i class="fas fa-user-plus"></i></div>
+            <h3>1. S'inscrire</h3>
+            <p>Creer un compte, choisir son point d'entree et rejoindre le tableau de bord.</p>
+        </article>
+        <article class="step-card">
+            <div class="step-index"><i class="fas fa-graduation-cap"></i></div>
+            <h3>2. Apprendre</h3>
+            <p>Explorer les cours, TD et contenus communautaires pertinents pour sa matiere.</p>
+        </article>
+        <article class="step-card">
+            <div class="step-index"><i class="fas fa-clipboard-list"></i></div>
+            <h3>3. Se mesurer</h3>
+            <p>Passez un examen, obtenez un score strict et mettez a jour le moteur de progression.</p>
+        </article>
+        <article class="step-card">
+            <div class="step-index"><i class="fas fa-route"></i></div>
+            <h3>4. Recevoir la suite</h3>
+            <p>Le systeme propose la prochaine action la plus utile selon votre profil d'apprentissage.</p>
+        </article>
     </div>
-</div>
+</section>
 
-<!-- Community Section -->
-<div class="mb-5">
-    <h2 class="text-center mb-5">
-        <i class="fas fa-users me-2"></i>Contenu Communautaire
-    </h2>
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-share-alt me-2"></i>Partagez vos Connaissances
-                </div>
-                <div class="card-body">
-                    <p>Créez et partagez des cours, des TD et des corrections avec la communauté. Tout le contenu est modéré pour assurer la qualité.</p>
-                </div>
+<section class="home-section">
+    <div class="cta-panel">
+        <div class="row align-items-center">
+            <div class="col-12 col-md-8 mb-3">
+                <h2 class="mb-2">La plateforme est prete pour un apprentissage guide par les donnees.</h2>
+                <p class="mb-0">
+                    Ouvrez votre espace, testez un examen, consultez vos competences ou explorez
+                    le contenu communautaire pour voir le moteur DECEL en action.
+                </p>
             </div>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-shield-alt me-2"></i>Modération de Qualité
-                </div>
-                <div class="card-body">
-                    <p>Workflow de modération : Brouillon → En attente → Approuvé/Rejeté. Les administrateurs veillent à la qualité du contenu.</p>
-                </div>
+            <div class="col-12 col-md-4 text-md-end">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg mb-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Mon tableau de bord
+                    </a>
+                    <a href="{% url 'wallet' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-wallet me-2"></i>Mon portefeuille
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg mb-2">
+                        <i class="fas fa-user-plus me-2"></i>Commencer gratuitement
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
-</div>
-
-<!-- CTA Section -->
-<div class="text-white py-5" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(118, 75, 162, 0.9)); border-radius: var(--radius-xl);">
-    <div class="container text-center">
-        <h2 class="mb-4">
-            <i class="fas fa-rocket me-2"></i>Prêt à commencer votre parcours d'apprentissage ?
-        </h2>
-        <p class="lead mb-4">Rejoignez DECEL dès maintenant et découvrez une nouvelle façon d'apprendre.</p>
-        {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
-                <i class="fas fa-tachometer-alt me-2"></i>Accéder à mon Tableau de Bord
-            </a>
-        {% else %}
-            <a href="{% url 'register' %}" class="btn btn-light btn-lg">
-                <i class="fas fa-user-plus me-2"></i>Créer un Compte Gratuit
-            </a>
-        {% endif %}
-    </div>
-</div>
+</section>
 {% endblock %}

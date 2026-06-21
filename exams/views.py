@@ -18,8 +18,8 @@ def exam_list(request):
 
 @login_required
 def exam_detail(request, exam_id):
-    """Show exam details before starting."""
-    exam = get_object_or_404(Exam, id=exam_id, is_active=True)
+    """Show exam details before starting - optimisé."""
+    exam = get_object_or_404(Exam.objects.select_related('subject', 'created_by'), id=exam_id, is_active=True)
     return render(request, 'exams/exam_detail.html', {'exam': exam})
 
 
@@ -30,7 +30,7 @@ def exam_take(request, exam_id):
     Creates a new session each time (allows multiple attempts).
     Prevents exam creators from taking their own exams (anti-XP farming).
     """
-    exam = get_object_or_404(Exam, id=exam_id, is_active=True)
+    exam = get_object_or_404(Exam.objects.select_related('subject', 'created_by'), id=exam_id, is_active=True)
     user = request.user
 
     # Prevent exam creators from taking their own exams
@@ -86,7 +86,7 @@ def exam_submit(request, exam_id):
     if request.method != 'POST':
         return redirect('exam_take', exam_id=exam_id)
 
-    exam = get_object_or_404(Exam, id=exam_id, is_active=True)
+    exam = get_object_or_404(Exam.objects.select_related('subject', 'created_by'), id=exam_id, is_active=True)
     user = request.user
 
     # Get the active session (created in exam_take)
@@ -218,14 +218,18 @@ def exam_submit(request, exam_id):
 
 @login_required
 def exam_result(request, session_id):
-    """Display exam results with detailed breakdown."""
-    session = get_object_or_404(ExamSession, id=session_id, user=request.user)
-    
+    """Display exam results with detailed breakdown - optimisé."""
+    session = get_object_or_404(
+        ExamSession.objects.select_related('exam', 'exam__subject', 'user'),
+        id=session_id,
+        user=request.user
+    )
+
     if not session.is_completed:
         return redirect('exam_take', exam_id=session.exam.id)
-    
+
     answers = session.answers.select_related('question').prefetch_related('selected_choices')
-    
+
     return render(request, 'exams/exam_result.html', {
         'session': session,
         'answers': answers,

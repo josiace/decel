@@ -28,7 +28,7 @@
                 <p class="lead">{{ td.description|default:"" }}</p>
                 
                 <div class="mb-3">
-                    <small class="text-muted">Par {{ td.author.get_full_name|default:td.author.username }}</small>
+                    <small class="text-muted">Par {% if td.author %}{{ td.author.get_full_name|default:td.author.username }}{% else %}Inconnu{% endif %}</small>
                     <span class="mx-2">|</span>
                     <small class="text-muted">Type : {{ td.get_content_type_display }}</small>
                 </div>

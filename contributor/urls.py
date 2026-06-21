@@ -5,6 +5,8 @@ app_name = 'contributor'
 
 urlpatterns = [
     path('', views.contributor_dashboard, name='dashboard'),
+    path('pro/', views.pro_upgrade, name='pro_upgrade'),
+    path('analytics/', views.creator_analytics, name='analytics'),
     path('courses/', views.contributor_courses, name='courses'),
     path('exams/', views.contributor_exams, name='exams'),
     path('community/', views.contributor_community, name='community'),

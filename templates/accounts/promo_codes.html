@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Codes Promo - DECEL{% endblock %}
+
+{% block extrahead %}
+<style>
+    .promo-hero {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius-xl);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .promo-code-form {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+    }
+
+    .promo-usage-list {
+        margin-top: 2rem;
+    }
+
+    .promo-usage-item {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .promo-code-badge {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-lg);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .promo-type-badge {
+        background: var(--light-bg);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .promo-reward {
+        color: var(--secondary-color);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .promo-date {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="promo-hero">
+        <h1>🎟️ Codes Promo</h1>
+        <p class="lead">Utilisez des codes promo pour obtenir des bonus !</p>
+    </div>
+
+    <div class="promo-code-form">
+        <h3>Appliquer un code promo</h3>
+        <form method="post" action="{% url 'apply_promo_code' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="promo_code" class="form-label">Code promo</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="promo_code" 
+                    name="promo_code" 
+                    placeholder="Entrez votre code promo"
+                    required
+                    style="text-transform: uppercase;"
+                >
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-gift me-2"></i>Appliquer le code
+            </button>
+        </form>
+    </div>
+
+    <div class="promo-usage-list">
+        <h3>Vos codes promo utilisés</h3>
+        {% if promo_usages %}
+            {% for usage in promo_usages %}
+            <div class="promo-usage-item">
+                <div>
+                    <span class="promo-code-badge">{{ usage.promo_code.code }}</span>
+                    <span class="promo-type-badge ms-2">{{ usage.promo_code.get_code_type_display }}</span>
+                </div>
+                <div class="text-end">
+                    <div class="promo-reward">+{{ usage.reward_given }} {% if usage.promo_code.code_type in 'dc_bonus,special' %}DC{% else %}XP{% endif %}</div>
+                    <div class="promo-date">{{ usage.used_at|date:"d/m/Y H:i" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">Vous n'avez pas encore utilisé de code promo.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

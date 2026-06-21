@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Paiement confirmé — DECEL{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="card success-card text-center">
+        <div class="card-body">
+            <div class="success-icon mb-4">
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--secondary-color);"></i>
+            </div>
+
+            {% if already_credited %}
+            <h2 class="mb-3">DC déjà crédités !</h2>
+            <p class="text-secondary">Ce paiement a déjà été traité. Vos DC sont bien dans votre portefeuille.</p>
+            {% else %}
+            <h2 class="mb-3">Paiement confirmé !</h2>
+            <p class="text-secondary mb-4">Votre achat a été traité avec succès.</p>
+
+            <div class="dc-credited mb-4">
+                <div style="font-size: 3rem; font-weight: 700; color: var(--accent-color);">
+                    +{{ order.dc_amount }} DC
+                </div>
+                <div class="text-secondary">ajoutés à votre portefeuille</div>
+            </div>
+
+            <div class="order-details mb-4">
+                <div class="detail-row">
+                    <span class="text-secondary">Pack acheté</span>
+                    <strong>{% if order.pack %}{{ order.pack.name }}{% else %}Pack DC{% endif %}</strong>
+                </div>
+                <div class="detail-row">
+                    <span class="text-secondary">Montant payé</span>
+                    <strong>{{ order.price_paid_eur }} €</strong>
+                </div>
+                <div class="detail-row">
+                    <span class="text-secondary">Nouveau solde</span>
+                    <strong style="color: var(--accent-color);">{{ request.user.dc_balance }} DC</strong>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="actions">
+                <a href="{% url 'wallet' %}" class="btn btn-primary me-2">
+                    <i class="fas fa-wallet me-2"></i>Mon portefeuille
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .success-container { display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 2rem 0; }
+    .success-card { max-width: 480px; width: 100%; border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); }
+    .card-body { padding: 2.5rem; background: var(--card-bg); border-radius: var(--radius-xl); }
+    .order-details { background: var(--light-bg); border-radius: var(--radius-md); padding: 1rem 1.5rem; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+    .detail-row:last-child { border-bottom: none; }
+    .btn { padding: 0.6rem 1.4rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--light-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+    .mb-3 { margin-bottom: 1rem; }
+    .mb-4 { margin-bottom: 1.5rem; }
+    .me-2 { margin-right: 0.5rem; }
+    .text-center { text-align: center; }
+    .text-secondary { color: var(--text-secondary) !important; }
+</style>
+{% endblock %}

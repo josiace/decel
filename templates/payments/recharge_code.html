@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Code de recharge — DECEL{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-gift me-2" style="color: var(--accent-color);"></i>Code de recharge</h1>
+    <p class="text-secondary">Entrez votre code de recharge pour obtenir des DC</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Entrer un code de recharge</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Code de recharge</label>
+                        <input type="text" name="code" class="form-control" placeholder="Entrez votre code ici" required style="text-transform: uppercase; letter-spacing: 2px;">
+                        <small class="text-secondary">Le code est insensible à la casse</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-check me-2"></i>Utiliser le code
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Comment obtenir un code de recharge ?</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Les codes de recharge peuvent être obtenus de plusieurs façons :</p>
+                <ul class="mb-0">
+                    <li class="mb-2"><i class="fas fa-store me-2" style="color: var(--accent-color);"></i>Achat auprès de revendeurs locaux</li>
+                    <li class="mb-2"><i class="fas fa-gift me-2" style="color: var(--accent-color);"></i>Promotions et événements spéciaux</li>
+                    <li class="mb-2"><i class="fas fa-users me-2" style="color: var(--accent-color);"></i>Programme de parrainage</li>
+                    <li><i class="fas fa-headset me-2" style="color: var(--accent-color);"></i>Contactez le support pour plus d'informations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{% url 'wallet' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Retour au portefeuille
+    </a>
+</div>
+
+<style>
+    .page-header { margin-bottom: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border-color); }
+    .card { border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+    .card-header { background: var(--light-bg); border-bottom: 1px solid var(--border-color); padding: 1rem; }
+    .card-body { padding: 1.5rem; }
+    .form-label { font-weight: 600; margin-bottom: 0.5rem; display: block; }
+    .form-control { padding: 0.6rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 100%; }
+    .btn { padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #6c757d; color: white; border: 1px solid #5a6268; }
+    .btn-secondary:hover { background: #5a6268; }
+    .w-100 { width: 100%; }
+    .mb-0 { margin-bottom: 0; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 1rem; }
+    .mb-4 { margin-bottom: 1.5rem; }
+    .mt-4 { margin-top: 1.5rem; }
+    .me-2 { margin-right: 0.5rem; }
+    .text-center { text-align: center; }
+    .text-secondary { color: var(--text-secondary) !important; }
+    ul { padding-left: 1.5rem; }
+</style>
+{% endblock %}

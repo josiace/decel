@@ -16,8 +16,8 @@
                                 <h5 class="mb-0">{{ content.title }}</h5>
                                 <div>
                                     <span class="badge bg-success">{{ content.get_content_type_display }}</span>
-                                    {% if content.xp_price > 0 %}
-                                        <span class="badge bg-warning">{{ content.xp_price }} XP</span>
+                                    {% if content.dc_price > 0 %}
+                                        <span class="badge bg-warning">{{ content.dc_price }} DC</span>
                                     {% else %}
                                         <span class="badge bg-success">Gratuit</span>
                                     {% endif %}
