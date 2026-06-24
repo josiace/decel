@@ -2,6 +2,7 @@
 <html lang="fr">
     <head>
         {% load static %}
+        <link rel="shortcut icon" href="../static/images/icone.PNG" type="image/x-icon">
         <link rel="stylesheet" href="{% static 'css/style.css' %}" />
         <link
             rel="stylesheet"
@@ -343,7 +344,7 @@
                 });
 
                 // Remplir les données utilisateur dans la navbar
-                {% if user.is_authenticated %}
+                {% comment %} {% if user.is_authenticated %}
                 const usernameDisplay = document.getElementById('username-display');
                 const levelDisplay = document.getElementById('level-display');
                 const xpDisplay = document.getElementById('xp-display');
@@ -361,7 +362,7 @@
                 if (dcDisplay) {
                     dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
                 }
-                {% endif %}
+                {% endif %} {% endcomment %}
 
                 // Protection contre les captures d'écran
                 // Empêcher le clic droit

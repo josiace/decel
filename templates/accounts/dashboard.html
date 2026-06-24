@@ -3,7 +3,6 @@
 {% block title %}Tableau de Bord - DECEL{% endblock %}
 
 {% block extrahead %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     .kpi-card {
         border-radius: 12px;
@@ -410,15 +409,24 @@
 
 {% block extrajs %}
 <script>
+console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+console.log('XP Data:', [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}]);
+console.log('Activity Data:', [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}]);
+
 // XP Chart
 const xpCtx = document.getElementById('xpChart').getContext('2d');
+const xpData = [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const xpLabels = [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+
+console.log('Creating XP Chart with', xpData.length, 'data points');
+
 new Chart(xpCtx, {
     type: 'line',
     data: {
-        labels: [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        labels: xpLabels,
         datasets: [{
             label: 'XP',
-            data: [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            data: xpData,
             borderColor: 'rgb(75, 192, 192)',
             backgroundColor: 'rgba(75, 192, 192, 0.1)',
             tension: 0.1,
@@ -436,13 +444,18 @@ new Chart(xpCtx, {
 
 // Activity Chart
 const activityCtx = document.getElementById('activityChart').getContext('2d');
+const activityData = [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const activityLabels = [{% for item in activity_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+
+console.log('Creating Activity Chart with', activityData.length, 'data points');
+
 new Chart(activityCtx, {
     type: 'bar',
     data: {
-        labels: [{% for item in activity_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        labels: activityLabels,
         datasets: [{
             label: 'Examens',
-            data: [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            data: activityData,
             backgroundColor: 'rgba(54, 162, 235, 0.5)',
         }]
     },
@@ -457,13 +470,18 @@ new Chart(activityCtx, {
 
 // XP Evolution Chart (Cumulative)
 const xpEvolutionCtx = document.getElementById('xpEvolutionChart').getContext('2d');
+const xpEvolutionData = [{% for item in xp_evolution %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const xpEvolutionLabels = [{% for item in xp_evolution %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+
+console.log('Creating XP Evolution Chart with', xpEvolutionData.length, 'data points');
+
 new Chart(xpEvolutionCtx, {
     type: 'line',
     data: {
-        labels: [{% for item in xp_evolution %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        labels: xpEvolutionLabels,
         datasets: [{
             label: 'XP Cumulé',
-            data: [{% for item in xp_evolution %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            data: xpEvolutionData,
             borderColor: 'rgb(99, 102, 241)',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
             tension: 0.3,
@@ -488,13 +506,18 @@ new Chart(xpEvolutionCtx, {
 // Skill Evolution Charts
 {% for subject_name, subject_data in skill_evolution.items %}
 const skillCtx{{ forloop.counter }} = document.getElementById('skillEvolutionChart{{ forloop.counter }}').getContext('2d');
+const skillData{{ forloop.counter }} = [{% for item in subject_data %}{{ item.skill }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const skillLabels{{ forloop.counter }} = [{% for item in subject_data %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+
+console.log('Creating Skill Chart {{ forloop.counter }} for {{ subject_name }} with', skillData{{ forloop.counter }}.length, 'data points');
+
 new Chart(skillCtx{{ forloop.counter }}, {
     type: 'line',
     data: {
-        labels: [{% for item in subject_data %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        labels: skillLabels{{ forloop.counter }},
         datasets: [{
             label: '{{ subject_name }}',
-            data: [{% for item in subject_data %}{{ item.skill }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            data: skillData{{ forloop.counter }},
             borderColor: 'rgb({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %})',
             backgroundColor: 'rgba({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %}, 0.1)',
             tension: 0.3,

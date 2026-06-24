@@ -1,22 +1,13 @@
-"""
-Django settings for DECEL project.
-"""
-
 from pathlib import Path
 import os
+import dj_database_url
+from decouple import config  # ← ajoute ça
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production-use-environment-variable')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # Application definition
 
@@ -50,6 +41,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← ajoute ici
+
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,13 +74,16 @@ WSGI_APPLICATION = 'decel.wsgi.application'
 
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
+DATABASES = {
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -128,18 +124,24 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cache Configuration - Optimisé pour la performance
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': BASE_DIR / 'cache',
+#         'OPTIONS': {
+#             'MAX_ENTRIES': 1000,
+#         }
+#     }
+# }
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': BASE_DIR / 'cache',
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Session Cache - Utilise le cache par défaut basé sur fichiers
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_CACHE_ALIAS = 'default'
 
 # Default primary key field type
@@ -265,3 +267,6 @@ JAZZMIN_SETTINGS = {
         'header': 'white',
     },
 }
+
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
