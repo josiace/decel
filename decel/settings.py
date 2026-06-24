@@ -1,18 +1,27 @@
 from pathlib import Path
 import os
 import dj_database_url
-from decouple import config  # ← ajoute ça
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# =========================
+# CORE SECURITY
+# =========================
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Application definition
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1,.onrender.com'
+).split(',')
 
+# =========================
+# APPS
+# =========================
 INSTALLED_APPS = [
     'jazzmin',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -20,12 +29,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
+    # third party
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
 
-    # DECEL Apps
+    # apps
     'accounts',
     'payments',
     'exams',
@@ -39,13 +48,18 @@ INSTALLED_APPS = [
     'api',
 ]
 
+# =========================
+# MIDDLEWARE
+# =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← ajoute ici
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -54,6 +68,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'decel.urls'
 
+# =========================
+# TEMPLATES
+# =========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -72,103 +89,89 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'decel.wsgi.application'
 
-
-# Database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
+# =========================
+# DATABASE (Render safe)
+# =========================
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL', default='')
+    )
 }
 
-# Password validation
+# =========================
+# PASSWORD VALIDATION
+# =========================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
+# =========================
+# I18N
+# =========================
 LANGUAGE_CODE = 'fr-fr'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+# =========================
+# STATIC FILES (IMPORTANT FIX)
+# =========================
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# =========================
+# MEDIA
+# =========================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cache Configuration - Optimisé pour la performance
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-#         'LOCATION': BASE_DIR / 'cache',
-#         'OPTIONS': {
-#             'MAX_ENTRIES': 1000,
-#         }
-#     }
-# }
+# =========================
+# CACHE
+# =========================
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-# Session Cache - Utilise le cache par défaut basé sur fichiers
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_CACHE_ALIAS = 'default'
 
-# Default primary key field type
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# =========================
+# DEFAULT PRIMARY KEY
+# =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ============================================================
-# Stripe — Paiements
-# Remplacer par vos vraies clés via variables d'environnement
-# ============================================================
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_YOUR_STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_YOUR_STRIPE_SECRET_KEY')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_YOUR_WEBHOOK_SECRET')
+# =========================
+# STRIPE
+# =========================
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-# Prix Stripe pour les abonnements créateurs
-# Créer les prix dans Stripe Dashboard puis renseigner les IDs ici
-STRIPE_PRICE_CREATOR_PRO = os.environ.get('STRIPE_PRICE_CREATOR_PRO', '')    # ex: price_xxx
-STRIPE_PRICE_ACADEMY = os.environ.get('STRIPE_PRICE_ACADEMY', '')             # ex: price_xxx
+STRIPE_PRICE_CREATOR_PRO = os.environ.get('STRIPE_PRICE_CREATOR_PRO', '')
+STRIPE_PRICE_ACADEMY = os.environ.get('STRIPE_PRICE_ACADEMY', '')
 
-# Custom User Model
+# =========================
+# AUTH
+# =========================
 AUTH_USER_MODEL = 'accounts.User'
 
-# Login URLs
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
-# Django REST Framework Configuration
+# =========================
+# REST FRAMEWORK
+# =========================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -179,94 +182,34 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
 }
 
-# CORS Configuration
+# =========================
+# CORS
+# =========================
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8081",
     "http://127.0.0.1:8081",
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 
-# Jazzmin Settings
+# =========================
+# JAZZMIN
+# =========================
 JAZZMIN_SETTINGS = {
-    # title of the dashboard (window title)
     'site_title': 'DECEL Administration',
-
-    # Title on the login screen
     'site_header': 'DECEL Administration',
-
-    # Title on the brand (top left)
     'site_brand': 'DECEL',
-
-    # Welcome message on the dashboard
-    'welcome_sign': 'Bienvenue sur le panneau d\'administration DECEL',
-
-    # Copyright on the footer
-    'copyright': 'DECEL 2024',
-
-    # Menu
-    'navigation': [
-        {'url': '/analytics/admin-dashboard/', 'label': '📊 Tableau de Bord Analytique', 'icon': 'fas fa-chart-line', 'model': 'analytics'},
-        {'type': 'divider'},
-        {'model': 'accounts.User', 'label': 'Utilisateurs'},
-        {'model': 'accounts.Country', 'label': 'Pays'},
-        {'model': 'accounts.Contributor', 'label': 'Contributeurs'},
-        {'model': 'accounts.DCTransaction', 'label': 'Transactions DC'},
-        {'type': 'divider'},
-        {'app': 'exams', 'label': 'Examens'},
-        {'app': 'learning', 'label': 'Apprentissage'},
-        {'app': 'community', 'label': 'Communauté'},
-        {'app': 'skills', 'label': 'Compétences'},
-        {'app': 'gamification', 'label': 'Gamification'},
-    ],
-
-    # Icons for models
-    'icons': {
-        'accounts.User': 'fas fa-users',
-        'accounts.Country': 'fas fa-globe',
-        'accounts.Contributor': 'fas fa-user-tie',
-        'accounts.DCTransaction': 'fas fa-coins',
-        'exams.Exam': 'fas fa-file-alt',
-        'exams.Question': 'fas fa-question-circle',
-        'exams.Choice': 'fas fa-check-square',
-        'exams.ExamSession': 'fas fa-clock',
-        'exams.UserAnswer': 'fas fa-pen',
-        'learning.Course': 'fas fa-book',
-        'learning.TD': 'fas fa-tasks',
-        'learning.ContentPurchase': 'fas fa-shopping-cart',
-        'community.Content': 'fas fa-newspaper',
-        'community.ModerationRule': 'fas fa-gavel',
-        'community.ContentPurchase': 'fas fa-receipt',
-        'skills.Subject': 'fas fa-graduation-cap',
-        'skills.UserSkill': 'fas fa-chart-line',
-        'gamification.Leaderboard': 'fas fa-trophy',
-        'gamification.LeaderboardEntry': 'fas fa-list-ol',
-        'gamification.XPLog': 'fas fa-star',
-        'gamification.Badge': 'fas fa-medal',
-        'gamification.UserBadge': 'fas fa-award',
-    },
-
-    # Show/hide UI elements
+    'welcome_sign': "Bienvenue sur DECEL",
+    'copyright': 'DECEL',
+    'navigation': [],
+    'icons': {},
     'show_ui': {
         'top_menu': True,
         'footer': True,
         'navigation_expander': True,
     },
-
-    # Theme
-    'theme': {
-        'dark': False,
-        'sidebar': 'dark',
-        'header': 'white',
-    },
 }
-
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
