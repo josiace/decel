@@ -12,4 +12,6 @@ urlpatterns = [
     path('tds/<int:td_id>/purchase/', views.purchase_td, name='purchase_td'),
     path('corrections/<int:correction_id>/purchase/', views.purchase_correction, name='purchase_correction'),
     path('download/<str:content_type>/<int:content_id>/', views.download_file, name='download_file'),
+    path('versions/<str:content_type>/<int:content_id>/', views.content_version_history, name='content_version_history'),
+    path('versions/<str:content_type>/<int:content_id>/restore/<int:version_number>/', views.restore_content_version, name='restore_content_version'),
 ]

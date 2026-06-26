@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import FileResponse, Http404
 from .models import Course, TD, CorrectedTD, CourseProgress, TDProgress
-from .services import ContentPurchaseService
+from .services import ContentPurchaseService, ContentVersionService
 from gamification.services import XPService
 from skills.services import SkillService
 from recommendations.services import RecommendationService
@@ -216,13 +216,16 @@ def td_complete(request, td_id):
 
 @login_required
 def purchase_course(request, course_id):
-    """Purchase a course with XP."""
+    """Purchase a course with DC."""
     course = get_object_or_404(Course, id=course_id, is_published=True)
+    
+    promo_code = request.POST.get('promo_code', '').strip() if request.method == 'POST' else None
     
     success, message = ContentPurchaseService.purchase_content(
         request.user,
         'course',
-        course.id
+        course.id,
+        promo_code=promo_code
     )
     
     if success:
@@ -235,13 +238,16 @@ def purchase_course(request, course_id):
 
 @login_required
 def purchase_td(request, td_id):
-    """Purchase a TD with XP."""
+    """Purchase a TD with DC."""
     td = get_object_or_404(TD, id=td_id, is_published=True)
+    
+    promo_code = request.POST.get('promo_code', '').strip() if request.method == 'POST' else None
     
     success, message = ContentPurchaseService.purchase_content(
         request.user,
         'td',
-        td.id
+        td.id,
+        promo_code=promo_code
     )
     
     if success:
@@ -254,13 +260,16 @@ def purchase_td(request, td_id):
 
 @login_required
 def purchase_correction(request, correction_id):
-    """Purchase a correction with XP."""
+    """Purchase a correction with DC."""
     correction = get_object_or_404(CorrectedTD, id=correction_id)
+    
+    promo_code = request.POST.get('promo_code', '').strip() if request.method == 'POST' else None
     
     success, message = ContentPurchaseService.purchase_content(
         request.user,
         'corrected_td',
-        correction.id
+        correction.id,
+        promo_code=promo_code
     )
     
     if success:
@@ -304,3 +313,59 @@ def download_file(request, content_type, content_id):
     except Exception as e:
         messages.error(request, f"Erreur lors du téléchargement : {str(e)}")
         return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def content_version_history(request, content_type, content_id):
+    """Affiche l'historique des versions d'un contenu."""
+    if content_type == 'course':
+        content = get_object_or_404(Course, id=content_id)
+    elif content_type == 'td':
+        content = get_object_or_404(TD, id=content_id)
+    elif content_type == 'corrected_td':
+        content = get_object_or_404(CorrectedTD, id=content_id)
+    else:
+        raise Http404("Type de contenu invalide")
+    
+    # Vérifier que l'utilisateur est l'auteur ou admin
+    if content.author != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas la permission de voir l'historique.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    versions = ContentVersionService.get_version_history(content)
+    
+    context = {
+        'content': content,
+        'content_type': content_type,
+        'versions': versions,
+    }
+    return render(request, 'learning/version_history.html', context)
+
+
+@login_required
+def restore_content_version(request, content_type, content_id, version_number):
+    """Restaure une version précédente d'un contenu."""
+    if content_type == 'course':
+        content = get_object_or_404(Course, id=content_id)
+    elif content_type == 'td':
+        content = get_object_or_404(TD, id=content_id)
+    elif content_type == 'corrected_td':
+        content = get_object_or_404(CorrectedTD, id=content_id)
+    else:
+        raise Http404("Type de contenu invalide")
+    
+    # Vérifier que l'utilisateur est l'auteur ou admin
+    if content.author != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas la permission de restaurer cette version.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    success, message = ContentVersionService.restore_version(
+        content, version_number, request.user
+    )
+    
+    if success:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
+    
+    return redirect('content_version_history', content_type=content_type, content_id=content_id)

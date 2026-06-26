@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from accounts.services import DCService
+from accounts.services import DCService, PromoCodeService
 from .models import DCPack, DCPackOrder, RechargeCode
 from .services import RechargeCodeService, ManualPaymentService, DCPackOrderService
 
@@ -55,6 +55,7 @@ def create_checkout_session(request, pack_id):
     """
     Crée une session Stripe Checkout pour un pack DC.
     Redirige l'utilisateur vers la page de paiement Stripe.
+    Supporte les codes promo.
     """
     pack = get_object_or_404(DCPack, id=pack_id, is_active=True)
     stripe_lib = _get_stripe()
@@ -65,6 +66,35 @@ def create_checkout_session(request, pack_id):
             "Le système de paiement n'est pas encore configuré. "
             "Contactez l'administrateur."
         )
+        return redirect('payments:packs')
+
+    # Appliquer le code promo si fourni
+    promo_code = request.POST.get('promo_code', '').strip()
+    discount = 0
+    if promo_code:
+        success, message, discount_amount = PromoCodeService.apply_promo_code(request.user, promo_code)
+        if success:
+            discount = discount_amount
+            messages.success(request, f"Code promo appliqué : -{discount} DC")
+        else:
+            messages.error(request, message)
+            return redirect('payments:packs')
+
+    # Calculer le prix après réduction
+    base_price = pack.price_cfa if pack.price_cfa else 0
+    final_price = max(0, base_price - discount)
+
+    if final_price == 0:
+        # Si le code promo rend le pack gratuit, créditer directement
+        DCService.add_dc(
+            user=request.user,
+            amount=pack.dc_amount,
+            transaction_type='purchase',
+            description=f"Achat pack DC gratuit avec code promo : {pack.name}",
+            content_type='dc_pack',
+            content_id=pack.id
+        )
+        messages.success(request, f"Pack {pack.name} obtenu gratuitement grâce au code promo !")
         return redirect('payments:packs')
 
     try:
@@ -78,7 +108,7 @@ def create_checkout_session(request, pack_id):
             line_items=[{
                 'price_data': {
                     'currency': 'eur',
-                    'unit_amount': int(pack.price_cfa * 100) if pack.price_cfa else int(pack.price_eur * 100),  # Stripe utilise les centimes
+                    'unit_amount': int(final_price * 100),  # Stripe utilise les centimes
                     'product_data': {
                         'name': f'DECEL — {pack.name}',
                         'description': f'{pack.dc_amount} Decelcones (DC)',
@@ -94,6 +124,8 @@ def create_checkout_session(request, pack_id):
                 'user_id': str(request.user.id),
                 'pack_id': str(pack.id),
                 'dc_amount': str(pack.dc_amount),
+                'promo_code': promo_code,
+                'discount': str(discount),
             },
             customer_email=request.user.email,
         )
@@ -103,8 +135,7 @@ def create_checkout_session(request, pack_id):
             user=request.user,
             pack=pack,
             dc_amount=pack.dc_amount,
-            price_paid_cfa=pack.price_cfa if pack.price_cfa else pack.price_eur,
-            price_paid_eur=pack.price_eur,  # Garder pour compatibilité Stripe
+            price_paid_cfa=final_price,
             stripe_session_id=session.id,
         )
 
@@ -380,23 +411,39 @@ def _complete_order(order: DCPackOrder):
 
 @login_required
 def manual_payment(request, pack_id):
-    """Affiche le formulaire de paiement manuel."""
+    """Affiche le formulaire de paiement manuel avec support des codes promo."""
     pack = get_object_or_404(DCPack, id=pack_id, is_active=True)
     
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method')
         transaction_reference = request.POST.get('transaction_reference', '').strip()
+        promo_code = request.POST.get('promo_code', '').strip()
         
         if payment_method not in ['orange_money', 'wave', 'bank_transfer', 'cash']:
             messages.error(request, 'Méthode de paiement invalide.')
             return redirect('payments:packs')
+        
+        # Appliquer le code promo si fourni
+        discount = 0
+        if promo_code:
+            success, message, discount_amount = PromoCodeService.apply_promo_code(request.user, promo_code)
+            if success:
+                discount = discount_amount
+                messages.success(request, f"Code promo appliqué : -{discount} FCFA")
+            else:
+                messages.error(request, message)
+        
+        # Calculer le prix après réduction
+        base_price = pack.price_cfa if pack.price_cfa else 0
+        final_price = max(0, base_price - discount)
         
         # Créer la commande
         order = ManualPaymentService.create_manual_order(
             user=request.user,
             pack=pack,
             payment_method=payment_method,
-            transaction_reference=transaction_reference
+            transaction_reference=transaction_reference,
+            final_price=final_price
         )
         
         messages.success(request, f'Commande créée ! Veuillez effectuer le paiement via {payment_method}.')

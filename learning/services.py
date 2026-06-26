@@ -2,7 +2,7 @@ from django.db import transaction
 from django.contrib import messages
 from .models import Course, TD, CorrectedTD, ContentPurchase, ContentVersion
 from gamification.services import XPService
-from accounts.services import DCService
+from accounts.services import DCService, PromoCodeService
 
 
 class ContentPurchaseService:
@@ -47,8 +47,8 @@ class ContentPurchaseService:
     
     @staticmethod
     @transaction.atomic
-    def purchase_content(user, content_type, content_id):
-        """Achète du contenu en DC."""
+    def purchase_content(user, content_type, content_id, promo_code=None):
+        """Achète du contenu en DC avec option de code promo."""
         price = ContentPurchaseService.get_content_price(content_type, content_id)
         
         if price == 0:
@@ -56,6 +56,18 @@ class ContentPurchaseService:
         
         if ContentPurchaseService.has_purchased(user, content_type, content_id):
             return False, "Vous avez déjà acheté ce contenu."
+        
+        # Appliquer le code promo si fourni
+        discount = 0
+        if promo_code:
+            success, message, discount_amount = PromoCodeService.apply_promo_code(user, promo_code)
+            if success:
+                discount = discount_amount
+            else:
+                return False, message
+        
+        # Calculer le prix après réduction
+        final_price = max(0, price - discount)
         
         # Récupérer l'auteur du contenu
         author = None
@@ -74,7 +86,7 @@ class ContentPurchaseService:
             purchaser=user,
             content_type=content_type,
             content_id=content_id,
-            price=price,
+            price=final_price,
             author=author
         )
         
@@ -85,7 +97,7 @@ class ContentPurchaseService:
         purchase = ContentPurchase.objects.create(
             user=user,
             content_type=content_type,
-            dc_paid=price
+            dc_paid=final_price
         )
         
         if content_type == 'course':
@@ -97,7 +109,9 @@ class ContentPurchaseService:
         
         purchase.save()
         
-        return True, f"Contenu acheté avec succès pour {price} DC."
+        if discount > 0:
+            return True, f"Contenu acheté avec succès pour {final_price} DC (réduction: {discount} DC)."
+        return True, f"Contenu acheté avec succès pour {final_price} DC."
     
     @staticmethod
     def can_access(user, content_type, content_id, price):

@@ -242,7 +242,7 @@ class ManualPaymentService:
 
     @staticmethod
     @transaction.atomic
-    def create_manual_order(user, pack, payment_method, transaction_reference=''):
+    def create_manual_order(user, pack, payment_method, transaction_reference='', final_price=None):
         """
         Crée une commande de paiement manuel.
 
@@ -251,15 +251,17 @@ class ManualPaymentService:
             pack: Pack DC à acheter
             payment_method: Méthode de paiement (orange_money, wave, etc.)
             transaction_reference: Référence de transaction (optionnel)
+            final_price: Prix final après réduction (optionnel)
 
         Returns:
             DCPackOrder: La commande créée
         """
+        price = final_price if final_price is not None else pack.price_cfa
         return DCPackOrder.objects.create(
             user=user,
             pack=pack,
             dc_amount=pack.dc_amount,
-            price_paid_cfa=pack.price_cfa if pack.price_cfa else pack.price_eur,
+            price_paid_cfa=price,
             payment_method=payment_method,
             transaction_reference=transaction_reference,
             status='pending'

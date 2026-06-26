@@ -13,7 +13,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1,decel-sn4v.onrender.com'
+    default='localhost://8000,127.0.0.1:8000,decel-sn4v.onrender.com,*'
 ).split(',')
 
 # =========================
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
 
     'corsheaders.middleware.CorsMiddleware',
 
@@ -86,6 +87,15 @@ TEMPLATES = [
         },
     },
 ]
+
+if not DEBUG:
+    TEMPLATES[0]['APP_DIRS'] = False
+    TEMPLATES[0]['OPTIONS']['loaders'] = [
+        ('django.template.loaders.cached.Loader', [
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+        ]),
+    ]
 
 WSGI_APPLICATION = 'decel.wsgi.application'
 
@@ -129,10 +139,23 @@ STATICFILES_DIRS = [
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # =========================
-# MEDIA
+# MEDIA (Supabase Storage)
 # =========================
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Supabase Storage for production
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = os.environ.get('SUPABASE_STORAGE_KEY')
+AWS_SECRET_ACCESS_KEY = os.environ.get('SUPABASE_STORAGE_SECRET')
+AWS_STORAGE_BUCKET_NAME = 'decel-media'
+AWS_S3_ENDPOINT_URL = os.environ.get('SUPABASE_STORAGE_URL', 'https://gpfnrykkrasfifwevhbb.supabase.co/storage/v1/s3')
+AWS_S3_REGION_NAME = 'eu-central-1'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_DEFAULT_ACL = 'public-read'
+MEDIA_URL = 'https://gpfnrykkrasfifwevhbb.supabase.co/storage/v1/object/public/decel-media/'
+
+# Fallback to local storage for development
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # =========================
 # CACHE

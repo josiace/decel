@@ -7,7 +7,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
 
+@cache_page(60 * 10)  # 10 minutes
 def home(request):
     """Landing page for DECEL - redirects to home_authenticated if user is logged in."""
     if request.user.is_authenticated:

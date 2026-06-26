@@ -8,7 +8,6 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {% block extrahead %}
@@ -94,25 +93,19 @@
                         {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-1"></i
-                                >Tableau de Bord
+                                <i class="fas fa-tachometer-alt me-1"></i>Tableau de Bord
                             </a>
                         </li>
                         {% if user.is_contributor %}
                         <li class="nav-item">
-                            <a
-                                class="nav-link"
-                                href="{% url 'contributor:dashboard' %}"
-                            >
-                                <i class="fas fa-user-edit me-1"></i
-                                >Contributeur
+                            <a class="nav-link" href="{% url 'contributor:dashboard' %}">
+                                <i class="fas fa-user-edit me-1"></i>Contributeur
                             </a>
                         </li>
                         {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'exam_list' %}">
-                                <i class="fas fa-clipboard-list me-1"></i
-                                >Examens
+                                <i class="fas fa-clipboard-list me-1"></i>Examens
                             </a>
                         </li>
                         <li class="nav-item">
@@ -163,68 +156,35 @@
                             </a>
                             <ul class="dropdown-menu" id="userDropdown">
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'dashboard' %}"
-                                    >
-                                        <i
-                                            class="fas fa-tachometer-alt me-2"
-                                        ></i
-                                        >Tableau de Bord
+                                    <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord
                                     </a>
                                 </li>
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'wallet' %}"
-                                    >
-                                        <i class="fas fa-wallet me-2"></i>Mon
-                                        Portefeuille
-                                        <span
-                                            style="
-                                                float: right;
-                                                color: var(--accent-color);
-                                                font-weight: 600;
-                                            "
-                                            >{{ user.dc_balance }} DC</span
-                                        >
+                                    <a class="dropdown-item" href="{% url 'wallet' %}">
+                                        <i class="fas fa-wallet me-2"></i>Mon Portefeuille
+                                        <span style="float:right;color:var(--accent-color);font-weight:600;">{{ user.dc_balance }} DC</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'payments:packs' %}"
-                                    >
-                                        <i class="fas fa-plus-circle me-2"></i
-                                        >Acheter des DC
+                                    <a class="dropdown-item" href="{% url 'payments:packs' %}">
+                                        <i class="fas fa-plus-circle me-2"></i>Acheter des DC
                                     </a>
                                 </li>
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'referral' %}"
-                                    >
-                                        <i class="fas fa-gift me-2"></i
-                                        >Parrainage
+                                    <a class="dropdown-item" href="{% url 'referral' %}">
+                                        <i class="fas fa-gift me-2"></i>Parrainage
                                     </a>
                                 </li>
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'promo_codes' %}"
-                                    >
-                                        <i class="fas fa-ticket-alt me-2"></i
-                                        >Codes Promo
+                                    <a class="dropdown-item" href="{% url 'promo_codes' %}">
+                                        <i class="fas fa-ticket-alt me-2"></i>Codes Promo
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="{% url 'logout' %}"
-                                    >
-                                        <i class="fas fa-sign-out-alt me-2"></i
-                                        >Déconnexion
+                                    <a class="dropdown-item" href="{% url 'logout' %}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
                                     </a>
                                 </li>
                             </ul>
@@ -236,10 +196,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a
-                                class="btn btn-primary text-white ms-2"
-                                href="{% url 'register' %}"
-                            >
+                            <a class="btn btn-primary text-white ms-2" href="{% url 'register' %}">
                                 <i class="fas fa-user-plus me-1"></i>Inscription
                             </a>
                         </li>
@@ -250,40 +207,26 @@
         </nav>
 
         <main class="container">
-            {% if messages %} {% for message in messages %}
-            <div
-                class="alert alert-{{ message.tags }} alert-dismissible"
-                role="alert"
-            >
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
                 <span>
-                    <i
-                        class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"
-                    ></i>
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
                     {{ message }}
                 </span>
-                <button
-                    type="button"
-                    class="btn-close"
-                    onclick="this.parentElement.remove()"
-                >
-                    &times;
-                </button>
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()">&times;</button>
             </div>
-            {% endfor %} {% endif %} {% block content %}{% endblock %}
+            {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
         </main>
 
         <footer>
             <div class="container">
                 <div class="row">
                     <div class="col-12 col-md-4 text-center text-md-start mb-3 mb-md-0">
-                        <img
-                            src="{% static 'images/logodecel.png' %}"
-                            alt="DECEL Logo"
-                            class="footer-logo"
-                        />
-                        <p class="text-muted">
-                            Plateforme d'Apprentissage Adaptatif
-                        </p>
+                        <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="footer-logo" />
+                        <p class="text-muted">Plateforme d'Apprentissage Adaptatif</p>
                     </div>
                     <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
                         <h6 class="text-white mb-2">Contact</h6>
@@ -297,9 +240,7 @@
                         </p>
                     </div>
                     <div class="col-12 col-md-4 text-center text-md-end">
-                        <p class="text-muted mb-0">
-                            &copy; 2024 DECEL. Tous droits réservés.
-                        </p>
+                        <p class="text-muted mb-0">&copy; 2024 DECEL. Tous droits réservés.</p>
                     </div>
                 </div>
             </div>
@@ -329,8 +270,8 @@
                 });
             });
 
-            // Fermer la navbar mobile lors du clic sur un lien
             document.addEventListener("DOMContentLoaded", function() {
+                // Fermer la navbar mobile lors du clic sur un lien
                 const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
                 navLinks.forEach(link => {
                     link.addEventListener('click', function() {
@@ -343,100 +284,47 @@
                     });
                 });
 
-                // Remplir les données utilisateur dans la navbar
                 {% comment %} {% if user.is_authenticated %}
                 const usernameDisplay = document.getElementById('username-display');
                 const levelDisplay = document.getElementById('level-display');
                 const xpDisplay = document.getElementById('xp-display');
                 const dcDisplay = document.getElementById('dc-display');
-
-                if (usernameDisplay) {
-                    usernameDisplay.textContent = '{{ user.first_name|default:user.username|escapejs }}';
-                }
-                if (levelDisplay) {
-                    levelDisplay.textContent = '{{ user.level|escapejs }}';
-                }
-                if (xpDisplay) {
-                    xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
-                }
-                if (dcDisplay) {
-                    dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
-                }
+                if (usernameDisplay) usernameDisplay.textContent = '{{ user.first_name|default:user.username|escapejs }}';
+                if (levelDisplay) levelDisplay.textContent = '{{ user.level|escapejs }}';
+                if (xpDisplay) xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
+                if (dcDisplay) dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
                 {% endif %} {% endcomment %}
 
-                // Protection contre les captures d'écran
-                // Empêcher le clic droit
+                // Protection contre les captures d'écran et copies
                 document.addEventListener('contextmenu', function(e) {
                     e.preventDefault();
                     return false;
                 });
 
-                // Empêcher les raccourcis clavier pour captures d'écran
                 document.addEventListener('keydown', function(e) {
-                    // Ctrl+Shift+I (DevTools)
-                    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+Shift+J (Console)
-                    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+Shift+C (Inspect Element)
-                    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+U (View Source)
-                    if (e.ctrlKey && e.key === 'u') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // F12 (DevTools)
-                    if (e.key === 'F12') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Print Screen (sur certains navigateurs)
-                    if (e.key === 'PrintScreen') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+C (Copy)
-                    if (e.ctrlKey && e.key === 'c') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+V (Paste)
-                    if (e.ctrlKey && e.key === 'v') {
-                        e.preventDefault();
-                        return false;
-                    }
-                    // Ctrl+A (Select All)
-                    if (e.ctrlKey && e.key === 'a') {
-                        e.preventDefault();
-                        return false;
-                    }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
+                    if (e.key === 'F12') { e.preventDefault(); return false; }
+                    if (e.key === 'PrintScreen') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.key === 'c') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.key === 'v') { e.preventDefault(); return false; }
+                    if (e.ctrlKey && e.key === 'a') { e.preventDefault(); return false; }
                 });
 
-                // Empêcher le drag and drop d'images
                 document.addEventListener('dragstart', function(e) {
-                    if (e.target.tagName === 'IMG') {
-                        e.preventDefault();
-                        return false;
-                    }
+                    if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
                 });
 
-                // Détecter les tentatives de capture d'écran (mobile)
                 window.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
-                        // La page est cachée - possible capture d'écran
                         console.log('Page cachée - possible capture d\'écran détectée');
                     }
                 });
             });
         </script>
+
         {% block scripts %}{% endblock %}
     </body>
 </html>

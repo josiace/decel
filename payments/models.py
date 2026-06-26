@@ -10,7 +10,6 @@ class DCPack(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nom du pack")
     dc_amount = models.IntegerField(verbose_name="Montant DC", help_text="Nombre de DC inclus dans ce pack")
     price_cfa = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name="Prix (FCFA)")
-    price_eur = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name="Prix (€) - OBSOLETE")
     stripe_price_id = models.CharField(
         max_length=255, blank=True,
         verbose_name="ID prix Stripe",
@@ -72,7 +71,6 @@ class DCPackOrder(models.Model):
     )
     dc_amount = models.IntegerField(verbose_name="DC achetés")
     price_paid_cfa = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name="Prix payé (FCFA)")
-    price_paid_eur = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name="Prix payé (€) - OBSOLETE")
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='stripe', verbose_name="Méthode de paiement")
     stripe_session_id = models.CharField(max_length=255, unique=True, blank=True, null=True, verbose_name="ID session Stripe")
     stripe_payment_intent = models.CharField(max_length=255, blank=True, verbose_name="Payment Intent Stripe")
