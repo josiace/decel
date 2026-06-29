@@ -139,11 +139,20 @@ STATICFILES_DIRS = [
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # =========================
-# MEDIA (Local Storage - temporarily disabled Supabase)
+# MEDIA (Supabase Storage with robust backend)
 # =========================
-# Using local storage to debug the 500 error
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Supabase Storage for production
+if not DEBUG:
+    SUPABASE_URL = os.environ.get('SUPABASE_URL')
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+    SUPABASE_BUCKET = 'decel-media'
+    DEFAULT_FILE_STORAGE = 'decel.storage.SupabaseStorage'
+    MEDIA_URL = f'{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/'
+
+# Fallback to local storage for development
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # =========================
 # CACHE
