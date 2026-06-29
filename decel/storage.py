@@ -161,3 +161,35 @@ class SupabaseStorage(Storage):
     def get_available_name(self, name, max_length=None):
         """Return available filename (no collision handling for simplicity)"""
         return name
+    
+    def open(self, name, mode='rb'):
+        """Open the file for reading"""
+        if not self.use_supabase:
+            # Open local file
+            import os
+            from django.conf import settings
+            media_root = getattr(settings, 'MEDIA_ROOT', os.path.join(settings.BASE_DIR, 'media'))
+            full_path = os.path.join(media_root, name)
+            return open(full_path, mode)
+        
+        try:
+            # Download from Supabase and return as file-like object
+            url = self._url(name)
+            response = requests.get(url, headers=self.headers, timeout=30)
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to download from Supabase: {response.text}")
+            
+            # Create a file-like object from the response content
+            from io import BytesIO
+            return BytesIO(response.content)
+        except Exception as e:
+            logger.error(f"Failed to open file: {str(e)}")
+            # Fallback to local file
+            import os
+            from django.conf import settings
+            media_root = getattr(settings, 'MEDIA_ROOT', os.path.join(settings.BASE_DIR, 'media'))
+            full_path = os.path.join(media_root, name)
+            if os.path.exists(full_path):
+                return open(full_path, mode)
+            raise
