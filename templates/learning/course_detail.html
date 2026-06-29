@@ -203,11 +203,12 @@
                                         <div>
                                             <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
                                             <div class="text-warning">
-                                                {% for i in review.rating|range %}
-                                                    <i class="fas fa-star"></i>
-                                                {% endfor %}
-                                                {% for i in review.rating|range:5 %}
-                                                    <i class="far fa-star text-muted"></i>
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-muted"></i>
+                                                    {% endif %}
                                                 {% endfor %}
                                             </div>
                                         </div>
