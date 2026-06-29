@@ -14,4 +14,6 @@ urlpatterns = [
     path('promo-codes/', views.promo_codes_page, name='promo_codes'),
     path('apply-promo-code/', views.apply_promo_code, name='apply_promo_code'),
     path('admin/user/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
+    path('api/xp-evolution/', views.xp_evolution_api, name='xp_evolution_api'),
+    path('api/level-progress/', views.level_progress_api, name='level_progress_api'),
 ]

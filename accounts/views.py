@@ -3,6 +3,9 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.db.models import Sum
+from django.http import JsonResponse
+from django.utils import timezone
+from datetime import timedelta
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import Referral, PromoCode, PromoCodeUsage
 from .services import ReferralService, PromoCodeService
@@ -450,3 +453,47 @@ def admin_user_detail(request, user_id):
     }
 
     return render(request, 'accounts/admin_user_detail.html', context)
+
+
+@login_required
+def xp_evolution_api(request):
+    """API endpoint for XP evolution data over time."""
+    from gamification.models import XPLog
+    from django.db.models import Sum
+    
+    user = request.user
+    days = int(request.GET.get('days', 30))
+    
+    today = timezone.now().date()
+    xp_data = []
+    cumulative_xp = 0
+    
+    for i in range(days):
+        date = today - timedelta(days=days - 1 - i)
+        xp_day = XPLog.objects.filter(
+            user=user,
+            created_at__date=date
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        cumulative_xp += xp_day
+        xp_data.append({
+            'date': date.strftime('%d/%m'),
+            'xp': cumulative_xp
+        })
+    
+    return JsonResponse({'xp_data': xp_data})
+
+
+@login_required
+def level_progress_api(request):
+    """API endpoint for level progress."""
+    user = request.user
+    xp_service = XPService()
+    progress = xp_service.get_level_progress(user)
+    
+    return JsonResponse({
+        'current_level': user.level,
+        'current_xp': user.total_xp,
+        'xp_for_next_level': progress['xp_needed'],
+        'xp_in_current_level': progress['xp_in_current_level'],
+        'percentage': progress['percentage']
+    })

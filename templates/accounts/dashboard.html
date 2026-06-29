@@ -94,7 +94,7 @@
             <div class="card-body text-center">
                 <div class="kpi-value">Level {{ user.level }}</div>
                 <div class="kpi-label">Niveau</div>
-                <small class="text-white-50">{{ level_progress.progress_percentage }}% complété</small>
+                <small class="text-white-50" id="level-progress-text">Chargement...</small>
             </div>
         </div>
     </div>
@@ -155,6 +155,39 @@
             </div>
             <div class="card-body">
                 <canvas id="activityChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Level Progress Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">📊 Progression vers le Niveau {{ user.level|add:1 }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="font-weight-bold">Niveau {{ user.level }}</span>
+                        <span class="font-weight-bold" id="progress-percentage">0%</span>
+                        <span class="font-weight-bold">Niveau {{ user.level|add:1 }}</span>
+                    </div>
+                    <div class="progress" style="height: 30px; border-radius: 15px; background-color: #e9ecef;">
+                        <div class="progress-bar" id="level-progress-bar" 
+                             role="progressbar" 
+                             style="width: 0%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 15px; transition: width 0.5s ease-in-out;"
+                             aria-valuenow="0" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted" id="current-xp">XP actuel: {{ user.total_xp }}</small>
+                        <small class="text-muted" id="xp-needed">XP requis: Chargement...</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -408,7 +441,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block extrajs %}
@@ -417,95 +449,128 @@ console.log('Chart.js loaded:', typeof Chart !== 'undefined');
 console.log('XP Data:', [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}]);
 console.log('Activity Data:', [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}]);
 
-// XP Chart
-const xpCtx = document.getElementById('xpChart').getContext('2d');
-const xpData = [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}];
-const xpLabels = [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-
-console.log('Creating XP Chart with', xpData.length, 'data points');
-
-new Chart(xpCtx, {
-    type: 'line',
-    data: {
-        labels: xpLabels,
-        datasets: [{
-            label: 'XP',
-            data: xpData,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            tension: 0.1,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true }
-        }
+// Load level progress from API
+async function loadLevelProgress() {
+    try {
+        const response = await fetch('{% url "level_progress_api" %}');
+        const data = await response.json();
+        
+        const progressBar = document.getElementById('level-progress-bar');
+        const progressText = document.getElementById('progress-percentage');
+        const levelProgressText = document.getElementById('level-progress-text');
+        const xpNeeded = document.getElementById('xp-needed');
+        
+        progressBar.style.width = data.percentage + '%';
+        progressBar.setAttribute('aria-valuenow', data.percentage);
+        progressText.textContent = data.percentage + '%';
+        levelProgressText.textContent = data.percentage + '% complété';
+        xpNeeded.textContent = 'XP requis: ' + data.xp_for_next_level;
+    } catch (error) {
+        console.error('Error loading level progress:', error);
     }
-});
+}
 
-// Activity Chart
-const activityCtx = document.getElementById('activityChart').getContext('2d');
-const activityData = [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}];
-const activityLabels = [{% for item in activity_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-
-console.log('Creating Activity Chart with', activityData.length, 'data points');
-
-new Chart(activityCtx, {
-    type: 'bar',
-    data: {
-        labels: activityLabels,
-        datasets: [{
-            label: 'Examens',
-            data: activityData,
-            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true }
-        }
+// Load XP evolution from API
+async function loadXPEvolution() {
+    try {
+        const response = await fetch('{% url "xp_evolution_api" %}?days=30');
+        const data = await response.json();
+        
+        const xpEvolutionCtx = document.getElementById('xpEvolutionChart').getContext('2d');
+        const xpEvolutionData = data.xp_data.map(item => item.xp);
+        const xpEvolutionLabels = data.xp_data.map(item => item.date);
+        
+        new Chart(xpEvolutionCtx, {
+            type: 'line',
+            data: {
+                labels: xpEvolutionLabels,
+                datasets: [{
+                    label: 'XP Cumulé',
+                    data: xpEvolutionData,
+                    borderColor: 'rgb(99, 102, 241)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Évolution XP Cumulé (30 derniers jours)'
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading XP evolution:', error);
     }
-});
+}
 
-// XP Evolution Chart (Cumulative)
-const xpEvolutionCtx = document.getElementById('xpEvolutionChart').getContext('2d');
-const xpEvolutionData = [{% for item in xp_evolution %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}];
-const xpEvolutionLabels = [{% for item in xp_evolution %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadLevelProgress();
+    loadXPEvolution();
 
-console.log('Creating XP Evolution Chart with', xpEvolutionData.length, 'data points');
+    // XP Chart
+    const xpCtx = document.getElementById('xpChart').getContext('2d');
+    const xpData = [{% for item in xp_over_time %}{{ item.xp }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const xpLabels = [{% for item in xp_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
 
-new Chart(xpEvolutionCtx, {
-    type: 'line',
-    data: {
-        labels: xpEvolutionLabels,
-        datasets: [{
-            label: 'XP Cumulé',
-            data: xpEvolutionData,
-            borderColor: 'rgb(99, 102, 241)',
-            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-            tension: 0.3,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true }
+    console.log('Creating XP Chart with', xpData.length, 'data points');
+
+    new Chart(xpCtx, {
+        type: 'line',
+        data: {
+            labels: xpLabels,
+            datasets: [{
+                label: 'XP',
+                data: xpData,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
         },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Évolution XP Cumulé (30 derniers jours)'
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
             }
         }
-    }
-});
+    });
+
+    // Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    const activityData = [{% for item in activity_over_time %}{{ item.exams }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const activityLabels = [{% for item in activity_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+
+    console.log('Creating Activity Chart with', activityData.length, 'data points');
+
+    new Chart(activityCtx, {
+        type: 'bar',
+        data: {
+            labels: activityLabels,
+            datasets: [{
+                label: 'Examens',
+                data: activityData,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
 
 // Skill Evolution Charts
 {% for subject_name, subject_data in skill_evolution.items %}
