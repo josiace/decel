@@ -152,8 +152,8 @@ def td_detail(request, td_id):
 @login_required
 def td_complete(request, td_id):
     """
-    Mark a TD as completed with a self-reported score.
-    Awards medium XP and updates skills.
+    Mark a TD as completed without requiring a score.
+    Awards medium XP and updates skills with a default score.
     """
     if request.method != 'POST':
         return redirect('td_detail', td_id=td_id)
@@ -161,12 +161,8 @@ def td_complete(request, td_id):
     td = get_object_or_404(TD, id=td_id, is_published=True)
     user = request.user
     
-    # Get score from POST
-    try:
-        score = int(request.POST.get('score', 0))
-        score = max(0, min(100, score))  # Clamp between 0-100
-    except (ValueError, TypeError):
-        score = 0
+    # Default score for completion (no self-evaluation)
+    score = 50  # Default score for completion
     
     # Get or create progress
     progress, created = TDProgress.objects.get_or_create(
@@ -192,24 +188,17 @@ def td_complete(request, td_id):
             td_id=td.id
         )
         
-        # Update skill
+        # Update skill with default score
         skill_service = SkillService()
         skill_service.update_skill_from_td(user, td.subject, score)
         
-        # Generate recommendation based on score
+        # Generate practice recommendation (since no score to base on)
         recommendation_service = RecommendationService()
-        if score >= 70:
-            recommendation_service.generate_recommendation(
-                user=user,
-                recommendation_type='advance',
-                context={'subject': td.subject.name, 'td_score': score}
-            )
-        else:
-            recommendation_service.generate_recommendation(
-                user=user,
-                recommendation_type='review',
-                context={'subject': td.subject.name, 'td_score': score}
-            )
+        recommendation_service.generate_recommendation(
+            user=user,
+            recommendation_type='practice',
+            context={'subject': td.subject.name}
+        )
     
     return redirect('td_detail', td_id=td.id)
 
