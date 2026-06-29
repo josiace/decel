@@ -45,6 +45,14 @@ class User(AbstractUser):
     # Profile fields
     bio = models.TextField(blank=True, verbose_name="Biographie", help_text="Courte biographie de l'utilisateur")
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Avatar", help_text="Photo de profil de l'utilisateur")
+    
+    # Theme preference
+    THEME_CHOICES = [
+        ('light', 'Clair'),
+        ('dark', 'Sombre'),
+        ('auto', 'Automatique'),
+    ]
+    theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default='auto', verbose_name="Préférence de thème", help_text="Préférence de thème de l'utilisateur")
 
     # Analytics fields
     last_login_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dernière IP", help_text="Adresse IP de la dernière connexion")

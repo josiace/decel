@@ -20,7 +20,7 @@
 
 {% block content %}
 <section class="section-hero fade-in">
-    <div class="row align-items-center">
+    <div class="row align-items-center mb-4">
         <div class="col-12 col-md-8 mb-3">
             <div class="section-kicker">Apprentissage</div>
             <h1 class="section-title mb-2">Cours disponibles</h1>
@@ -32,6 +32,53 @@
             <a href="{% url 'exam_list' %}" class="btn btn-primary mb-2">
                 <i class="fas fa-clipboard-list me-2"></i>Voir les examens
             </a>
+        </div>
+    </div>
+
+    <!-- Advanced Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{% url 'course_list' %}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="q" class="form-control" placeholder="Rechercher..." value="{{ request.GET.q }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="subject" class="form-select">
+                            <option value="">Toutes les matières</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if request.GET.subject == subject.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ subject.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="content_type" class="form-select">
+                            <option value="">Tous les types</option>
+                            <option value="text" {% if request.GET.content_type == 'text' %}selected{% endif %}>Texte</option>
+                            <option value="pdf" {% if request.GET.content_type == 'pdf' %}selected{% endif %}>PDF</option>
+                            <option value="image" {% if request.GET.content_type == 'image' %}selected{% endif %}>Image</option>
+                            <option value="file" {% if request.GET.content_type == 'file' %}selected{% endif %}>Fichier</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="price" class="form-select">
+                            <option value="">Tous les prix</option>
+                            <option value="free" {% if request.GET.price == 'free' %}selected{% endif %}>Gratuit</option>
+                            <option value="paid" {% if request.GET.price == 'paid' %}selected{% endif %}>Payant</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Rechercher
+                        </button>
+                        <a href="{% url 'course_list' %}" class="btn btn-secondary ms-2">
+                            <i class="fas fa-times me-2"></i>Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </section>

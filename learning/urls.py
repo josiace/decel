@@ -14,4 +14,5 @@ urlpatterns = [
     path('download/<str:content_type>/<int:content_id>/', views.download_file, name='download_file'),
     path('versions/<str:content_type>/<int:content_id>/', views.content_version_history, name='content_version_history'),
     path('versions/<str:content_type>/<int:content_id>/restore/<int:version_number>/', views.restore_content_version, name='restore_content_version'),
+    path('review/submit/', views.submit_review, name='submit_review'),
 ]

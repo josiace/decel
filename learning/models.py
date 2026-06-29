@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 from skills.models import Subject
 
 
@@ -238,3 +239,66 @@ class ContentPurchase(models.Model):
     
     def __str__(self):
         return f"{self.user.email} - {self.content_type} - {self.dc_paid} DC"
+
+
+class Review(models.Model):
+    """
+    Review model - user reviews and ratings for courses and TDs.
+    """
+    CONTENT_TYPES = [
+        ('course', 'Cours'),
+        ('td', 'TD'),
+        ('corrected_td', 'TD corrigé'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews', verbose_name="Utilisateur")
+    
+    # Content being reviewed
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, verbose_name="Type de contenu")
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, null=True, blank=True, related_name='reviews', verbose_name="Cours")
+    td = models.ForeignKey('TD', on_delete=models.CASCADE, null=True, blank=True, related_name='reviews', verbose_name="TD")
+    corrected_td = models.ForeignKey('CorrectedTD', on_delete=models.CASCADE, null=True, blank=True, related_name='reviews', verbose_name="TD corrigé")
+    
+    # Rating and review
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name="Note",
+        help_text="Note de 1 à 5 étoiles"
+    )
+    comment = models.TextField(blank=True, verbose_name="Commentaire", help_text="Commentaire détaillé")
+    
+    # Moderation
+    is_approved = models.BooleanField(default=True, verbose_name="Approuvé", help_text="Indique si la review est visible")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
+
+    class Meta:
+        unique_together = ['user', 'content_type', 'course', 'td', 'corrected_td']
+        ordering = ['-created_at']
+        verbose_name = "Avis"
+        verbose_name_plural = "Avis"
+
+    def __str__(self):
+        return f"{self.user.email} - {self.rating}/5"
+
+    def get_content_title(self):
+        """Get the title of the content being reviewed."""
+        if self.content_type == 'course' and self.course:
+            return self.course.title
+        elif self.content_type == 'td' and self.td:
+            return self.td.title
+        elif self.content_type == 'corrected_td' and self.corrected_td:
+            return self.corrected_td.title
+        return "Contenu inconnu"
+
+    def get_content_id(self):
+        """Get the ID of the content being reviewed."""
+        if self.content_type == 'course' and self.course:
+            return self.course.id
+        elif self.content_type == 'td' and self.td:
+            return self.td.id
+        elif self.content_type == 'corrected_td' and self.corrected_td:
+            return self.corrected_td.id
+        return None

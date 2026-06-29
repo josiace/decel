@@ -2,19 +2,51 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.http import FileResponse, Http404
-from .models import Course, TD, CorrectedTD, CourseProgress, TDProgress
+from django.http import FileResponse, Http404, JsonResponse
+from django.db.models import Q, Avg
+from .models import Course, TD, CorrectedTD, CourseProgress, TDProgress, Review
 from .services import ContentPurchaseService, ContentVersionService
 from gamification.services import XPService
 from skills.services import SkillService
+from skills.models import Subject
 from recommendations.services import RecommendationService
 
 
 @login_required
 def course_list(request):
-    """List all available courses."""
+    """List all available courses with advanced search."""
     courses = Course.objects.filter(is_published=True).select_related('subject')
-    return render(request, 'learning/course_list.html', {'courses': courses})
+    subjects = Subject.objects.all()
+    
+    # Search query
+    q = request.GET.get('q', '')
+    if q:
+        courses = courses.filter(
+            Q(title__icontains=q) | 
+            Q(description__icontains=q)
+        )
+    
+    # Filter by subject
+    subject_id = request.GET.get('subject', '')
+    if subject_id:
+        courses = courses.filter(subject_id=subject_id)
+    
+    # Filter by content type
+    content_type = request.GET.get('content_type', '')
+    if content_type:
+        courses = courses.filter(content_type=content_type)
+    
+    # Filter by price
+    price_filter = request.GET.get('price', '')
+    if price_filter == 'free':
+        courses = courses.filter(dc_price=0)
+    elif price_filter == 'paid':
+        courses = courses.filter(dc_price__gt=0)
+    
+    return render(request, 'learning/course_list.html', {
+        'courses': courses,
+        'subjects': subjects,
+    })
 
 
 @login_required
@@ -42,11 +74,31 @@ def course_detail(request, course_id):
         course.id
     )
     
+    # Get reviews for this course
+    reviews = Review.objects.filter(
+        content_type='course',
+        course=course,
+        is_approved=True
+    ).select_related('user').order_by('-created_at')
+    
+    # Calculate average rating
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    
+    # Check if user has already reviewed
+    user_review = Review.objects.filter(
+        content_type='course',
+        course=course,
+        user=request.user
+    ).first()
+    
     return render(request, 'learning/course_detail.html', {
         'course': course,
         'progress': progress,
         'can_access': can_access,
         'has_purchased': has_purchased,
+        'reviews': reviews,
+        'avg_rating': avg_rating,
+        'user_review': user_review,
     })
 
 
@@ -99,9 +151,39 @@ def course_complete(request, course_id):
 
 @login_required
 def td_list(request):
-    """List all available TDs."""
+    """List all available TDs with advanced search."""
     tds = TD.objects.filter(is_published=True).select_related('subject')
-    return render(request, 'learning/td_list.html', {'tds': tds})
+    subjects = Subject.objects.all()
+    
+    # Search query
+    q = request.GET.get('q', '')
+    if q:
+        tds = tds.filter(
+            Q(title__icontains=q) | 
+            Q(description__icontains=q)
+        )
+    
+    # Filter by subject
+    subject_id = request.GET.get('subject', '')
+    if subject_id:
+        tds = tds.filter(subject_id=subject_id)
+    
+    # Filter by content type
+    content_type = request.GET.get('content_type', '')
+    if content_type:
+        tds = tds.filter(content_type=content_type)
+    
+    # Filter by price
+    price_filter = request.GET.get('price', '')
+    if price_filter == 'free':
+        tds = tds.filter(dc_price=0)
+    elif price_filter == 'paid':
+        tds = tds.filter(dc_price__gt=0)
+    
+    return render(request, 'learning/td_list.html', {
+        'tds': tds,
+        'subjects': subjects,
+    })
 
 
 @login_required
@@ -329,6 +411,60 @@ def content_version_history(request, content_type, content_id):
         'versions': versions,
     }
     return render(request, 'learning/version_history.html', context)
+
+
+@login_required
+@require_POST
+def submit_review(request):
+    """Submit a review for content."""
+    content_type = request.POST.get('content_type')
+    content_id = request.POST.get('content_id')
+    rating = request.POST.get('rating')
+    comment = request.POST.get('comment', '')
+    
+    if not content_type or not content_id or not rating:
+        return JsonResponse({'success': False, 'error': 'Données manquantes'})
+    
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            return JsonResponse({'success': False, 'error': 'Note invalide (1-5)'})
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'Note invalide'})
+    
+    # Get the content object
+    if content_type == 'course':
+        content = get_object_or_404(Course, id=content_id, is_published=True)
+        review, created = Review.objects.get_or_create(
+            user=request.user,
+            content_type='course',
+            course=content,
+            td=None,
+            corrected_td=None,
+            defaults={'rating': rating, 'comment': comment}
+        )
+        if not created:
+            review.rating = rating
+            review.comment = comment
+            review.save()
+    elif content_type == 'td':
+        content = get_object_or_404(TD, id=content_id, is_published=True)
+        review, created = Review.objects.get_or_create(
+            user=request.user,
+            content_type='td',
+            course=None,
+            td=content,
+            corrected_td=None,
+            defaults={'rating': rating, 'comment': comment}
+        )
+        if not created:
+            review.rating = rating
+            review.comment = comment
+            review.save()
+    else:
+        return JsonResponse({'success': False, 'error': 'Type de contenu invalide'})
+    
+    return JsonResponse({'success': True, 'message': 'Avis soumis avec succès'})
 
 
 @login_required

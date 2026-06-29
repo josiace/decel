@@ -138,6 +138,11 @@
                                 <i class="fas fa-ticket-alt me-1"></i>Codes Promo
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <button class="nav-link btn btn-link" onclick="toggleTheme()" title="Changer le thème">
+                                <i class="fas fa-moon me-1" id="theme-icon"></i>
+                            </button>
+                        </li>
                         {% endif %}
                     </ul>
                     <ul class="navbar-nav">
@@ -322,8 +327,129 @@
                         console.log('Page cachée - possible capture d\'écran détectée');
                     }
                 });
+
+                // Theme toggle functionality
+                function toggleTheme() {
+                    const body = document.body;
+                    const themeIcon = document.getElementById('theme-icon');
+                    
+                    if (body.classList.contains('dark-mode')) {
+                        body.classList.remove('dark-mode');
+                        themeIcon.classList.remove('fa-sun');
+                        themeIcon.classList.add('fa-moon');
+                        localStorage.setItem('theme', 'light');
+                    } else {
+                        body.classList.add('dark-mode');
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                        localStorage.setItem('theme', 'dark');
+                    }
+                }
+
+                // Load saved theme preference
+                function loadTheme() {
+                    const savedTheme = localStorage.getItem('theme');
+                    const themeIcon = document.getElementById('theme-icon');
+                    
+                    if (savedTheme === 'dark') {
+                        document.body.classList.add('dark-mode');
+                        if (themeIcon) {
+                            themeIcon.classList.remove('fa-moon');
+                            themeIcon.classList.add('fa-sun');
+                        }
+                    }
+                }
+
+                // Load theme on page load
+                loadTheme();
             });
         </script>
+
+        <style>
+            /* Dark mode styles */
+            .dark-mode {
+                --bg-primary: #1a1a2e;
+                --bg-secondary: #16213e;
+                --text-primary: #eaeaea;
+                --text-secondary: #b8b8b8;
+                --border-color: #2a2a4a;
+                --card-bg: #1f1f3a;
+            }
+
+            .dark-mode body {
+                background-color: var(--bg-primary);
+                color: var(--text-primary);
+            }
+
+            .dark-mode .navbar {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+            }
+
+            .dark-mode .card {
+                background-color: var(--card-bg);
+                border-color: var(--border-color);
+            }
+
+            .dark-mode .card-header {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+                color: var(--text-primary);
+            }
+
+            .dark-mode .card-body {
+                color: var(--text-primary);
+            }
+
+            .dark-mode .card-footer {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+            }
+
+            .dark-mode .nav-link {
+                color: var(--text-primary);
+            }
+
+            .dark-mode .nav-link:hover {
+                color: var(--accent-color);
+            }
+
+            .dark-mode .dropdown-menu {
+                background-color: var(--card-bg);
+                border-color: var(--border-color);
+            }
+
+            .dark-mode .dropdown-item {
+                color: var(--text-primary);
+            }
+
+            .dark-mode .dropdown-item:hover {
+                background-color: var(--bg-secondary);
+            }
+
+            .dark-mode footer {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+            }
+
+            .dark-mode .alert {
+                background-color: var(--card-bg);
+                border-color: var(--border-color);
+                color: var(--text-primary);
+            }
+
+            .dark-mode .form-control {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+                color: var(--text-primary);
+            }
+
+            .dark-mode .form-select {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+                color: var(--text-primary);
+            }
+        </style>
 
         {% block scripts %}{% endblock %}
     </body>
