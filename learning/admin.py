@@ -4,11 +4,12 @@ from .models import Course, TD, CorrectedTD, CourseProgress, TDProgress, Content
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ['title', 'subject', 'content_type', 'dc_price', 'author', 'is_published', 'created_at']
-    list_filter = ['subject', 'content_type', 'is_published', 'created_at']
+    list_display = ['title', 'subject', 'country', 'grade_level', 'content_type', 'dc_price', 'author', 'is_published', 'created_at']
+    list_filter = ['subject', 'country', 'grade_level', 'content_type', 'is_published', 'created_at']
     search_fields = ['title', 'description']
     fieldsets = (
         ('Informations du cours', {'fields': ('title', 'description', 'subject'), 'description': 'Détails du cours'}),
+        ('Public cible', {'fields': ('country', 'grade_level'), 'description': 'Pays et niveau scolaire cible'}),
         ('Type et format de contenu', {'fields': ('content_type', 'content', 'content_file'), 'description': 'Choisir le type de contenu et fournir soit le texte soit le fichier'}),
         ('Tarification', {'fields': ('dc_price',), 'description': 'Prix en DC pour accéder/télécharger (0 = gratuit)'}),
         ('Publication', {'fields': ('is_published',), 'description': 'Cocher pour rendre le cours visible'}),
@@ -19,11 +20,12 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(TD)
 class TDAdmin(admin.ModelAdmin):
-    list_display = ['title', 'subject', 'content_type', 'dc_price', 'author', 'is_published', 'created_at']
-    list_filter = ['subject', 'content_type', 'is_published', 'created_at']
+    list_display = ['title', 'subject', 'country', 'grade_level', 'content_type', 'dc_price', 'author', 'is_published', 'created_at']
+    list_filter = ['subject', 'country', 'grade_level', 'content_type', 'is_published', 'created_at']
     search_fields = ['title', 'description']
     fieldsets = (
         ('Informations du TD', {'fields': ('title', 'description', 'subject'), 'description': 'Détails du TD'}),
+        ('Public cible', {'fields': ('country', 'grade_level'), 'description': 'Pays et niveau scolaire cible'}),
         ('Type et format de contenu', {'fields': ('content_type', 'content', 'content_file'), 'description': 'Choisir le type de contenu et fournir soit le texte soit le fichier'}),
         ('Tarification', {'fields': ('dc_price',), 'description': 'Prix en DC pour accéder/télécharger (0 = gratuit)'}),
         ('Publication', {'fields': ('is_published',), 'description': 'Cocher pour rendre le TD visible'}),
@@ -34,10 +36,11 @@ class TDAdmin(admin.ModelAdmin):
 
 @admin.register(CorrectedTD)
 class CorrectedTDAdmin(admin.ModelAdmin):
-    list_display = ['td', 'content_type', 'dc_price', 'created_at']
-    list_filter = ['content_type', 'created_at']
+    list_display = ['td', 'country', 'grade_level', 'content_type', 'dc_price', 'created_at']
+    list_filter = ['country', 'grade_level', 'content_type', 'created_at']
     fieldsets = (
         ('Correction', {'fields': ('td', 'content_type', 'correction', 'correction_file'), 'description': 'TD associé et sa correction (texte ou fichier)'}),
+        ('Public cible', {'fields': ('country', 'grade_level'), 'description': 'Pays et niveau scolaire cible (hérité du TD mais peut être modifié)'}),
         ('Tarification', {'fields': ('dc_price',), 'description': 'Prix en DC pour accéder/télécharger (0 = gratuit)'}),
         ('Horodatage', {'fields': ('created_at', 'updated_at'), 'description': 'Dates de création et de mise à jour'}),
     )

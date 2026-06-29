@@ -21,13 +21,14 @@ class CountryAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['email', 'username', 'first_name', 'last_name', 'country', 'total_xp', 'level', 'dc_balance', 'is_staff', 'created_at', 'view_user_analytics', 'view_user_details']
-    list_filter = ['is_staff', 'is_superuser', 'is_active', 'level', 'country', 'created_at']
+    list_display = ['email', 'username', 'first_name', 'last_name', 'country', 'grade_level', 'total_xp', 'level', 'dc_balance', 'is_staff', 'created_at', 'view_user_analytics', 'view_user_details']
+    list_filter = ['is_staff', 'is_superuser', 'is_active', 'level', 'country', 'grade_level', 'created_at']
     search_fields = ['email', 'username', 'first_name', 'last_name', 'phone_number']
     ordering = ['-created_at']
 
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Contact', {'fields': ('phone_number', 'country'), 'description': 'Informations de contact'}),
+        ('Éducation', {'fields': ('grade_level',), 'description': 'Niveau scolaire de l\'utilisateur'}),
         ('Intelligence d\'Apprentissage', {'fields': ('total_xp', 'level'), 'description': 'Points d\'expérience et niveau calculés automatiquement'}),
         ('Monnaie DC', {'fields': ('dc_balance',), 'description': 'Solde en Decelcone (DC) pour les achats sur le site'}),
         ('Profil', {'fields': ('bio', 'avatar'), 'description': 'Informations du profil utilisateur'}),
