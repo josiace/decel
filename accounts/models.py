@@ -53,6 +53,23 @@ class User(AbstractUser):
         ('auto', 'Automatique'),
     ]
     theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default='auto', verbose_name="Préférence de thème", help_text="Préférence de thème de l'utilisateur")
+    
+    # Educational level
+    GRADE_LEVEL_CHOICES = [
+        ('9th', '9ème année'),
+        ('10th', '10ème année'),
+        ('11th', '11ème année'),
+        ('12th', '12ème année / Terminale'),
+        ('bac', 'Baccalauréat'),
+        ('license1', 'Licence 1'),
+        ('license2', 'Licence 2'),
+        ('license3', 'Licence 3'),
+        ('master1', 'Master 1'),
+        ('master2', 'Master 2'),
+        ('doctorate', 'Doctorat'),
+        ('other', 'Autre'),
+    ]
+    grade_level = models.CharField(max_length=20, choices=GRADE_LEVEL_CHOICES, blank=True, verbose_name="Niveau scolaire", help_text="Niveau scolaire de l'utilisateur")
 
     # Analytics fields
     last_login_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dernière IP", help_text="Adresse IP de la dernière connexion")

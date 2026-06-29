@@ -14,6 +14,51 @@
         <h1>🌍 Classement Global XP</h1>
         <p class="lead text-muted">Les meilleurs apprenants par XP total</p>
 
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" action="{% url 'gamification:global_leaderboard' %}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select name="country" class="form-select">
+                                <option value="">Tous les pays</option>
+                                {% for country in countries %}
+                                    <option value="{{ country.code }}" {% if country_filter == country.code %}selected{% endif %}>
+                                        {{ country.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="grade_level" class="form-select">
+                                <option value="">Tous les niveaux</option>
+                                <option value="9th" {% if grade_filter == '9th' %}selected{% endif %}>9ème année</option>
+                                <option value="10th" {% if grade_filter == '10th' %}selected{% endif %}>10ème année</option>
+                                <option value="11th" {% if grade_filter == '11th' %}selected{% endif %}>11ème année</option>
+                                <option value="12th" {% if grade_filter == '12th' %}selected{% endif %}>12ème année / Terminale</option>
+                                <option value="bac" {% if grade_filter == 'bac' %}selected{% endif %}>Baccalauréat</option>
+                                <option value="license1" {% if grade_filter == 'license1' %}selected{% endif %}>Licence 1</option>
+                                <option value="license2" {% if grade_filter == 'license2' %}selected{% endif %}>Licence 2</option>
+                                <option value="license3" {% if grade_filter == 'license3' %}selected{% endif %}>Licence 3</option>
+                                <option value="master1" {% if grade_filter == 'master1' %}selected{% endif %}>Master 1</option>
+                                <option value="master2" {% if grade_filter == 'master2' %}selected{% endif %}>Master 2</option>
+                                <option value="doctorate" {% if grade_filter == 'doctorate' %}selected{% endif %}>Doctorat</option>
+                                <option value="other" {% if grade_filter == 'other' %}selected{% endif %}>Autre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i>Filtrer
+                            </button>
+                            <a href="{% url 'gamification:global_leaderboard' %}" class="btn btn-secondary ms-2">
+                                <i class="fas fa-times me-2"></i>Réinitialiser
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         {% if user_rank %}
         <div class="alert alert-info">
             <strong>Votre position:</strong> #{{ user_rank }}
@@ -28,6 +73,8 @@
                             <tr>
                                 <th>Rang</th>
                                 <th>Utilisateur</th>
+                                <th>Pays</th>
+                                <th>Niveau scolaire</th>
                                 <th>Niveau</th>
                                 <th>XP Total</th>
                                 <th>Examens</th>
@@ -52,6 +99,20 @@
                                     <strong>{{ user.get_full_name|default:user.email }}</strong>
                                     {% if user.id == request.user.id %}
                                     <span class="badge badge-primary ms-2">Vous</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.country %}
+                                        {{ user.country.name }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.grade_level %}
+                                        {{ user.get_grade_level_display }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
                                 <td>

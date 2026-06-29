@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
 from django.http import FileResponse, Http404, JsonResponse
@@ -42,6 +43,16 @@ def course_list(request):
         courses = courses.filter(dc_price=0)
     elif price_filter == 'paid':
         courses = courses.filter(dc_price__gt=0)
+    
+    # Filter by country
+    country_filter = request.GET.get('country', '')
+    if country_filter:
+        courses = courses.filter(country=country_filter)
+    
+    # Filter by grade level
+    grade_filter = request.GET.get('grade_level', '')
+    if grade_filter:
+        courses = courses.filter(grade_level=grade_filter)
     
     return render(request, 'learning/course_list.html', {
         'courses': courses,
@@ -179,6 +190,16 @@ def td_list(request):
         tds = tds.filter(dc_price=0)
     elif price_filter == 'paid':
         tds = tds.filter(dc_price__gt=0)
+    
+    # Filter by country
+    country_filter = request.GET.get('country', '')
+    if country_filter:
+        tds = tds.filter(country=country_filter)
+    
+    # Filter by grade level
+    grade_filter = request.GET.get('grade_level', '')
+    if grade_filter:
+        tds = tds.filter(grade_level=grade_filter)
     
     return render(request, 'learning/td_list.html', {
         'tds': tds,

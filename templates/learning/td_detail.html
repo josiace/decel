@@ -17,6 +17,12 @@
                 <h2>{{ td.title }}</h2>
                 <div>
                     <span class="badge bg-primary">{{ td.subject.name }}</span>
+                    {% if td.country %}
+                        <span class="badge bg-info">{{ td.get_country_display }}</span>
+                    {% endif %}
+                    {% if td.grade_level %}
+                        <span class="badge bg-secondary">{{ td.get_grade_level_display }}</span>
+                    {% endif %}
                     {% if td.dc_price > 0 %}
                         <span class="badge bg-warning">{{ td.dc_price }} DC</span>
                     {% else %}

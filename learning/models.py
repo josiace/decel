@@ -12,6 +12,50 @@ CONTENT_TYPE_CHOICES = [
     ('file', 'Autre fichier'),
 ]
 
+# Liste des pays (sélection des pays francophones et majeurs)
+COUNTRY_CHOICES = [
+    ('FR', 'France'),
+    ('CI', "Côte d'Ivoire"),
+    ('ML', 'Mali'),
+    ('SN', 'Sénégal'),
+    ('BF', 'Burkina Faso'),
+    ('CM', 'Cameroun'),
+    ('CD', 'République Démocratique du Congo'),
+    ('GA', 'Gabon'),
+    ('MG', 'Madagascar'),
+    ('NE', 'Niger'),
+    ('TG', 'Togo'),
+    ('BJ', 'Bénin'),
+    ('HT', 'Haïti'),
+    ('CA', 'Canada'),
+    ('BE', 'Belgique'),
+    ('CH', 'Suisse'),
+    ('LU', 'Luxembourg'),
+    ('MA', 'Maroc'),
+    ('TN', 'Tunisie'),
+    ('DZ', 'Algérie'),
+    ('US', 'États-Unis'),
+    ('GB', 'Royaume-Uni'),
+    ('DE', 'Allemagne'),
+    ('OTHER', 'Autre'),
+]
+
+# Niveaux scolaires
+GRADE_LEVEL_CHOICES = [
+    ('9th', '9ème année'),
+    ('10th', '10ème année'),
+    ('11th', '11ème année'),
+    ('12th', '12ème année / Terminale'),
+    ('bac', 'Baccalauréat'),
+    ('license1', 'Licence 1'),
+    ('license2', 'Licence 2'),
+    ('license3', 'Licence 3'),
+    ('master1', 'Master 1'),
+    ('master2', 'Master 2'),
+    ('doctorate', 'Doctorat'),
+    ('other', 'Autre'),
+]
+
 
 class ContentVersion(models.Model):
     """
@@ -73,6 +117,10 @@ class Course(models.Model):
     # Pricing
     dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger ce cours (0 = gratuit)")
     
+    # Target audience
+    country = models.CharField(max_length=5, choices=COUNTRY_CHOICES, blank=True, verbose_name="Pays cible", help_text="Pays pour lequel ce cours est destiné")
+    grade_level = models.CharField(max_length=20, choices=GRADE_LEVEL_CHOICES, blank=True, verbose_name="Niveau scolaire", help_text="Niveau scolaire cible")
+    
     # Metadata
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Auteur", help_text="Auteur du cours")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
@@ -112,6 +160,10 @@ class TD(models.Model):
     # Pricing
     dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger ce TD (0 = gratuit)")
     
+    # Target audience
+    country = models.CharField(max_length=5, choices=COUNTRY_CHOICES, blank=True, verbose_name="Pays cible", help_text="Pays pour lequel ce TD est destiné")
+    grade_level = models.CharField(max_length=20, choices=GRADE_LEVEL_CHOICES, blank=True, verbose_name="Niveau scolaire", help_text="Niveau scolaire cible")
+    
     # Metadata
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Auteur", help_text="Auteur du TD")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
@@ -148,6 +200,10 @@ class CorrectedTD(models.Model):
     
     # Pricing
     dc_price = models.IntegerField(default=0, verbose_name="Prix en DC", help_text="DC requis pour accéder/télécharger cette correction (0 = gratuit)")
+    
+    # Target audience (inherited from TD, but can be overridden)
+    country = models.CharField(max_length=5, choices=COUNTRY_CHOICES, blank=True, verbose_name="Pays cible", help_text="Pays pour lequel cette correction est destinée")
+    grade_level = models.CharField(max_length=20, choices=GRADE_LEVEL_CHOICES, blank=True, verbose_name="Niveau scolaire", help_text="Niveau scolaire cible")
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")

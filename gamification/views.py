@@ -48,28 +48,45 @@ def leaderboard_detail(request, leaderboard_id):
 
 @login_required
 def global_leaderboard(request):
-    """Show global XP leaderboard."""
-    # Get top users by XP
-    top_users = User.objects.annotate(
+    """Show global XP leaderboard with detailed user information."""
+    # Get filter parameters
+    country_filter = request.GET.get('country', '')
+    grade_filter = request.GET.get('grade_level', '')
+    
+    # Build query
+    users_query = User.objects.annotate(
         exam_count=Count('exam_sessions', filter=Q(exam_sessions__is_completed=True)),
         badge_count=Count('badges')
-    ).order_by('-total_xp', '-level')[:50]
+    )
+    
+    # Apply filters
+    if country_filter:
+        users_query = users_query.filter(country__code=country_filter)
+    if grade_filter:
+        users_query = users_query.filter(grade_level=grade_filter)
+    
+    # Get top users by XP
+    top_users = users_query.select_related('country').order_by('-total_xp', '-level')[:50]
     
     # Get current user's position
     user_rank = None
-    all_users = User.objects.annotate(
-        exam_count=Count('exam_sessions', filter=Q(exam_sessions__is_completed=True)),
-        badge_count=Count('badges')
-    ).order_by('-total_xp', '-level')
+    all_users = users_query.select_related('country').order_by('-total_xp', '-level')
     
     for idx, user in enumerate(all_users, 1):
         if user.id == request.user.id:
             user_rank = idx
             break
     
+    # Get all countries for filter
+    from accounts.models import Country
+    countries = Country.objects.filter(is_active=True)
+    
     return render(request, 'gamification/global_leaderboard.html', {
         'top_users': top_users,
         'user_rank': user_rank,
+        'countries': countries,
+        'country_filter': country_filter,
+        'grade_filter': grade_filter,
     })
 
 

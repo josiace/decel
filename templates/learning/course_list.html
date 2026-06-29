@@ -40,10 +40,10 @@
         <div class="card-body">
             <form method="get" action="{% url 'course_list' %}">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" name="q" class="form-control" placeholder="Rechercher..." value="{{ request.GET.q }}">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select name="subject" class="form-select">
                             <option value="">Toutes les matières</option>
                             {% for subject in subjects %}
@@ -53,7 +53,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select name="content_type" class="form-select">
                             <option value="">Tous les types</option>
                             <option value="text" {% if request.GET.content_type == 'text' %}selected{% endif %}>Texte</option>
@@ -63,8 +63,53 @@
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <select name="country" class="form-select">
+                            <option value="">Tous les pays</option>
+                            <option value="FR" {% if request.GET.country == 'FR' %}selected{% endif %}>France</option>
+                            <option value="CI" {% if request.GET.country == 'CI' %}selected{% endif %}>Côte d'Ivoire</option>
+                            <option value="ML" {% if request.GET.country == 'ML' %}selected{% endif %}>Mali</option>
+                            <option value="SN" {% if request.GET.country == 'SN' %}selected{% endif %}>Sénégal</option>
+                            <option value="BF" {% if request.GET.country == 'BF' %}selected{% endif %}>Burkina Faso</option>
+                            <option value="CM" {% if request.GET.country == 'CM' %}selected{% endif %}>Cameroun</option>
+                            <option value="CD" {% if request.GET.country == 'CD' %}selected{% endif %}>RDC</option>
+                            <option value="GA" {% if request.GET.country == 'GA' %}selected{% endif %}>Gabon</option>
+                            <option value="MG" {% if request.GET.country == 'MG' %}selected{% endif %}>Madagascar</option>
+                            <option value="NE" {% if request.GET.country == 'NE' %}selected{% endif %}>Niger</option>
+                            <option value="TG" {% if request.GET.country == 'TG' %}selected{% endif %}>Togo</option>
+                            <option value="BJ" {% if request.GET.country == 'BJ' %}selected{% endif %}>Bénin</option>
+                            <option value="HT" {% if request.GET.country == 'HT' %}selected{% endif %}>Haïti</option>
+                            <option value="CA" {% if request.GET.country == 'CA' %}selected{% endif %}>Canada</option>
+                            <option value="BE" {% if request.GET.country == 'BE' %}selected{% endif %}>Belgique</option>
+                            <option value="CH" {% if request.GET.country == 'CH' %}selected{% endif %}>Suisse</option>
+                            <option value="MA" {% if request.GET.country == 'MA' %}selected{% endif %}>Maroc</option>
+                            <option value="TN" {% if request.GET.country == 'TN' %}selected{% endif %}>Tunisie</option>
+                            <option value="DZ" {% if request.GET.country == 'DZ' %}selected{% endif %}>Algérie</option>
+                            <option value="US" {% if request.GET.country == 'US' %}selected{% endif %}>États-Unis</option>
+                            <option value="GB" {% if request.GET.country == 'GB' %}selected{% endif %}>Royaume-Uni</option>
+                            <option value="DE" {% if request.GET.country == 'DE' %}selected{% endif %}>Allemagne</option>
+                            <option value="OTHER" {% if request.GET.country == 'OTHER' %}selected{% endif %}>Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="grade_level" class="form-select">
+                            <option value="">Tous les niveaux</option>
+                            <option value="9th" {% if request.GET.grade_level == '9th' %}selected{% endif %}>9ème année</option>
+                            <option value="10th" {% if request.GET.grade_level == '10th' %}selected{% endif %}>10ème année</option>
+                            <option value="11th" {% if request.GET.grade_level == '11th' %}selected{% endif %}>11ème année</option>
+                            <option value="12th" {% if request.GET.grade_level == '12th' %}selected{% endif %}>12ème année / Terminale</option>
+                            <option value="bac" {% if request.GET.grade_level == 'bac' %}selected{% endif %}>Baccalauréat</option>
+                            <option value="license1" {% if request.GET.grade_level == 'license1' %}selected{% endif %}>Licence 1</option>
+                            <option value="license2" {% if request.GET.grade_level == 'license2' %}selected{% endif %}>Licence 2</option>
+                            <option value="license3" {% if request.GET.grade_level == 'license3' %}selected{% endif %}>Licence 3</option>
+                            <option value="master1" {% if request.GET.grade_level == 'master1' %}selected{% endif %}>Master 1</option>
+                            <option value="master2" {% if request.GET.grade_level == 'master2' %}selected{% endif %}>Master 2</option>
+                            <option value="doctorate" {% if request.GET.grade_level == 'doctorate' %}selected{% endif %}>Doctorat</option>
+                            <option value="other" {% if request.GET.grade_level == 'other' %}selected{% endif %}>Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
                         <select name="price" class="form-select">
-                            <option value="">Tous les prix</option>
+                            <option value="">Prix</option>
                             <option value="free" {% if request.GET.price == 'free' %}selected{% endif %}>Gratuit</option>
                             <option value="paid" {% if request.GET.price == 'paid' %}selected{% endif %}>Payant</option>
                         </select>
@@ -92,8 +137,14 @@
                         <h5 class="mb-0">{{ course.title }}</h5>
                         <div>
                             <span class="badge bg-primary">{{ course.subject.name }}</span>
-                            {% if course.xp_price > 0 %}
-                                <span class="badge bg-warning">{{ course.xp_price }} XP</span>
+                            {% if course.country %}
+                                <span class="badge bg-info">{{ course.get_country_display }}</span>
+                            {% endif %}
+                            {% if course.grade_level %}
+                                <span class="badge bg-secondary">{{ course.get_grade_level_display }}</span>
+                            {% endif %}
+                            {% if course.dc_price > 0 %}
+                                <span class="badge bg-warning">{{ course.dc_price }} DC</span>
                             {% else %}
                                 <span class="badge bg-success">Gratuit</span>
                             {% endif %}
