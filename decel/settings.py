@@ -139,23 +139,11 @@ STATICFILES_DIRS = [
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # =========================
-# MEDIA (Supabase Storage)
+# MEDIA (Local Storage - temporarily disabled Supabase)
 # =========================
-# Supabase Storage for production
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_ACCESS_KEY_ID = os.environ.get('SUPABASE_STORAGE_KEY')
-AWS_SECRET_ACCESS_KEY = os.environ.get('SUPABASE_STORAGE_SECRET')
-AWS_STORAGE_BUCKET_NAME = 'decel-media'
-AWS_S3_ENDPOINT_URL = os.environ.get('SUPABASE_STORAGE_URL', 'https://gpfnrykkrasfifwevhbb.supabase.co/storage/v1/s3')
-AWS_S3_REGION_NAME = 'eu-central-1'
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_DEFAULT_ACL = 'public-read'
-MEDIA_URL = 'https://gpfnrykkrasfifwevhbb.supabase.co/storage/v1/object/public/decel-media/'
-
-# Fallback to local storage for development
-if DEBUG:
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
+# Using local storage to debug the 500 error
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # =========================
 # CACHE
