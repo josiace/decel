@@ -476,37 +476,42 @@ async function loadXPEvolution() {
         const response = await fetch('{% url "xp_evolution_api" %}?days=30');
         const data = await response.json();
         
-        const xpEvolutionCtx = document.getElementById('xpEvolutionChart').getContext('2d');
-        const xpEvolutionData = data.xp_data.map(item => item.xp);
-        const xpEvolutionLabels = data.xp_data.map(item => item.date);
-        
-        new Chart(xpEvolutionCtx, {
-            type: 'line',
-            data: {
-                labels: xpEvolutionLabels,
-                datasets: [{
-                    label: 'XP Cumulé',
-                    data: xpEvolutionData,
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
+        const xpEvolutionCtx = document.getElementById('xpEvolutionChart');
+        if (xpEvolutionCtx) {
+            const ctx = xpEvolutionCtx.getContext('2d');
+            const xpEvolutionData = data.xp_data.map(item => item.xp);
+            const xpEvolutionLabels = data.xp_data.map(item => item.date);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xpEvolutionLabels,
+                    datasets: [{
+                        label: 'XP Cumulé',
+                        data: xpEvolutionData,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
                 },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Évolution XP Cumulé (30 derniers jours)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Évolution XP Cumulé (30 derniers jours)'
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            console.error('XP evolution chart canvas element not found');
+        }
     } catch (error) {
         console.error('Error loading XP evolution:', error);
     }
@@ -573,43 +578,52 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 // Skill Evolution Charts
+{% if skill_evolution %}
 {% for subject_name, subject_data in skill_evolution.items %}
-const skillCtx{{ forloop.counter }} = document.getElementById('skillEvolutionChart{{ forloop.counter }}').getContext('2d');
-const skillData{{ forloop.counter }} = [{% for item in subject_data %}{{ item.skill }}{% if not forloop.last %},{% endif %}{% endfor %}];
-const skillLabels{{ forloop.counter }} = [{% for item in subject_data %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+const skillCtx{{ forloop.counter }} = document.getElementById('skillEvolutionChart{{ forloop.counter }}');
+if (skillCtx{{ forloop.counter }}) {
+    const skillCtx = skillCtx{{ forloop.counter }}.getContext('2d');
+    const skillData{{ forloop.counter }} = [{% for item in subject_data %}{{ item.skill }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const skillLabels{{ forloop.counter }} = [{% for item in subject_data %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
 
-console.log('Creating Skill Chart {{ forloop.counter }} for {{ subject_name }} with', skillData{{ forloop.counter }}.length, 'data points');
+    console.log('Creating Skill Chart {{ forloop.counter }} for {{ subject_name }} with', skillData{{ forloop.counter }}.length, 'data points');
 
-new Chart(skillCtx{{ forloop.counter }}, {
-    type: 'line',
-    data: {
-        labels: skillLabels{{ forloop.counter }},
-        datasets: [{
-            label: '{{ subject_name }}',
-            data: skillData{{ forloop.counter }},
-            borderColor: 'rgb({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %})',
-            backgroundColor: 'rgba({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %}, 0.1)',
-            tension: 0.3,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100
-            }
+    new Chart(skillCtx, {
+        type: 'line',
+        data: {
+            labels: skillLabels{{ forloop.counter }},
+            datasets: [{
+                label: '{{ subject_name }}',
+                data: skillData{{ forloop.counter }},
+                borderColor: 'rgb({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %})',
+                backgroundColor: 'rgba({% cycle '255, 99, 132' '54, 162, 235' '255, 206, 86' '75, 192, 192' '153, 102, 255' %}, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
         },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Évolution Compétence: {{ subject_name }}'
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Évolution Compétence: {{ subject_name }}'
+                }
             }
         }
-    }
-});
+    });
+} else {
+    console.error('Skill chart canvas element not found for {{ subject_name }}');
+}
 {% endfor %}
+{% else %}
+console.log('No skill evolution data available');
+{% endif %}
 </script>
 {% endblock %}

@@ -272,7 +272,7 @@ def dashboard(request):
         # DEBUG: Add fake data if no real data
         if xp_day == 0 and i < 5:
             xp_day = (i + 1) * 10  # Fake data for first 5 days
-        xp_over_time.append({'date': date.strftime('%Y-%m-%d'), 'xp': xp_day})
+        xp_over_time.append({'date': date.strftime('%d/%m'), 'xp': xp_day})
 
     # NEW: Activity over time (last 30 days)
     activity_over_time = []
@@ -282,7 +282,7 @@ def dashboard(request):
         # DEBUG: Add fake data if no real data
         if exams == 0 and i < 3:
             exams = 1 if i % 2 == 0 else 0  # Fake data for first 3 days
-        activity_over_time.append({'date': date.strftime('%Y-%m-%d'), 'exams': exams})
+        activity_over_time.append({'date': date.strftime('%d/%m'), 'exams': exams})
 
     # NEW: Weekly statistics
     last_7_days = today - timedelta(days=7)
