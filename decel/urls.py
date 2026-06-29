@@ -2,12 +2,20 @@
 URL configuration for DECEL project.
 """
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
+from django.views.generic import TemplateView
+
+from decel.sitemaps import StaticViewSitemap
+from decel.seo_views import robots_txt
+
+sitemaps = {
+    'static': StaticViewSitemap,
+}
 
 @cache_page(60 * 10)  # 10 minutes
 def home(request):
@@ -36,6 +44,16 @@ def custom_400(request, exception):
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path(
+        'manifest.webmanifest',
+        TemplateView.as_view(
+            template_name='manifest.webmanifest',
+            content_type='application/manifest+json',
+        ),
+        name='manifest',
+    ),
     path('', include('accounts.urls')),
     path('exams/', include('exams.urls')),
     path('learning/', include('learning.urls')),

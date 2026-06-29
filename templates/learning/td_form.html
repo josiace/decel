@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'td_list' %}">TDs</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>{{ title }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Titre</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">Matière</label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger">{{ form.subject.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.content_type.id_for_label }}" class="form-label">Type de contenu</label>
+                                {{ form.content_type }}
+                                {% if form.content_type.errors %}
+                                    <div class="text-danger">{{ form.content_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">Pays cible</label>
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <div class="text-danger">{{ form.country.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.grade_level.id_for_label }}" class="form-label">Niveau scolaire</label>
+                                {{ form.grade_level }}
+                                {% if form.grade_level.errors %}
+                                    <div class="text-danger">{{ form.grade_level.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Contenu (texte)</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger">{{ form.content.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Ou utilisez un fichier ci-dessous</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.content_file.id_for_label }}" class="form-label">Fichier (PDF, Image)</label>
+                            {{ form.content_file }}
+                            {% if form.content_file.errors %}
+                                <div class="text-danger">{{ form.content_file.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.dc_price.id_for_label }}" class="form-label">Prix en DC</label>
+                            {{ form.dc_price }}
+                            {% if form.dc_price.errors %}
+                                <div class="text-danger">{{ form.dc_price.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">0 pour gratuit</small>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.is_published }}
+                            <label for="{{ form.is_published.id_for_label }}" class="form-check-label">Publier immédiatement</label>
+                            {% if form.is_published.errors %}
+                                <div class="text-danger">{{ form.is_published.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Enregistrer
+                        </button>
+                        <a href="{% url 'td_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

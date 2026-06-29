@@ -7,6 +7,7 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.db.models import Q, Avg
 from .models import Course, TD, CorrectedTD, CourseProgress, TDProgress, Review
 from .services import ContentPurchaseService, ContentVersionService
+from .forms import CourseCreateForm, CourseUpdateForm, TDCreateForm, TDUpdateForm, CorrectedTDCreateForm, CorrectedTDUpdateForm
 from gamification.services import XPService
 from skills.services import SkillService
 from skills.models import Subject
@@ -515,3 +516,130 @@ def restore_content_version(request, content_type, content_id, version_number):
         messages.error(request, message)
     
     return redirect('content_version_history', content_type=content_type, content_id=content_id)
+
+
+# Contributor Views for Content Creation
+@login_required
+def course_create(request):
+    """Créer un nouveau cours (pour contributeurs)."""
+    if not request.user.is_contributor and not request.user.is_staff:
+        messages.error(request, "Vous devez être contributeur pour créer un cours.")
+        return redirect('course_list')
+    
+    if request.method == 'POST':
+        form = CourseCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.author = request.user
+            course.save()
+            messages.success(request, "Cours créé avec succès!")
+            return redirect('course_detail', course_id=course.id)
+    else:
+        form = CourseCreateForm()
+    
+    return render(request, 'learning/course_form.html', {'form': form, 'title': 'Créer un cours'})
+
+
+@login_required
+def course_update(request, course_id):
+    """Modifier un cours existant (pour contributeurs)."""
+    course = get_object_or_404(Course, id=course_id)
+    
+    if course.author != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas la permission de modifier ce cours.")
+        return redirect('course_detail', course_id=course.id)
+    
+    if request.method == 'POST':
+        form = CourseUpdateForm(request.POST, request.FILES, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Cours modifié avec succès!")
+            return redirect('course_detail', course_id=course.id)
+    else:
+        form = CourseUpdateForm(instance=course)
+    
+    return render(request, 'learning/course_form.html', {'form': form, 'title': 'Modifier le cours', 'course': course})
+
+
+@login_required
+def td_create(request):
+    """Créer un nouveau TD (pour contributeurs)."""
+    if not request.user.is_contributor and not request.user.is_staff:
+        messages.error(request, "Vous devez être contributeur pour créer un TD.")
+        return redirect('td_list')
+    
+    if request.method == 'POST':
+        form = TDCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            td = form.save(commit=False)
+            td.author = request.user
+            td.save()
+            messages.success(request, "TD créé avec succès!")
+            return redirect('td_detail', td_id=td.id)
+    else:
+        form = TDCreateForm()
+    
+    return render(request, 'learning/td_form.html', {'form': form, 'title': 'Créer un TD'})
+
+
+@login_required
+def td_update(request, td_id):
+    """Modifier un TD existant (pour contributeurs)."""
+    td = get_object_or_404(TD, id=td_id)
+    
+    if td.author != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas la permission de modifier ce TD.")
+        return redirect('td_detail', td_id=td.id)
+    
+    if request.method == 'POST':
+        form = TDUpdateForm(request.POST, request.FILES, instance=td)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "TD modifié avec succès!")
+            return redirect('td_detail', td_id=td.id)
+    else:
+        form = TDUpdateForm(instance=td)
+    
+    return render(request, 'learning/td_form.html', {'form': form, 'title': 'Modifier le TD', 'td': td})
+
+
+@login_required
+def corrected_td_create(request):
+    """Créer une correction de TD (pour contributeurs)."""
+    if not request.user.is_contributor and not request.user.is_staff:
+        messages.error(request, "Vous devez être contributeur pour créer une correction.")
+        return redirect('td_list')
+    
+    if request.method == 'POST':
+        form = CorrectedTDCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            corrected_td = form.save(commit=False)
+            corrected_td.author = request.user
+            corrected_td.save()
+            messages.success(request, "Correction créée avec succès!")
+            return redirect('td_detail', td_id=corrected_td.td.id)
+    else:
+        form = CorrectedTDCreateForm()
+    
+    return render(request, 'learning/corrected_td_form.html', {'form': form, 'title': 'Créer une correction'})
+
+
+@login_required
+def corrected_td_update(request, corrected_td_id):
+    """Modifier une correction de TD existante (pour contributeurs)."""
+    corrected_td = get_object_or_404(CorrectedTD, id=corrected_td_id)
+    
+    if corrected_td.author != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas la permission de modifier cette correction.")
+        return redirect('td_detail', td_id=corrected_td.td.id)
+    
+    if request.method == 'POST':
+        form = CorrectedTDUpdateForm(request.POST, request.FILES, instance=corrected_td)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Correction modifiée avec succès!")
+            return redirect('td_detail', td_id=corrected_td.td.id)
+    else:
+        form = CorrectedTDUpdateForm(instance=corrected_td)
+    
+    return render(request, 'learning/corrected_td_form.html', {'form': form, 'title': 'Modifier la correction', 'corrected_td': corrected_td})

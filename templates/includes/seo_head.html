@@ -1,0 +1,59 @@
+{% load static %}
+{# SEO — meta tags, Open Graph, Twitter Cards, hreflang #}
+
+{% block meta_description %}
+<meta name="description" content="{{ SITE_DESCRIPTION|escape }}">
+{% endblock %}
+
+<meta name="keywords" content="{% block meta_keywords %}{{ SITE_KEYWORDS|escape }}{% endblock %}">
+<meta name="author" content="{{ SITE_NAME|escape }}">
+<meta name="application-name" content="{{ SITE_NAME|escape }}">
+<meta name="theme-color" content="#6366f1">
+<meta name="color-scheme" content="light dark">
+
+{% if user.is_authenticated %}
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+{% else %}
+<meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+<meta name="googlebot" content="{% block googlebot %}index, follow{% endblock %}">
+{% endif %}
+
+<link rel="canonical" href="{% block canonical_url %}{{ CANONICAL_URL }}{% endblock %}">
+<link rel="alternate" hreflang="{{ SITE_LANGUAGE }}" href="{% block hreflang_url %}{{ CANONICAL_URL }}{% endblock %}">
+<link rel="alternate" hreflang="x-default" href="{{ SITE_URL }}/">
+
+{# Open Graph #}
+<meta property="og:locale" content="{{ SITE_LOCALE }}">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:site_name" content="{{ SITE_NAME|escape }}">
+<meta property="og:title" content="{% block og_title %}{{ SITE_NAME }} — {{ SITE_TAGLINE|escape }}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}{{ SITE_DESCRIPTION|escape }}{% endblock %}">
+<meta property="og:url" content="{% block og_url %}{{ CANONICAL_URL }}{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{{ SITE_OG_IMAGE }}{% endblock %}">
+<meta property="og:image:alt" content="{% block og_image_alt %}{{ SITE_NAME }} — logo{% endblock %}">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+
+{# Twitter Card #}
+<meta name="twitter:card" content="summary_large_image">
+{% if SITE_TWITTER_HANDLE %}
+<meta name="twitter:site" content="{{ SITE_TWITTER_HANDLE }}">
+<meta name="twitter:creator" content="{{ SITE_TWITTER_HANDLE }}">
+{% endif %}
+<meta name="twitter:title" content="{% block twitter_title %}{{ SITE_NAME }} — {{ SITE_TAGLINE|escape }}{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}{{ SITE_DESCRIPTION|escape }}{% endblock %}">
+<meta name="twitter:image" content="{% block twitter_image %}{{ SITE_OG_IMAGE }}{% endblock %}">
+
+{# Favicons & PWA #}
+<link rel="icon" href="{% static 'images/icone.PNG' %}" type="image/png">
+<link rel="apple-touch-icon" href="{% static 'images/icone.PNG' %}">
+<link rel="manifest" href="{% url 'manifest' %}">
+
+{# Performance hints #}
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+{% block structured_data %}{% endblock %}

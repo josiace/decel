@@ -2,15 +2,16 @@
 <html lang="fr">
     <head>
         {% load static %}
-        <link rel="shortcut icon" href="../static/images/icone.PNG" type="image/x-icon">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}{{ SITE_NAME }} — {{ SITE_TAGLINE }}{% endblock %}</title>
+        {% include 'includes/seo_head.html' %}
         <link rel="stylesheet" href="{% static 'css/style.css' %}" />
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
         {% block extrahead %}
 <style>
     /* Protection contre les captures d'écran et copies */
@@ -65,9 +66,8 @@
     }
 </style>
 {% endblock %}
-        <title>{% block title %}DECEL{% endblock %}</title>
     </head>
-    <body>
+    <body itemscope itemtype="https://schema.org/WebPage">
         <nav class="navbar">
             <div class="container">
                 <a class="navbar-brand" href="{% url 'home' %}">
@@ -227,26 +227,34 @@
             {% block content %}{% endblock %}
         </main>
 
-        <footer>
+        <footer role="contentinfo">
             <div class="container">
                 <div class="row">
                     <div class="col-12 col-md-4 text-center text-md-start mb-3 mb-md-0">
-                        <img src="{% static 'images/logodecel.png' %}" alt="DECEL Logo" class="footer-logo" />
-                        <p class="text-muted">Plateforme d'Apprentissage Adaptatif</p>
+                        <img src="{% static 'images/logodecel.png' %}" alt="{{ SITE_NAME }} — {{ SITE_TAGLINE }}" class="footer-logo" width="120" height="40" loading="lazy" />
+                        <p class="text-muted">{{ SITE_TAGLINE }}</p>
                     </div>
                     <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
-                        <h6 class="text-white mb-2">Contact</h6>
+                        <h4 class="h6 text-white mb-2">Navigation</h4>
+                        <nav aria-label="Liens pied de page">
+                            <ul class="list-unstyled mb-0">
+                                <li><a href="{% url 'home' %}">Accueil</a></li>
+                                <li><a href="{% url 'register' %}">Inscription</a></li>
+                                <li><a href="{% url 'login' %}">Connexion</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="col-12 col-md-4 text-center text-md-end mb-3 mb-md-0">
+                        <h4 class="h6 text-white mb-2">Contact</h4>
                         <p class="text-muted mb-1">
                             <i class="fas fa-envelope me-2"></i>
                             <a href="mailto:afletounoudouprince5@gmail.com" class="text-muted text-decoration-none">afletounoudouprince5@gmail.com</a>
                         </p>
-                        <p class="text-muted mb-0">
+                        <p class="text-muted mb-2">
                             <i class="fab fa-whatsapp me-2"></i>
-                            <a href="https://wa.me/22369549391" target="_blank" class="text-muted text-decoration-none">+223 69 54 93 91</a>
+                            <a href="https://wa.me/22369549391" target="_blank" rel="noopener noreferrer" class="text-muted text-decoration-none">+223 69 54 93 91</a>
                         </p>
-                    </div>
-                    <div class="col-12 col-md-4 text-center text-md-end">
-                        <p class="text-muted mb-0">&copy; 2024 DECEL. Tous droits réservés.</p>
+                        <p class="text-muted mb-0 small">&copy; {% now "Y" %} {{ SITE_NAME }}. Tous droits réservés.</p>
                     </div>
                 </div>
             </div>
@@ -369,33 +377,68 @@
         <style>
             /* Dark mode styles */
             .dark-mode {
-                --bg-primary: #1a1a2e;
-                --bg-secondary: #16213e;
-                --text-primary: #eaeaea;
-                --text-secondary: #b8b8b8;
-                --border-color: #2a2a4a;
-                --card-bg: #1f1f3a;
+                --bg-primary: #1a1a2e !important;
+                --bg-secondary: #16213e !important;
+                --text-primary: #eaeaea !important;
+                --text-secondary: #b8b8b8 !important;
+                --border-color: #2a2a4a !important;
+                --card-bg: #1f1f3a !important;
             }
 
             .dark-mode body {
-                background-color: var(--bg-primary);
-                color: var(--text-primary);
+                background-color: var(--bg-primary) !important;
+                color: var(--text-primary) !important;
             }
 
             .dark-mode .navbar {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
             }
 
             .dark-mode .card {
-                background-color: var(--card-bg);
-                border-color: var(--border-color);
+                background-color: var(--card-bg) !important;
+                border-color: var(--border-color) !important;
+                color: var(--text-primary) !important;
             }
 
             .dark-mode .card-header {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
-                color: var(--text-primary);
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .card-body {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .nav-link {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .table {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .form-control {
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .btn {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode p, .dark-mode span, .dark-mode div {
+                color: var(--text-primary) !important;
+            }
+
+            .dark-mode .text-muted {
+                color: var(--text-secondary) !important;
             }
 
             .dark-mode .card-body {

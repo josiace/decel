@@ -1,6 +1,119 @@
 {% extends 'base.html' %}
 
-{% block title %}DECEL - Apprentissage adaptatif, examens stricts et progression{% endblock %}
+{% block title %}DECEL — Plateforme d'apprentissage adaptatif, examens QCM et progression{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="DECEL : plateforme EdTech d'apprentissage adaptatif pour lycée et université. Examens QCM stricts, suivi des compétences par matière, cours, TD, recommandations IA et monnaie DC. Gratuit pour apprendre, idéal en Afrique francophone.">
+{% endblock %}
+
+{% block meta_keywords %}
+DECEL, apprentissage adaptatif, plateforme éducative, examens QCM en ligne, révisions examens, compétences par matière, cours en ligne gratuits, TD corrigés, EdTech Afrique, e-learning Mali, préparation bac, gamification éducation
+{% endblock %}
+
+{% block og_title %}DECEL — Apprentissage adaptatif avec examens QCM et compétences{% endblock %}
+{% block og_description %}Transformez chaque cours, TD et examen en progression mesurable. Compétences, XP, recommandations et contenu modéré sur une seule plateforme.{% endblock %}
+{% block twitter_title %}DECEL — Moteur d'apprentissage adaptatif{% endblock %}
+{% block twitter_description %}Examens stricts, compétences par matière, recommandations personnalisées. Commencez gratuitement.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ SITE_URL }}/#organization",
+      "name": "{{ SITE_NAME }}",
+      "url": "{{ SITE_URL }}/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ SITE_OG_IMAGE }}"
+      },
+      "description": "{{ SITE_DESCRIPTION|escapejs }}",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "afletounoudouprince5@gmail.com",
+        "availableLanguage": ["French"]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ SITE_URL }}/#website",
+      "url": "{{ SITE_URL }}/",
+      "name": "{{ SITE_NAME }}",
+      "description": "{{ SITE_DESCRIPTION|escapejs }}",
+      "publisher": { "@id": "{{ SITE_URL }}/#organization" },
+      "inLanguage": "fr-FR",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ SITE_URL }}/register/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "{{ SITE_NAME }}",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "XOF"
+      },
+      "description": "{{ SITE_DESCRIPTION|escapejs }}",
+      "url": "{{ SITE_URL }}/",
+      "inLanguage": "fr-FR"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que DECEL ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DECEL est une plateforme d'apprentissage adaptatif qui combine examens QCM, cours, TD, suivi des compétences par matière et recommandations personnalisées."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "DECEL est-il gratuit ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui, l'apprentissage de base est gratuit : examens, XP, compétences et progression. Les DC servent uniquement à acheter du contenu premium."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment fonctionnent les examens sur DECEL ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les examens utilisent un QCM strict : une question est correcte uniquement si toutes les bonnes réponses sont sélectionnées, sans score partiel."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Que sont les DC (Decelcones) ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les DC sont la monnaie interne pour acheter des cours, TD et corrections. L'XP sert à monter de niveau et reste séparé des DC."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment payer des packs DC ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Vous pouvez payer par Orange Money, Wave, virement bancaire, espèces ou carte via Stripe selon les options disponibles."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extrahead %}
 <style>
@@ -695,6 +808,37 @@
             <h3>4. Recevoir la suite</h3>
             <p>Le systeme propose la prochaine action la plus utile selon votre profil d'apprentissage.</p>
         </article>
+    </div>
+</section>
+
+<section class="home-section" id="faq" aria-labelledby="faq-title">
+    <div class="section-kicker">FAQ</div>
+    <h2 class="section-title" id="faq-title">Questions fréquentes sur DECEL</h2>
+    <p class="section-lead">
+        Tout ce qu'il faut savoir avant de créer votre compte et commencer à apprendre.
+    </p>
+
+    <div class="workflow mt-4">
+        <details class="workflow-item" open>
+            <summary><h3 class="mb-0 d-inline">Qu'est-ce que DECEL ?</h3></summary>
+            <p class="mt-2 mb-0">DECEL est une plateforme d'apprentissage adaptatif qui combine examens QCM, cours, TD, suivi des compétences par matière et recommandations personnalisées.</p>
+        </details>
+        <details class="workflow-item">
+            <summary><h3 class="mb-0 d-inline">DECEL est-il gratuit ?</h3></summary>
+            <p class="mt-2 mb-0">Oui, l'apprentissage de base est gratuit : examens, XP, compétences et progression. Les DC servent uniquement à acheter du contenu premium.</p>
+        </details>
+        <details class="workflow-item">
+            <summary><h3 class="mb-0 d-inline">Comment fonctionnent les examens ?</h3></summary>
+            <p class="mt-2 mb-0">Les examens utilisent un QCM strict : une question est correcte uniquement si toutes les bonnes réponses sont sélectionnées, sans score partiel.</p>
+        </details>
+        <details class="workflow-item">
+            <summary><h3 class="mb-0 d-inline">Que sont les DC (Decelcones) ?</h3></summary>
+            <p class="mt-2 mb-0">Les DC sont la monnaie interne pour acheter des cours, TD et corrections. L'XP sert à monter de niveau et reste séparé des DC.</p>
+        </details>
+        <details class="workflow-item">
+            <summary><h3 class="mb-0 d-inline">Comment payer des packs DC ?</h3></summary>
+            <p class="mt-2 mb-0">Orange Money, Wave, virement bancaire, espèces ou carte via Stripe selon les options disponibles sur la plateforme.</p>
+        </details>
     </div>
 </section>
 

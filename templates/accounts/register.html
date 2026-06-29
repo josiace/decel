@@ -1,6 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Inscription - DECEL{% endblock %}
+{% block title %}Inscription gratuite — DECEL{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Créez votre compte DECEL gratuitement. Accédez aux examens QCM, cours, TD, suivi des compétences et recommandations adaptatives. Inscription rapide par email.">
+{% endblock %}
+
+{% block og_title %}Inscription gratuite sur DECEL{% endblock %}
+{% block og_description %}Rejoignez DECEL et commencez à apprendre avec un moteur adaptatif : examens, compétences et progression gratuits.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Inscription DECEL",
+  "description": "Page d'inscription gratuite à la plateforme DECEL.",
+  "url": "{{ SITE_URL }}/register/",
+  "isPartOf": { "@id": "{{ SITE_URL }}/#website" }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">

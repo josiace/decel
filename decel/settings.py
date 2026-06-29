@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
 
     # third party
     'rest_framework',
@@ -83,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'decel.context_processors.seo',
             ],
         },
     },
@@ -215,6 +217,41 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# =========================
+# SEO
+# =========================
+SITE_URL = config('SITE_URL', default='https://decel-sn4v.onrender.com')
+SITE_NAME = 'DECEL'
+SITE_TAGLINE = 'Apprentissage adaptatif intelligent'
+SITE_DESCRIPTION = (
+    'DECEL est une plateforme EdTech d\'apprentissage adaptatif : examens QCM stricts, '
+    'suivi des compétences par matière, recommandations personnalisées, cours, TD et '
+    'monnaie DC. Idéal pour lycée, université et préparation aux examens en Afrique francophone.'
+)
+SITE_KEYWORDS = (
+    'DECEL, apprentissage adaptatif, EdTech, examens QCM, e-learning, '
+    'compétences, révisions, cours en ligne, TD, Afrique francophone, '
+    'Mali, préparation examens, intelligence artificielle éducation, gamification'
+)
+SITE_LOCALE = 'fr_FR'
+SITE_LANGUAGE = 'fr'
+SITE_TWITTER_HANDLE = config('SITE_TWITTER_HANDLE', default='')
+
+# =========================
+# PRODUCTION SEO & SECURITY
+# =========================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # =========================
 # JAZZMIN
