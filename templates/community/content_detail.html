@@ -62,8 +62,29 @@
                                             </a>
                                         </div>
                                     </div>
-                                    <div class="pdf-iframe-wrapper" style="height: 600px; border: 1px solid #dee2e6; border-radius: 0.375rem;">
-                                        <iframe src="{{ content.content_file.url }}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
+                                    <div class="pdf-embed-wrapper" style="height: 600px; border: 1px solid #dee2e6; border-radius: 0.375rem;">
+                                        <embed src="{{ content.content_file.url }}" type="application/pdf" style="width: 100%; height: 100%;" />
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Aucun fichier disponible.</p>
+                            {% endif %}
+                        {% elif content.content_format == 'image' %}
+                            {% if content.content_file %}
+                                <div class="image-viewer-container mb-3">
+                                    <div class="image-toolbar d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                        <span class="fw-bold"><i class="bi bi-image"></i> Image</span>
+                                        <div>
+                                            <a href="{{ content.content_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                                                <i class="bi bi-box-arrow-up-right"></i> Ouvrir dans un nouvel onglet
+                                            </a>
+                                            <a href="{% url 'download_file' content.id %}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-download"></i> Télécharger
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="image-wrapper text-center" style="border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 1rem;">
+                                        <img src="{{ content.content_file.url }}" alt="{{ content.title }}" style="max-width: 100%; max-height: 600px;" class="img-fluid" />
                                     </div>
                                 </div>
                             {% else %}

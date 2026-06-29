@@ -7,6 +7,7 @@ from skills.models import Subject
 CONTENT_TYPE_CHOICES = [
     ('text', 'Texte brut'),
     ('pdf', 'Fichier PDF'),
+    ('image', 'Image'),
     ('file', 'Autre fichier'),
 ]
 
