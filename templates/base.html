@@ -376,35 +376,69 @@
 
         <style>
             /* Dark mode styles */
-            .dark-mode {
+            body.dark-mode {
                 --bg-primary: #1a1a2e !important;
                 --bg-secondary: #16213e !important;
                 --text-primary: #eaeaea !important;
                 --text-secondary: #b8b8b8 !important;
                 --border-color: #2a2a4a !important;
                 --card-bg: #1f1f3a !important;
-            }
-
-            .dark-mode body {
                 background-color: var(--bg-primary) !important;
                 color: var(--text-primary) !important;
             }
 
-            .dark-mode .navbar {
+            body.dark-mode .navbar {
                 background-color: var(--bg-secondary) !important;
                 border-color: var(--border-color) !important;
             }
 
-            .dark-mode .card {
+            body.dark-mode .card {
                 background-color: var(--card-bg) !important;
                 border-color: var(--border-color) !important;
                 color: var(--text-primary) !important;
             }
 
-            .dark-mode .card-header {
+            body.dark-mode .card-header {
                 background-color: var(--bg-secondary) !important;
                 border-color: var(--border-color) !important;
                 color: var(--text-primary) !important;
+            }
+
+            body.dark-mode .btn-primary {
+                background-color: #4a90e2 !important;
+                border-color: #4a90e2 !important;
+            }
+
+            body.dark-mode .btn-secondary {
+                background-color: #6c757d !important;
+                border-color: #6c757d !important;
+            }
+
+            body.dark-mode .form-control {
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
+                color: var(--text-primary) !important;
+            }
+
+            body.dark-mode .table {
+                color: var(--text-primary) !important;
+            }
+
+            body.dark-mode .table th {
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
+            }
+
+            body.dark-mode .table td {
+                border-color: var(--border-color) !important;
+            }
+
+            body.dark-mode a {
+                color: #4a90e2 !important;
+            }
+
+            body.dark-mode .breadcrumb-item a {
+                color: #4a90e2 !important;
             }
 
             .dark-mode .card-body {

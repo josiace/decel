@@ -107,11 +107,19 @@ WSGI_APPLICATION = 'decel.wsgi.application'
 # =========================
 # DATABASE (Render safe)
 # =========================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='sqlite:///db.sqlite3')
-    )
-}
+DATABASE_URL = config('DATABASE_URL', default='sqlite:///db.sqlite3')
+
+if DATABASE_URL.startswith('sqlite'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': DATABASE_URL.replace('sqlite:///', ''),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL)
+    }
 
 # =========================
 # PASSWORD VALIDATION
@@ -255,6 +263,11 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
+else:
+    # Désactiver SSL redirect et cookies sécurisés en mode DEBUG pour le test local
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # =========================
 # JAZZMIN
