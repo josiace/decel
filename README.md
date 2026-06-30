@@ -16,6 +16,8 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 - **TD (Travaux Dirigés)**: Practice exercises with self-reported scoring
 - **Corrected TD**: TDs with solutions for self-study
 - Progress tracking for all content types
+- **Content Localization**: Country and grade level targeting for better content relevance
+- **Contributor Content Creation**: Web forms for contributors to create courses, TDs, and corrections
 
 ### 3. Skill Tracking (Core Intelligence Layer)
 - Performance tracking per subject (e.g., Mathematics: 72%, Physics: 45%)
@@ -282,8 +284,13 @@ All data influences:
 - Content versioning ✅ (implemented)
 - Advanced recommendation algorithms ✅ (implemented)
 - Integration with external content providers
-- DC referral system
+- DC referral system ✅ (implemented)
 - DC marketplace for user-to-user transactions
+- Content localization (country and grade level) ✅ (implemented)
+- Contributor content creation web forms ✅ (implemented)
+- Dark mode ✅ (implemented)
+- XP evolution charts ✅ (implemented)
+- Level progress visualization ✅ (implemented)
 
 ## 📄 License
 

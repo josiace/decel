@@ -105,6 +105,8 @@ L'admin Django est organisé par applications. Voici la structure :
 - **Email** : Adresse email
 - **First Name** : Prénom
 - **Last Name** : Nom
+- **Country** : Pays de l'utilisateur
+- **Grade Level** : Niveau scolaire (6ème, 5ème, etc.)
 - **Total XP** : Points d'expérience cumulés
 - **Level** : Niveau actuel (calculé automatiquement)
 - **DC Balance** : Solde en Decelcone (DC) - monnaie pour les achats
@@ -248,6 +250,9 @@ L'admin Django est organisé par applications. Voici la structure :
 - **Content** : Contenu du cours (supporte HTML)
 - **Subject** : Matière associée
 - **Author** : Auteur du cours
+- **Country** : Pays cible du cours
+- **Grade Level** : Niveau scolaire cible
+- **DC Price** : Prix en DC (0 pour gratuit)
 - **Is Published** : Cocher pour publier le cours
 
 **Workflow :**
@@ -271,6 +276,9 @@ L'admin Django est organisé par applications. Voici la structure :
 - **Content** : Énoncé des exercices
 - **Subject** : Matière associée
 - **Author** : Auteur
+- **Country** : Pays cible du TD
+- **Grade Level** : Niveau scolaire cible
+- **DC Price** : Prix en DC (0 pour gratuit)
 - **Is Published** : Cocher pour publier
 
 **Workflow :**
@@ -282,6 +290,9 @@ Similaire aux cours, mais pour les exercices pratiques
 - **TD** : TD associé (obligatoire)
 - **Correction** : Solution détaillée des exercices
 - **Author** : Auteur de la correction
+- **Country** : Pays cible (peut hériter du TD)
+- **Grade Level** : Niveau scolaire (peut hériter du TD)
+- **DC Price** : Prix en DC (0 pour gratuit)
 
 **Workflow :**
 1. Créez d'abord un TD
@@ -627,5 +638,5 @@ Pour toute question ou problème technique :
 
 ---
 
-**Dernière mise à jour :** 19 Juin 2026
-**Version :** 2.0 (Optimisations de performance)
+**Dernière mise à jour :** 30 Juin 2026
+**Version :** 2.1 (Localisation du contenu et création par contributeurs)

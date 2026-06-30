@@ -47,9 +47,26 @@ Le dashboard affiche :
 
 #### Créer un Cours
 1. Dans le dashboard, cliquez sur **"Créer un Cours"** ou allez dans **"Mes Cours"**
-2. Vous serez redirigé vers l'admin Django pour créer le cours
-3. Remplissez les informations du cours
+2. Remplissez le formulaire web :
+   - **Titre** : Nom du cours
+   - **Description** : Description détaillée
+   - **Matière** : Sélectionnez la matière
+   - **Type de contenu** : Texte, PDF ou Image
+   - **Contenu (texte)** : Entrez le contenu si type = texte
+   - **Fichier** : Uploadez un PDF/image (si type = fichier)
+   - **Pays cible** : Sélectionnez le pays cible du cours
+   - **Niveau scolaire** : Sélectionnez le niveau (6ème, 5ème, etc.)
+   - **Prix en DC** : 0 pour gratuit, sinon le prix en DC
+   - **Publier immédiatement** : Cochez pour publier tout de suite
+3. Cliquez sur **"Enregistrer"**
 4. Le cours sera automatiquement associé à votre compte
+
+#### Modifier un Cours
+1. Allez dans **"Mes Cours"**
+2. Cliquez sur le cours que vous souhaitez modifier
+3. Cliquez sur **"Modifier"**
+4. Apportez vos modifications
+5. Cliquez sur **"Enregistrer"**
 
 #### Créer un Examen (Interface Intuitive)
 1. Dans le dashboard, cliquez sur **"Créer un Examen"** ou allez dans **"Mes Examens"**
@@ -82,6 +99,49 @@ Le dashboard affiche :
 1. Dans la liste des questions, cliquez sur **"Supprimer"**
 2. Confirmez la suppression
 
+#### Créer un TD (Travaux Dirigés)
+1. Dans le dashboard, cliquez sur **"Créer un TD"** ou allez dans **"Mes TDs"**
+2. Remplissez le formulaire web :
+   - **Titre** : Nom du TD
+   - **Description** : Description détaillée
+   - **Matière** : Sélectionnez la matière
+   - **Type de contenu** : Texte, PDF ou Image
+   - **Contenu (texte)** : Entrez le contenu si type = texte
+   - **Fichier** : Uploadez un PDF/image (si type = fichier)
+   - **Pays cible** : Sélectionnez le pays cible du TD
+   - **Niveau scolaire** : Sélectionnez le niveau (6ème, 5ème, etc.)
+   - **Prix en DC** : 0 pour gratuit, sinon le prix en DC
+   - **Publier immédiatement** : Cochez pour publier tout de suite
+3. Cliquez sur **"Enregistrer"**
+4. Le TD sera automatiquement associé à votre compte
+
+#### Modifier un TD
+1. Allez dans **"Mes TDs"**
+2. Cliquez sur le TD que vous souhaitez modifier
+3. Cliquez sur **"Modifier"**
+4. Apportez vos modifications
+5. Cliquez sur **"Enregistrer"**
+
+#### Créer une Correction de TD
+1. Dans le dashboard, cliquez sur **"Créer une Correction"** ou allez dans **"Mes Corrections"**
+2. Remplissez le formulaire web :
+   - **TD associé** : Sélectionnez le TD à corriger
+   - **Type de contenu** : Texte, PDF ou Image
+   - **Correction (texte)** : Entrez la correction si type = texte
+   - **Fichier de correction** : Uploadez un PDF/image (si type = fichier)
+   - **Pays cible** : Sélectionnez le pays cible (peut hériter du TD)
+   - **Niveau scolaire** : Sélectionnez le niveau (peut hériter du TD)
+   - **Prix en DC** : 0 pour gratuit, sinon le prix en DC
+3. Cliquez sur **"Enregistrer"**
+4. La correction sera automatiquement associée à votre compte
+
+#### Modifier une Correction
+1. Allez dans **"Mes Corrections"**
+2. Cliquez sur la correction que vous souhaitez modifier
+3. Cliquez sur **"Modifier"**
+4. Apportez vos modifications
+5. Cliquez sur **"Enregistrer"**
+
 #### Créer du Contenu Communautaire
 1. Dans le dashboard, cliquez sur **"Créer du Contenu"** ou allez dans **"Mon Contenu Communautaire"**
 2. Vous serez redirigé vers le formulaire de création de contenu
@@ -91,6 +151,8 @@ Le dashboard affiche :
 ### Voir Votre Contenu
 
 - **Mes Cours** : Liste de tous les cours que vous avez créés
+- **Mes TDs** : Liste de tous les TDs que vous avez créés
+- **Mes Corrections** : Liste de toutes les corrections que vous avez créées
 - **Mes Examens** : Liste de tous les examens que vous avez créés
 - **Mon Contenu Communautaire** : Liste de tout le contenu communautaire que vous avez créé
 
