@@ -1,16 +1,18 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db import transaction
+from django.utils import timezone
 
 
 class Country(models.Model):
     """
     Modèle de pays - liste des pays disponibles pour l'inscription.
-    Géré par l'administrateur.
+    Peut être créé par les contributeurs et partagé avec tous.
     """
     name = models.CharField(max_length=100, unique=True, verbose_name="Nom du pays", help_text="Nom du pays")
     code = models.CharField(max_length=3, unique=True, verbose_name="Code ISO", help_text="Code ISO du pays (ex: FRA, USA)")
     is_active = models.BooleanField(default=True, verbose_name="Actif", help_text="Cocher pour rendre le pays disponible à l'inscription")
+    created_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Créé par", help_text="Contributeur ou admin qui a créé ce pays", related_name='created_countries')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
 
     class Meta:
@@ -20,6 +22,55 @@ class Country(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class GradeLevel(models.Model):
+    """
+    Modèle de niveau scolaire personnalisable.
+    Peut être créé par les contributeurs et partagé avec tous.
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nom du niveau", help_text="Nom du niveau scolaire (ex: 6ème, 5ème, etc.)")
+    description = models.TextField(blank=True, verbose_name="Description", help_text="Description du niveau scolaire")
+    order = models.IntegerField(default=0, verbose_name="Ordre", help_text="Ordre d'affichage (plus petit = plus haut)")
+    is_active = models.BooleanField(default=True, verbose_name="Actif", help_text="Cocher pour rendre le niveau disponible")
+    created_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Créé par", help_text="Contributeur ou admin qui a créé ce niveau", related_name='created_grade_levels')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = "Niveau scolaire"
+        verbose_name_plural = "Niveaux scolaires"
+
+    def __str__(self):
+        return self.name
+
+
+class VisitorTracking(models.Model):
+    """
+    Modèle de tracking des visiteurs pour les statistiques admin.
+    Enregistre chaque visite avec date, heure et informations de base.
+    """
+    ip_address = models.GenericIPAddressField(verbose_name="Adresse IP", help_text="Adresse IP du visiteur")
+    user_agent = models.TextField(blank=True, verbose_name="User Agent", help_text="Navigateur du visiteur")
+    path = models.CharField(max_length=255, verbose_name="Chemin", help_text="URL visitée")
+    user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Utilisateur", help_text="Utilisateur connecté (si applicable)")
+    session_key = models.CharField(max_length=255, blank=True, verbose_name="Session", help_text="Clé de session")
+    visit_date = models.DateField(verbose_name="Date de visite", help_text="Date de la visite")
+    visit_time = models.TimeField(verbose_name="Heure de visite", help_text="Heure de la visite")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date d'enregistrement")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Visiteur"
+        verbose_name_plural = "Visiteurs"
+        indexes = [
+            models.Index(fields=['visit_date']),
+            models.Index(fields=['visit_time']),
+            models.Index(fields=['ip_address']),
+        ]
+
+    def __str__(self):
+        return f"{self.ip_address} - {self.visit_date} {self.visit_time}"
 
 
 class User(AbstractUser):

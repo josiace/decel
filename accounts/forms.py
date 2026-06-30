@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Country
+from .models import User, Country, GradeLevel
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -41,3 +41,30 @@ class CustomAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'Email'
         self.fields['username'].widget.attrs.update({'placeholder': 'Entrez votre email'})
+
+
+class CountryCreateForm(forms.ModelForm):
+    """Formulaire de création de pays pour les contributeurs."""
+    
+    class Meta:
+        model = Country
+        fields = ['name', 'code', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom du pays'}),
+            'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Code ISO (ex: FRA, USA)', 'maxlength': 3}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class GradeLevelCreateForm(forms.ModelForm):
+    """Formulaire de création de niveau scolaire pour les contributeurs."""
+    
+    class Meta:
+        model = GradeLevel
+        fields = ['name', 'description', 'order', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom du niveau (ex: 6ème, 5ème)'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description du niveau'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ordre d\'affichage'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

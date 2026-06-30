@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistiques des Visiteurs - DECEL{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Statistiques des Visiteurs</li>
+                </ol>
+            </nav>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2>Statistiques des Visiteurs</h2>
+                    <div class="btn-group">
+                        <a href="?days=7" class="btn btn-sm btn-outline-primary {% if days == 7 %}active{% endif %}">7 jours</a>
+                        <a href="?days=30" class="btn btn-sm btn-outline-primary {% if days == 30 %}active{% endif %}">30 jours</a>
+                        <a href="?days=90" class="btn btn-sm btn-outline-primary {% if days == 90 %}active{% endif %}">90 jours</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Période: {{ start_date }} - {{ end_date }}</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h3 class="card-title">{{ total_visitors }}</h3>
+                                    <p class="card-text">Total des visites</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h3 class="card-title">{{ unique_visitors }}</h3>
+                                    <p class="card-text">Visiteurs uniques</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h3 class="card-title">{{ authenticated_visitors }}</h3>
+                                    <p class="card-text">Visiteurs connectés</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4>Évolution des visites (par jour)</h4>
+                    <canvas id="visitorChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Visites par date</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nombre de visites</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in visitors_by_date %}
+                                <tr>
+                                    <td>{{ item.date }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4>Visites par heure (aujourd'hui)</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Heure</th>
+                                    <th>Nombre de visites</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in visitors_by_hour %}
+                                <tr>
+                                    <td>{{ item.hour }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+const visitorCtx = document.getElementById('visitorChart');
+if (visitorCtx) {
+    new Chart(visitorCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_data.labels|safe }},
+            datasets: [{
+                label: 'Visites',
+                data: {{ chart_data.data|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre de visites'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

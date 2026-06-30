@@ -4,17 +4,44 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
-from .models import User, Contributor, Country, DCTransaction, Referral, PromoCode, PromoCodeUsage
+from .models import User, Contributor, Country, DCTransaction, Referral, PromoCode, PromoCodeUsage, GradeLevel, VisitorTracking
 
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code', 'is_active', 'created_at']
+    list_display = ['name', 'code', 'is_active', 'created_by', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'code']
     fieldsets = (
         ('Pays', {'fields': ('name', 'code', 'is_active'), 'description': 'Informations du pays'}),
+        ('Création', {'fields': ('created_by',), 'description': 'Créé par'}),
         ('Métadonnées', {'fields': ('created_at',), 'description': 'Date de création'}),
+    )
+    readonly_fields = ['created_at']
+
+
+@admin.register(GradeLevel)
+class GradeLevelAdmin(admin.ModelAdmin):
+    list_display = ['name', 'order', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
+    fieldsets = (
+        ('Niveau Scolaire', {'fields': ('name', 'description', 'order', 'is_active'), 'description': 'Informations du niveau'}),
+        ('Création', {'fields': ('created_by',), 'description': 'Créé par'}),
+        ('Métadonnées', {'fields': ('created_at',), 'description': 'Date de création'}),
+    )
+    readonly_fields = ['created_at']
+
+
+@admin.register(VisitorTracking)
+class VisitorTrackingAdmin(admin.ModelAdmin):
+    list_display = ['ip_address', 'visit_date', 'visit_time', 'path', 'user', 'created_at']
+    list_filter = ['visit_date', 'visit_time']
+    search_fields = ['ip_address', 'path', 'user__email']
+    fieldsets = (
+        ('Visiteur', {'fields': ('ip_address', 'user_agent', 'session_key'), 'description': 'Informations du visiteur'}),
+        ('Visite', {'fields': ('path', 'user', 'visit_date', 'visit_time'), 'description': 'Détails de la visite'}),
+        ('Horodatage', {'fields': ('created_at',), 'description': 'Date d\'enregistrement'}),
     )
     readonly_fields = ['created_at']
 

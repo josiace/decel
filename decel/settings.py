@@ -67,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'accounts.middleware.VisitorTrackingMiddleware',
 ]
 
 ROOT_URLCONF = 'decel.urls'
@@ -107,7 +109,7 @@ WSGI_APPLICATION = 'decel.wsgi.application'
 # =========================
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='')
+        default=config('DATABASE_URL', default='sqlite:///db.sqlite3')
     )
 }
 

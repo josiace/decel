@@ -2,12 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import timedelta
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import Referral, PromoCode, PromoCodeUsage
+from datetime import timedelta, datetime
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, CountryCreateForm, GradeLevelCreateForm
+from .models import Referral, PromoCode, PromoCodeUsage, Country, GradeLevel, VisitorTracking
 from .services import ReferralService, PromoCodeService
 from gamification.models import XPLog, UserBadge, LeaderboardEntry
 from gamification.services import XPService
@@ -497,3 +497,108 @@ def level_progress_api(request):
         'xp_in_current_level': progress['xp_in_current_level'],
         'percentage': progress['percentage']
     })
+
+
+# Country and Grade Level Management for Contributors
+@login_required
+def country_create(request):
+    """Créer un nouveau pays (pour contributeurs)."""
+    if not request.user.is_contributor and not request.user.is_staff:
+        messages.error(request, "Vous devez être contributeur pour créer un pays.")
+        return redirect('home_authenticated')
+    
+    if request.method == 'POST':
+        form = CountryCreateForm(request.POST)
+        if form.is_valid():
+            country = form.save(commit=False)
+            country.created_by = request.user
+            country.save()
+            messages.success(request, "Pays créé avec succès!")
+            return redirect('contributor:dashboard')
+    else:
+        form = CountryCreateForm()
+    
+    return render(request, 'accounts/country_form.html', {'form': form, 'title': 'Créer un pays'})
+
+
+@login_required
+def grade_level_create(request):
+    """Créer un nouveau niveau scolaire (pour contributeurs)."""
+    if not request.user.is_contributor and not request.user.is_staff:
+        messages.error(request, "Vous devez être contributeur pour créer un niveau scolaire.")
+        return redirect('home_authenticated')
+    
+    if request.method == 'POST':
+        form = GradeLevelCreateForm(request.POST)
+        if form.is_valid():
+            grade_level = form.save(commit=False)
+            grade_level.created_by = request.user
+            grade_level.save()
+            messages.success(request, "Niveau scolaire créé avec succès!")
+            return redirect('contributor:dashboard')
+    else:
+        form = GradeLevelCreateForm()
+    
+    return render(request, 'accounts/grade_level_form.html', {'form': form, 'title': 'Créer un niveau scolaire'})
+
+
+# Admin Visitor Statistics
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def visitor_statistics(request):
+    """Vue admin pour les statistiques de visiteurs avec tableau et courbe."""
+    days = int(request.GET.get('days', 30))
+    today = timezone.now().date()
+    start_date = today - timedelta(days=days)
+    
+    # Données pour le tableau (par date)
+    visitors_by_date = []
+    for i in range(days):
+        date = start_date + timedelta(days=i)
+        count = VisitorTracking.objects.filter(visit_date=date).count()
+        visitors_by_date.append({
+            'date': date.strftime('%d/%m/%Y'),
+            'count': count
+        })
+    
+    # Données pour le tableau (par heure)
+    visitors_by_hour = []
+    for hour in range(24):
+        count = VisitorTracking.objects.filter(
+            visit_date=today,
+            visit_time__hour=hour
+        ).count()
+        visitors_by_hour.append({
+            'hour': f"{hour:02d}:00",
+            'count': count
+        })
+    
+    # Statistiques globales
+    total_visitors = VisitorTracking.objects.filter(visit_date__gte=start_date).count()
+    unique_visitors = VisitorTracking.objects.filter(
+        visit_date__gte=start_date
+    ).values('ip_address').distinct().count()
+    authenticated_visitors = VisitorTracking.objects.filter(
+        visit_date__gte=start_date,
+        user__isnull=False
+    ).count()
+    
+    # Données pour la courbe (visites par jour)
+    chart_data = {
+        'labels': [item['date'] for item in visitors_by_date],
+        'data': [item['count'] for item in visitors_by_date]
+    }
+    
+    context = {
+        'visitors_by_date': visitors_by_date,
+        'visitors_by_hour': visitors_by_hour,
+        'total_visitors': total_visitors,
+        'unique_visitors': unique_visitors,
+        'authenticated_visitors': authenticated_visitors,
+        'chart_data': chart_data,
+        'days': days,
+        'start_date': start_date.strftime('%d/%m/%Y'),
+        'end_date': today.strftime('%d/%m/%Y')
+    }
+    
+    return render(request, 'accounts/visitor_statistics.html', context)

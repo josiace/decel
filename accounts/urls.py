@@ -16,4 +16,7 @@ urlpatterns = [
     path('admin/user/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
     path('api/xp-evolution/', views.xp_evolution_api, name='xp_evolution_api'),
     path('api/level-progress/', views.level_progress_api, name='level_progress_api'),
+    path('country/create/', views.country_create, name='country_create'),
+    path('grade-level/create/', views.grade_level_create, name='grade_level_create'),
+    path('admin/visitor-statistics/', views.visitor_statistics, name='visitor_statistics'),
 ]
