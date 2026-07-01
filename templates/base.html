@@ -148,6 +148,41 @@
                         </li>
                         {% else %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'exam_list' %}">
+                                <i class="fas fa-clipboard-list me-1"></i>Examens
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'course_list' %}">
+                                <i class="fas fa-book me-1"></i>Cours
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'td_list' %}">
+                                <i class="fas fa-tasks me-1"></i>TDs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'content_list' %}">
+                                <i class="fas fa-users me-1"></i>Communauté
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'global_leaderboard' %}">
+                                <i class="fas fa-trophy me-1"></i>Classements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'blog_home' %}">
+                                <i class="fas fa-newspaper me-1"></i>Blog
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link btn btn-link" onclick="toggleTheme()" title="Changer le thème">
+                                <i class="fas fa-moon me-1" id="theme-icon"></i>
+                            </button>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">
                                 <i class="fas fa-sign-in-alt me-1"></i>Connexion
                             </a>
