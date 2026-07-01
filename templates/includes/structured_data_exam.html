@@ -1,0 +1,40 @@
+{% load static %}
+{# Données structurées Schema.org pour les examens #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Quiz",
+  "name": "{{ exam.title|escapejs }}",
+  "description": "{{ exam.description|truncatewords:30|escapejs }}",
+  "about": {
+    "@type": "Thing",
+    "name": "{{ exam.subject.name|escapejs }}"
+  },
+  "educationalLevel": "{{ exam.difficulty|default:1 }}",
+  "timeRequired": "PT{{ exam.time_limit|default:0 }}M",
+  "interactionType": "https://schema.org/ChoiceInteraction",
+  "question": [
+    {% for question in exam.questions.all|slice:":5" %}
+    {
+      "@type": "Question",
+      "text": "{{ question.text|truncatewords:20|escapejs }}",
+      "suggestedAnswer": [
+        {% for choice in question.choices.all %}
+        {
+          "@type": "Answer",
+          "text": "{{ choice.text|escapejs }}",
+          "position": {{ forloop.counter }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "provider": {
+    "@type": "Organization",
+    "name": "DECEL",
+    "url": "{{ SITE_URL }}"
+  },
+  "inLanguage": "fr"
+}
+</script>

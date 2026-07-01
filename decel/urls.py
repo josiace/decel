@@ -10,11 +10,15 @@ from django.shortcuts import render, redirect
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 
-from decel.sitemaps import StaticViewSitemap
+from decel.sitemaps import StaticViewSitemap, ExamSitemap, CourseSitemap, TDSitemap, SubjectSitemap
 from decel.seo_views import robots_txt
 
 sitemaps = {
     'static': StaticViewSitemap,
+    'exams': ExamSitemap,
+    'courses': CourseSitemap,
+    'tds': TDSitemap,
+    'subjects': SubjectSitemap,
 }
 
 @cache_page(60 * 10)  # 10 minutes
@@ -66,6 +70,7 @@ urlpatterns = [
     path('subscriptions/', include('subscriptions.urls')),
     path('premium/', include('premium.urls')),
     path('b2b/', include('b2b.urls')),
+    path('blog/', include('blog.urls')),
 ]
 
 # Set custom error handlers

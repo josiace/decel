@@ -2,13 +2,21 @@
 
 {% block title %}{{ exam.title }} - DECEL{% endblock %}
 
+{% block structured_data %}
+{% include 'includes/structured_data_exam.html' %}
+{% include 'includes/structured_data_breadcrumb.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div style="margin-bottom: 1rem;">
-            <a href="{% url 'exam_list' %}" style="color: var(--primary-color);">Examens</a> &gt; 
-            <span>{{ exam.title }}</span>
-        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'exam_list' %}">Examens</a></li>
+                <li class="breadcrumb-item active">{{ exam.title }}</li>
+            </ol>
+        </nav>
 
         <div class="card">
             <div class="card-header">

@@ -1,0 +1,36 @@
+{% load static %}
+{# Données structurées Schema.org pour les cours #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ course.title|escapejs }}",
+  "description": "{{ course.description|truncatewords:30|escapejs }}",
+  "provider": {
+    "@type": "Organization",
+    "name": "DECEL",
+    "url": "{{ SITE_URL }}"
+  },
+  "inLanguage": "fr",
+  "educationalLevel": "{{ course.grade_level|default:'Autre'|escapejs }}",
+  "coursePrerequisites": [],
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "online",
+    "instructor": {
+      "@type": "Person",
+      "name": "{{ course.author.get_full_name|default:course.author.username|escapejs }}"
+    }
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "{{ course.subject.name|escapejs }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ course.dc_price }}",
+    "priceCurrency": "XOF",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>

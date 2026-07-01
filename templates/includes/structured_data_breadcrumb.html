@@ -1,0 +1,25 @@
+{% load static %}
+{# Données structurées Schema.org pour les breadcrumbs #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Accueil",
+      "item": "{{ SITE_URL }}/"
+    }{% if breadcrumb_items %},
+    {% for item in breadcrumb_items %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter|add:1 }},
+      "name": "{{ item.name|escapejs }}",
+      "item": "{{ SITE_URL }}{{ item.url|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    {% endif %}
+  ]
+}
+</script>

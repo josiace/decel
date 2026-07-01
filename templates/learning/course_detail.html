@@ -2,11 +2,17 @@
 
 {% block title %}{{ course.title }} - DECEL{% endblock %}
 
+{% block structured_data %}
+{% include 'includes/structured_data_course.html' %}
+{% include 'includes/structured_data_breadcrumb.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Cours</a></li>
                 <li class="breadcrumb-item active">{{ course.title }}</li>
             </ol>

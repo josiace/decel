@@ -55,10 +55,13 @@ def course_list(request):
     if grade_filter:
         courses = courses.filter(grade_level=grade_filter)
     
-    return render(request, 'learning/course_list.html', {
+    context = {
         'courses': courses,
         'subjects': subjects,
-    })
+        'meta_description': 'Explorez nos cours en ligne gratuits et payants. Mathématiques, Physique, Chimie et plus. Apprenez à votre rythme avec DECEL et gagnez des XP.',
+        'meta_keywords': 'cours en ligne, apprentissage, éducation, DECEL, cours gratuits, Mathématiques, Physique, Chimie, études en ligne',
+    }
+    return render(request, 'learning/course_list.html', context)
 
 
 @login_required
@@ -103,7 +106,7 @@ def course_detail(request, course_id):
         user=request.user
     ).first()
     
-    return render(request, 'learning/course_detail.html', {
+    context = {
         'course': course,
         'progress': progress,
         'can_access': can_access,
@@ -111,7 +114,10 @@ def course_detail(request, course_id):
         'reviews': reviews,
         'avg_rating': avg_rating,
         'user_review': user_review,
-    })
+        'meta_description': f"Cours : {course.title} en {course.subject.name}. {course.description[:150] if course.description else 'Apprenez à votre rythme avec ce cours interactif.'} Prix : {course.dc_price} DC.",
+        'meta_keywords': f"{course.subject.name}, cours en ligne, {course.title}, apprentissage, DECEL, {course.subject.name} cours",
+    }
+    return render(request, 'learning/course_detail.html', context)
 
 
 @login_required
@@ -202,10 +208,13 @@ def td_list(request):
     if grade_filter:
         tds = tds.filter(grade_level=grade_filter)
     
-    return render(request, 'learning/td_list.html', {
+    context = {
         'tds': tds,
         'subjects': subjects,
-    })
+        'meta_description': 'Pratiquez avec nos TD (Travaux Dirigés) corrigés et non corrigés. Mathématiques, Physique, Chimie et plus. Exercices pour améliorer vos compétences sur DECEL.',
+        'meta_keywords': 'TD, travaux dirigés, exercices corrigés, pratique, DECEL, exercices mathématiques, exercices physique',
+    }
+    return render(request, 'learning/td_list.html', context)
 
 
 @login_required
@@ -244,13 +253,16 @@ def td_detail(request, td_id):
             correction.dc_price
         )
     
-    return render(request, 'learning/td_detail.html', {
+    context = {
         'td': td,
         'progress': progress,
         'correction': correction,
         'can_access_td': can_access_td,
         'can_access_correction': can_access_correction,
-    })
+        'meta_description': f"TD : {td.title} en {td.subject.name}. {td.description[:150] if td.description else 'Pratiquez avec ces exercices interactifs.'} Prix : {td.dc_price} DC.",
+        'meta_keywords': f"{td.subject.name}, TD, travaux dirigés, {td.title}, exercices, DECEL, {td.subject.name} exercices",
+    }
+    return render(request, 'learning/td_detail.html', context)
 
 
 @login_required

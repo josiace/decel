@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'compressor',
 
     # apps
     'accounts',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'premium',
     'b2b',
+    'blog',
 ]
 
 # =========================
@@ -65,6 +67,8 @@ MIDDLEWARE = [
 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -251,6 +255,48 @@ SITE_KEYWORDS = (
 SITE_LOCALE = 'fr_FR'
 SITE_LANGUAGE = 'fr'
 SITE_TWITTER_HANDLE = config('SITE_TWITTER_HANDLE', default='')
+
+# =========================
+# COMPRESSOR (CSS/JS Minification)
+# =========================
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = not DEBUG  # Only compress in production
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
+]
+COMPRESS_JS_FILTERS = [
+    'compressor.filters.jsmin.JSMinFilter',
+]
+
+# =========================
+# CACHING
+# =========================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Redis configuration (uncomment in production with Redis)
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         },
+#         'KEY_PREFIX': 'decel',
+#         'TIMEOUT': 300,
+#     }
+# }
+
+# Cache middleware
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 600  # 10 minutes
+CACHE_MIDDLEWARE_KEY_PREFIX = 'decel'
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 # =========================
 # PRODUCTION SEO & SECURITY
