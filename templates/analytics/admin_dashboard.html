@@ -137,6 +137,38 @@
         </div>
     </div>
 
+    <!-- New Analytics Statistics -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Vues de Pages Totales</h3>
+                <div class="value">{{ total_page_views }}</div>
+                <div class="trend positive">+{{ page_views_7d }} cette semaine</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Clics Totaux</h3>
+                <div class="value">{{ total_clicks }}</div>
+                <div class="trend positive">+{{ clicks_7d }} cette semaine</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Sessions Totales</h3>
+                <div class="value">{{ total_sessions }}</div>
+                <div class="trend positive">+{{ sessions_7d }} cette semaine</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>Durée Moyenne Session</h3>
+                <div class="value">{{ avg_session_duration }} min</div>
+                <div class="trend">Durée moyenne par visite</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts -->
     <div class="row">
         <div class="col-md-6">
@@ -243,6 +275,37 @@
         </div>
     </div>
 
+    <!-- New Analytics Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Vues de Pages (30 jours)</h3>
+                <canvas id="pageViewsChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Clics (30 jours)</h3>
+                <canvas id="clicksChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Sessions (30 jours)</h3>
+                <canvas id="sessionsChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Distribution des Appareils</h3>
+                <canvas id="deviceDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Tables -->
     <div class="row">
         <div class="col-md-6">
@@ -311,6 +374,30 @@
                             <td>{{ perf.subject }}</td>
                             <td>{{ perf.pass_rate }}%</td>
                             <td>{{ perf.total_exams }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-container">
+                <h3>Top Pages par Vues</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Vues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for page in top_pages %}
+                        <tr>
+                            <td>{{ page.url }}</td>
+                            <td>{{ page.views }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -627,6 +714,90 @@ new Chart(geoDistributionCtx, {
                 'rgba(255, 99, 255, 0.5)',
                 'rgba(99, 255, 132, 0.5)',
                 'rgba(132, 99, 255, 0.5)',
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+
+// Page Views Chart
+const pageViewsCtx = document.getElementById('pageViewsChart').getContext('2d');
+new Chart(pageViewsCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in page_views_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Vues de pages',
+            data: [{% for item in page_views_over_time %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Clicks Chart
+const clicksCtx = document.getElementById('clicksChart').getContext('2d');
+new Chart(clicksCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in clicks_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Clics',
+            data: [{% for item in clicks_over_time %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(54, 162, 235)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Sessions Chart
+const sessionsCtx = document.getElementById('sessionsChart').getContext('2d');
+new Chart(sessionsCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in sessions_over_time %}'{{ item.date }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Sessions',
+            data: [{% for item in sessions_over_time %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Device Distribution Chart
+const deviceDistributionCtx = document.getElementById('deviceDistributionChart').getContext('2d');
+new Chart(deviceDistributionCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for item in device_distribution %}'{{ item.device_type }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for item in device_distribution %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
             ]
         }]
     },

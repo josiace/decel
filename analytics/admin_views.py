@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Avg, Sum, Q
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
 from accounts.models import User
@@ -8,6 +9,7 @@ from exams.models import ExamSession
 from gamification.models import XPLog
 from community.models import Content, ContentPurchase
 from learning.models import Course, TD
+from .models import PageView, ClickEvent, UserSession
 
 
 def is_staff_user(user):
@@ -110,6 +112,55 @@ def admin_analytics_dashboard(request):
     for level in range(1, 11):
         count = User.objects.filter(level=level).count()
         level_distribution.append({'level': f'Niveau {level}', 'count': count})
+
+    # Page views analytics
+    total_page_views = PageView.objects.count()
+    page_views_7d = PageView.objects.filter(created_at__date__gte=last_7_days).count()
+    page_views_30d = PageView.objects.filter(created_at__date__gte=last_30_days).count()
+
+    # Page views over time (last 30 days)
+    page_views_over_time = []
+    for i in range(30):
+        date = today - timedelta(days=29-i)
+        count = PageView.objects.filter(created_at__date=date).count()
+        page_views_over_time.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
+
+    # Top pages by views
+    top_pages = PageView.objects.values('url').annotate(
+        views=Count('id')
+    ).order_by('-views')[:10]
+
+    # Device distribution
+    device_distribution = PageView.objects.values('device_type').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
+    # Click analytics
+    total_clicks = ClickEvent.objects.count()
+    clicks_7d = ClickEvent.objects.filter(created_at__date__gte=last_7_days).count()
+    clicks_30d = ClickEvent.objects.filter(created_at__date__gte=last_30_days).count()
+
+    # Clicks over time (last 30 days)
+    clicks_over_time = []
+    for i in range(30):
+        date = today - timedelta(days=29-i)
+        count = ClickEvent.objects.filter(created_at__date=date).count()
+        clicks_over_time.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
+
+    # Session analytics
+    total_sessions = UserSession.objects.count()
+    sessions_7d = UserSession.objects.filter(start_time__date__gte=last_7_days).count()
+    sessions_30d = UserSession.objects.filter(start_time__date__gte=last_30_days).count()
+    avg_session_duration = UserSession.objects.aggregate(
+        avg=Avg('duration_seconds')
+    )['avg'] or 0
+
+    # Sessions over time (last 30 days)
+    sessions_over_time = []
+    for i in range(30):
+        date = today - timedelta(days=29-i)
+        count = UserSession.objects.filter(start_time__date=date).count()
+        sessions_over_time.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
 
     # Daily activity (logins, exams, purchases) - last 30 days
     daily_activity = []
@@ -268,6 +319,17 @@ def admin_analytics_dashboard(request):
             'avg_streak': round(avg_streak, 1),
             'avg_study_time': round(avg_study_time, 1),
         },
+        # New analytics tracking data
+        'total_page_views': total_page_views,
+        'page_views_7d': page_views_7d,
+        'page_views_30d': page_views_30d,
+        'total_clicks': total_clicks,
+        'clicks_7d': clicks_7d,
+        'clicks_30d': clicks_30d,
+        'total_sessions': total_sessions,
+        'sessions_7d': sessions_7d,
+        'sessions_30d': sessions_30d,
+        'avg_session_duration': round(avg_session_duration / 60, 1) if avg_session_duration else 0,
         'user_growth': user_growth,
         'exam_completion': exam_completion,
         'xp_earned': xp_earned,
@@ -286,6 +348,12 @@ def admin_analytics_dashboard(request):
         'content_creation': content_creation,
         'exam_success_rate': exam_success_rate,
         'geo_distribution': geo_distribution,
+        # New analytics chart data
+        'page_views_over_time': page_views_over_time,
+        'top_pages': top_pages,
+        'device_distribution': device_distribution,
+        'clicks_over_time': clicks_over_time,
+        'sessions_over_time': sessions_over_time,
     }
 
     return render(request, 'analytics/admin_dashboard.html', context)
