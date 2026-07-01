@@ -2,6 +2,24 @@
 
 DECEL is a production-grade EdTech SaaS platform that functions as a learning intelligence system. It adapts to user performance through skill tracking, XP progression, and adaptive recommendations.
 
+## 🌐 Public Access & SEO
+
+**Content accessible without registration:**
+- Exam listings and details (view-only)
+- Course listings and details (view-only)
+- TD listings and details (view-only)
+- Community content (approved)
+- Leaderboards with filters (by country, grade level)
+- Blog articles
+
+**SEO Optimizations:**
+- Dynamic sitemaps (exams, courses, TDs, corrected TDs, blog, subjects)
+- robots.txt configured for public content indexing
+- Open Graph and Twitter Card meta tags
+- Structured data (Organization, WebSite, SoftwareApplication, FAQPage)
+- PWA manifest with multiple icon sizes
+- Removed anti-copy protection for better UX
+
 ## 🧠 Core Features
 
 ### 1. Exam Engine (Strict QCM)
@@ -154,7 +172,19 @@ DECEL is a production-grade EdTech SaaS platform that functions as a learning in
 
 ## 🎯 User Flow
 
-1. User registers and logs in
+### For Non-Registered Users
+1. Lands on **home page** (public landing)
+2. Can explore:
+   - **Exam listings** - View available exams
+   - **Course listings** - Browse educational content
+   - **TD listings** - Practice exercises
+   - **Community content** - Approved user contributions
+   - **Leaderboards** - Rankings with filters (country, grade level)
+   - **Blog** - Educational articles
+3. Registers to access full features
+
+### For Registered Users
+1. User logs in
 2. Lands on **dashboard** (learning cockpit)
 3. User chooses:
    - **Course** (learn) → Updates XP + skill engagement

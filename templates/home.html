@@ -3,11 +3,7 @@
 {% block title %}DECEL — Plateforme d'apprentissage adaptatif, examens QCM et progression{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="DECEL : plateforme EdTech d'apprentissage adaptatif pour lycée et université. Examens QCM stricts, suivi des compétences par matière, cours, TD, recommandations IA et monnaie DC. Gratuit pour apprendre, idéal en Afrique francophone.">
-{% endblock %}
-
-{% block meta_keywords %}
-DECEL, apprentissage adaptatif, plateforme éducative, examens QCM en ligne, révisions examens, compétences par matière, cours en ligne gratuits, TD corrigés, EdTech Afrique, e-learning Mali, préparation bac, gamification éducation
+<meta name="description" content="DECEL : plateforme EdTech d'apprentissage adaptatif pour lycée et université. Examens QCM stricts, suivi des compétences par matière, cours, TD, recommandations IA et monnaie DC. Contenu accessible gratuitement, idéal en Afrique francophone.">
 {% endblock %}
 
 {% block og_title %}DECEL — Apprentissage adaptatif avec examens QCM et compétences{% endblock %}
@@ -642,11 +638,14 @@ DECEL, apprentissage adaptatif, plateforme éducative, examens QCM en ligne, ré
                         <i class="fas fa-clipboard-list me-2"></i>Commencer un examen
                     </a>
                 {% else %}
+                    <a href="{% url 'exam_list' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-eye me-2"></i>Explorer les examens
+                    </a>
+                    <a href="{% url 'course_list' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-book me-2"></i>Voir les cours
+                    </a>
                     <a href="{% url 'register' %}" class="btn btn-light btn-lg">
                         <i class="fas fa-user-plus me-2"></i>Creer un compte
-                    </a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
                     </a>
                 {% endif %}
             </div>
@@ -655,6 +654,7 @@ DECEL, apprentissage adaptatif, plateforme éducative, examens QCM en ligne, ré
                 <span class="hero-pill">XP pour la progression</span>
                 <span class="hero-pill">DC pour les achats</span>
                 <span class="hero-pill">Recommandations adaptees</span>
+                <span class="hero-pill">Contenu accessible gratuitement</span>
             </div>
         </div>
 
