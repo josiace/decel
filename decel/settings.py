@@ -76,6 +76,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'accounts.middleware.VisitorTrackingMiddleware',
+    'analytics.middleware.AnalyticsMiddleware',
 ]
 
 ROOT_URLCONF = 'decel.urls'

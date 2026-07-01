@@ -488,5 +488,63 @@
         </style>
 
         {% block scripts %}{% endblock %}
+
+        <!-- Analytics Tracking Script -->
+        <script>
+        (function() {
+            // Track click events
+            document.addEventListener('click', function(event) {
+                const target = event.target;
+                const element = target.closest('a, button, input[type="submit"], input[type="button"], [onclick]');
+
+                if (element) {
+                    const clickData = {
+                        page_url: window.location.pathname,
+                        element_id: element.id || '',
+                        element_class: element.className || '',
+                        element_tag: element.tagName.toLowerCase(),
+                        element_text: element.textContent.trim().substring(0, 255) || '',
+                        href: element.href || '',
+                        x: event.clientX,
+                        y: event.clientY
+                    };
+
+                    // Send click data to server
+                    fetch('{% url "analytics:track_click" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(clickData)
+                    }).catch(function(error) {
+                        // Silently fail to not disrupt user experience
+                        console.log('Analytics click tracking failed:', error);
+                    });
+                }
+            });
+
+            // Track session end when user leaves
+            window.addEventListener('beforeunload', function() {
+                navigator.sendBeacon('{% url "analytics:track_session_end" %}', JSON.stringify({}));
+            });
+
+            // Helper function to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        })();
+        </script>
     </body>
 </html>

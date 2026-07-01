@@ -2,6 +2,135 @@ from django.db import models
 from django.conf import settings
 
 
+class PageView(models.Model):
+    """
+    PageView model - tracks every page view for analytics.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='page_views', verbose_name="Utilisateur")
+    session_id = models.CharField(max_length=255, db_index=True, verbose_name="ID Session")
+    url = models.CharField(max_length=500, verbose_name="URL")
+    page_title = models.CharField(max_length=255, blank=True, verbose_name="Titre de la page")
+    referrer = models.URLField(blank=True, verbose_name="Référant")
+    duration_seconds = models.IntegerField(null=True, blank=True, verbose_name="Durée (secondes)")
+
+    # Device info
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Adresse IP")
+    user_agent = models.TextField(blank=True, verbose_name="User Agent")
+    device_type = models.CharField(max_length=50, blank=True, verbose_name="Type d'appareil")
+    browser = models.CharField(max_length=50, blank=True, verbose_name="Navigateur")
+    os = models.CharField(max_length=50, blank=True, verbose_name="Système d'exploitation")
+
+    # Location info (optional, from IP)
+    country = models.CharField(max_length=100, blank=True, verbose_name="Pays")
+    city = models.CharField(max_length=100, blank=True, verbose_name="Ville")
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de la vue")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Vue de page"
+        verbose_name_plural = "Vues de pages"
+        indexes = [
+            models.Index(fields=['session_id', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['url']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.email if self.user else "Anonyme"
+        return f"{user_str} - {self.url} - {self.created_at}"
+
+
+class ClickEvent(models.Model):
+    """
+    ClickEvent model - tracks click events on the site.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='click_events', verbose_name="Utilisateur")
+    session_id = models.CharField(max_length=255, db_index=True, verbose_name="ID Session")
+    page_url = models.CharField(max_length=500, verbose_name="URL de la page")
+
+    # Click target info
+    element_id = models.CharField(max_length=255, blank=True, verbose_name="ID de l'élément")
+    element_class = models.CharField(max_length=255, blank=True, verbose_name="Classe de l'élément")
+    element_tag = models.CharField(max_length=50, blank=True, verbose_name="Tag de l'élément")
+    element_text = models.CharField(max_length=255, blank=True, verbose_name="Texte de l'élément")
+    href = models.URLField(blank=True, verbose_name="Lien (href)")
+
+    # Click position
+    x_position = models.IntegerField(null=True, blank=True, verbose_name="Position X")
+    y_position = models.IntegerField(null=True, blank=True, verbose_name="Position Y")
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date du clic")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Événement de clic"
+        verbose_name_plural = "Événements de clics"
+        indexes = [
+            models.Index(fields=['session_id', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['page_url']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.email if self.user else "Anonyme"
+        return f"{user_str} - {self.element_text or self.element_id} - {self.page_url}"
+
+
+class UserSession(models.Model):
+    """
+    UserSession model - tracks complete user sessions/journeys.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sessions', verbose_name="Utilisateur")
+    session_id = models.CharField(max_length=255, unique=True, db_index=True, verbose_name="ID Session")
+
+    # Session metrics
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name="Heure de début")
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name="Heure de fin")
+    duration_seconds = models.IntegerField(null=True, blank=True, verbose_name="Durée (secondes)")
+
+    # Page counts
+    page_views_count = models.IntegerField(default=0, verbose_name="Nombre de vues")
+    unique_pages_count = models.IntegerField(default=0, verbose_name="Pages uniques")
+
+    # Entry and exit
+    entry_page = models.CharField(max_length=500, blank=True, verbose_name="Page d'entrée")
+    exit_page = models.CharField(max_length=500, blank=True, verbose_name="Page de sortie")
+
+    # Device info
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Adresse IP")
+    user_agent = models.TextField(blank=True, verbose_name="User Agent")
+    device_type = models.CharField(max_length=50, blank=True, verbose_name="Type d'appareil")
+
+    # Location
+    country = models.CharField(max_length=100, blank=True, verbose_name="Pays")
+    city = models.CharField(max_length=100, blank=True, verbose_name="Ville")
+
+    # Journey path (ordered list of pages visited)
+    journey_path = models.JSONField(default=list, blank=True, verbose_name="Parcours")
+
+    # Metadata
+    is_completed = models.BooleanField(default=False, verbose_name="Session terminée")
+
+    class Meta:
+        ordering = ['-start_time']
+        verbose_name = "Session utilisateur"
+        verbose_name_plural = "Sessions utilisateurs"
+        indexes = [
+            models.Index(fields=['session_id']),
+            models.Index(fields=['user', '-start_time']),
+            models.Index(fields=['-start_time']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.email if self.user else "Anonyme"
+        return f"{user_str} - {self.session_id} - {self.start_time}"
+
+
 class UserActivity(models.Model):
     """
     UserActivity model - tracks all user activities for analytics.

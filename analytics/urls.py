@@ -9,4 +9,7 @@ urlpatterns = [
     path('activity-log/', views.activity_log, name='activity_log'),
     path('admin-dashboard/', admin_views.admin_analytics_dashboard, name='admin_analytics_dashboard'),
     path('admin-user-analytics/<int:user_id>/', admin_views.admin_user_analytics, name='admin_user_analytics'),
+    # API endpoints for tracking
+    path('api/track-click/', views.track_click, name='track_click'),
+    path('api/track-session-end/', views.track_session_end, name='track_session_end'),
 ]

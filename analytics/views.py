@@ -1,9 +1,12 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.db.models import Count, Sum, Avg, Q, F, DurationField
 from django.utils import timezone
 from datetime import timedelta
-from .models import UserActivity, UserAnalytics
+from .models import UserActivity, UserAnalytics, ClickEvent, UserSession
 from accounts.models import User
 from exams.models import ExamSession
 from learning.models import CourseProgress, TDProgress
@@ -118,3 +121,69 @@ def activity_log(request):
         'activity_type': activity_type,
         'days': days,
     })
+
+
+@csrf_exempt
+@require_POST
+def track_click(request):
+    """
+    API endpoint pour tracker les événements de clic JavaScript.
+    """
+    try:
+        import json
+        data = json.loads(request.body)
+
+        # Obtenir session_id
+        session_id = request.session.get('analytics_session_id')
+        if not session_id:
+            return JsonResponse({'status': 'error', 'message': 'No session'}, status=400)
+
+        # Obtenir user si authentifié
+        user = request.user if request.user.is_authenticated else None
+
+        # Créer l'événement de clic
+        ClickEvent.objects.create(
+            user=user,
+            session_id=session_id,
+            page_url=data.get('page_url', ''),
+            element_id=data.get('element_id', ''),
+            element_class=data.get('element_class', ''),
+            element_tag=data.get('element_tag', ''),
+            element_text=data.get('element_text', '')[:255],
+            href=data.get('href', ''),
+            x_position=data.get('x'),
+            y_position=data.get('y'),
+        )
+
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def track_session_end(request):
+    """
+    API endpoint pour marquer la fin d'une session utilisateur.
+    """
+    try:
+        import json
+        data = json.loads(request.body)
+
+        session_id = request.session.get('analytics_session_id')
+        if not session_id:
+            return JsonResponse({'status': 'error', 'message': 'No session'}, status=400)
+
+        # Mettre à jour la session
+        try:
+            session = UserSession.objects.get(session_id=session_id)
+            session.end_time = timezone.now()
+            session.duration_seconds = int((session.end_time - session.start_time).total_seconds())
+            session.is_completed = True
+            session.save()
+        except UserSession.DoesNotExist:
+            pass
+
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
