@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Réservation #{{ booking.id }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'premium:my_bookings' %}">Mes Réservations</a></li>
+                <li class="breadcrumb-item active">Réservation #{{ booking.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ booking.service.title }}</h4>
+                <span class="badge {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'confirmed' %}bg-info{% elif booking.status == 'in_progress' %}bg-primary{% elif booking.status == 'completed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Service :</strong> {{ booking.service.title }}</p>
+                        <p><strong>Type :</strong> {{ booking.service.get_service_type_display }}</p>
+                        <p><strong>Prestataire :</strong> {{ booking.provider.get_full_name|default:booking.provider.username }}</p>
+                        <p><strong>Étudiant :</strong> {{ booking.student.get_full_name|default:booking.student.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Date :</strong> {{ booking.scheduled_date|date:"d/m/Y" }}</p>
+                        <p><strong>Heure :</strong> {{ booking.scheduled_time|date:"H:i" }}</p>
+                        <p><strong>Durée :</strong> {{ booking.duration_minutes }} minutes</p>
+                        <p><strong>Prix :</strong> {{ booking.dc_price }} DC</p>
+                    </div>
+                </div>
+                
+                {% if booking.meeting_link %}
+                    <hr>
+                    <div class="alert alert-info">
+                        <strong>Lien de réunion :</strong> 
+                        <a href="{{ booking.meeting_link }}" target="_blank">{{ booking.meeting_link }}</a>
+                    </div>
+                {% endif %}
+                
+                {% if booking.meeting_notes %}
+                    <hr>
+                    <h5>Notes de session</h5>
+                    <p>{{ booking.meeting_notes }}</p>
+                {% endif %}
+                
+                {% if booking.cancellation_reason %}
+                    <hr>
+                    <div class="alert alert-warning">
+                        <strong>Raison d'annulation :</strong> {{ booking.cancellation_reason }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                {% if booking.status == 'pending' %}
+                    {% if request.user == booking.provider %}
+                        <form method="post" action="{% url 'premium:confirm' booking.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Confirmer
+                            </button>
+                        </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'premium:cancel' booking.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="reason" value="">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </button>
+                    </form>
+                {% elif booking.status == 'confirmed' %}
+                    {% if request.user == booking.provider %}
+                        <form method="post" action="{% url 'premium:start' booking.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="text" name="meeting_link" placeholder="Lien de réunion (optionnel)" class="form-control d-inline-block me-2" style="width: 300px;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play me-2"></i>Démarrer
+                            </button>
+                        </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'premium:cancel' booking.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="reason" value="">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </button>
+                    </form>
+                {% elif booking.status == 'in_progress' %}
+                    {% if request.user == booking.provider %}
+                        <form method="post" action="{% url 'premium:complete' booking.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="text" name="notes" placeholder="Notes de session" class="form-control d-inline-block me-2" style="width: 300px;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Terminer
+                            </button>
+                        </form>
+                    {% endif %}
+                {% elif booking.status == 'completed' %}
+                    {% if request.user == booking.student and not booking.service_review.all.exists %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                            <i class="fas fa-star me-2"></i>Noter la session
+                        </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de notation -->
+{% if booking.status == 'completed' and request.user == booking.student %}
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Noter la session</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'premium:review' booking.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Note globale (1-5)</label>
+                        <input type="number" name="rating" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Communication (1-5)</label>
+                        <input type="number" name="communication" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Expertise (1-5)</label>
+                        <input type="number" name="expertise" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Utilité (1-5)</label>
+                        <input type="number" name="helpfulness" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ponctualité (1-5)</label>
+                        <input type="number" name="punctuality" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Commentaire</label>
+                        <textarea class="form-control" name="comment" rows="3"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Soumettre l'avis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

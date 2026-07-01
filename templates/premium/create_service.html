@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un Service Premium - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'premium:my_services' %}">Mes Services</a></li>
+                <li class="breadcrumb-item active">Créer un Service</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Créer un nouveau service premium</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Type de service *</label>
+                                <select name="service_type" class="form-select" required>
+                                    <option value="">Sélectionner...</option>
+                                    <option value="tutoring">Tutorat</option>
+                                    <option value="mentoring">Mentoring</option>
+                                    <option value="homework_correction">Correction de devoirs</option>
+                                    <option value="career_coaching">Coaching de carrière</option>
+                                    <option value="exam_prep">Préparation examen</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Matière *</label>
+                                <select name="subject" class="form-select" required>
+                                    <option value="">Sélectionner...</option>
+                                    {% for subject in subjects %}
+                                        <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Titre *</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Ex: Tutorat Mathématiques Niveau Terminale">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description *</label>
+                        <textarea name="description" class="form-control" rows="4" required placeholder="Décrivez votre service en détail..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Prix par heure (DC) *</label>
+                                <input type="number" name="dc_price_per_hour" class="form-control" required min="1" value="200">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Prix par session (DC) (optionnel)</label>
+                                <input type="number" name="dc_price_per_session" class="form-control" min="1" placeholder="Laisser vide pour prix par heure">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Durée (minutes) *</label>
+                                <input type="number" name="duration_minutes" class="form-control" required min="15" value="60">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Max étudiants par session *</label>
+                                <input type="number" name="max_students_per_session" class="form-control" required min="1" value="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Format</label>
+                        <div>
+                            <div class="form-check">
+                                <input type="checkbox" name="is_online" id="isOnline" class="form-check-input" checked>
+                                <label for="isOnline" class="form-check-label">En ligne</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Lieu (si présentiel)</label>
+                        <input type="text" name="location" class="form-control" placeholder="Adresse ou lieu de rendez-vous">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Prérequis</label>
+                        <textarea name="requirements" class="form-control" rows="2" placeholder="Niveau requis, matériel nécessaire, etc."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Jours disponibles *</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="monday" class="form-check-input">
+                                <label class="form-check-label">Lundi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="tuesday" class="form-check-input">
+                                <label class="form-check-label">Mardi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="wednesday" class="form-check-input">
+                                <label class="form-check-label">Mercredi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="thursday" class="form-check-input">
+                                <label class="form-check-label">Jeudi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="friday" class="form-check-input">
+                                <label class="form-check-label">Vendredi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="saturday" class="form-check-input">
+                                <label class="form-check-label">Samedi</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="available_days" value="sunday" class="form-check-input">
+                                <label class="form-check-label">Dimanche</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Heure début disponibilité *</label>
+                                <input type="time" name="available_time_start" class="form-control" required value="09:00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Heure fin disponibilité *</label>
+                                <input type="time" name="available_time_end" class="form-control" required value="18:00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'premium:my_services' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Créer le service
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

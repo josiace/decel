@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Plans d'Abonnement - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item active">Plans d'Abonnement</li>
+            </ol>
+        </nav>
+
+        <div class="text-center mb-5">
+            <h1 class="mb-3">Choisissez votre plan</h1>
+            <p class="lead text-muted">Débloquez tout le potentiel de DECEL avec nos abonnements</p>
+            
+            {% if current_subscription %}
+                <div class="alert alert-info">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Vous avez actuellement un abonnement <strong>{{ current_subscription.plan.name }}</strong> 
+                    (expire le {{ current_subscription.end_date|date:"d/m/Y" }})
+                    <a href="{% url 'subscriptions:detail' current_subscription.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                        Gérer mon abonnement
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            {% for plan in plans %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 {% if plan.is_popular %}border-primary shadow-lg{% endif %}">
+                        {% if plan.is_popular %}
+                            <div class="position-absolute top-0 start-50 translate-middle-x">
+                                <span class="badge bg-primary rounded-pill px-3 py-2">Populaire</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-header text-center py-4">
+                            <h4 class="mb-2">{{ plan.name }}</h4>
+                            <div class="display-4 fw-bold text-primary">{{ plan.dc_price }} DC</div>
+                            <p class="text-muted mb-0">/{{ plan.get_billing_cycle_display|lower }}</p>
+                        </div>
+                        
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                {% if plan.max_courses_per_month %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        {{ plan.max_courses_per_month }} cours/mois
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        Cours illimités
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.max_exams_per_month %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        {{ plan.max_exams_per_month }} examens/mois
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        Examens illimités
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.max_tds_per_month %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        {{ plan.max_tds_per_month }} TDs/mois
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        TDs illimités
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.has_certificates %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-certificate text-warning me-2"></i>
+                                        Certificats vérifiables
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.has_mentoring %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-user-tie text-warning me-2"></i>
+                                        Mentoring personnalisé
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.has_analytics %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-chart-line text-warning me-2"></i>
+                                        Analytics avancés
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.has_priority_support %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-headset text-warning me-2"></i>
+                                        Support prioritaire
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.has_ad_free %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-ban text-warning me-2"></i>
+                                        Sans publicité
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        <div class="card-footer text-center">
+                            {% if current_subscription %}
+                                {% if current_subscription.plan.id == plan.id %}
+                                    <button class="btn btn-success w-100" disabled>
+                                        <i class="fas fa-check me-2"></i>Abonnement actuel
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'subscriptions:upgrade' %}" class="btn btn-primary w-100">
+                                        <i class="fas fa-arrow-up me-2"></i>Changer pour ce plan
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'subscriptions:subscribe' plan.id %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-rocket me-2"></i>S'abonner
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Abonnement - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'subscriptions:plans' %}">Plans d'Abonnement</a></li>
+                <li class="breadcrumb-item active">Mon Abonnement</li>
+            </ol>
+        </nav>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">{{ subscription.plan.name }}</h4>
+                        <span class="badge {% if subscription.status == 'active' %}bg-success{% elif subscription.status == 'cancelled' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Plan :</strong> {{ subscription.plan.name }}</p>
+                                <p><strong>Type :</strong> {{ subscription.plan.get_plan_type_display }}</p>
+                                <p><strong>Cycle :</strong> {{ subscription.plan.get_billing_cycle_display }}</p>
+                                <p><strong>Prix :</strong> {{ subscription.plan.dc_price }} DC/{{ subscription.plan.get_billing_cycle_display|lower }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Début :</strong> {{ subscription.start_date|date:"d/m/Y H:i" }}</p>
+                                <p><strong>Fin :</strong> {{ subscription.end_date|date:"d/m/Y H:i" }}</p>
+                                <p><strong>Jours restants :</strong> {{ subscription.days_remaining }}</p>
+                                <p><strong>Renouvellement auto :</strong> 
+                                    {% if subscription.auto_renew %}
+                                        <i class="fas fa-check text-success"></i> Oui
+                                    {% else %}
+                                        <i class="fas fa-times text-danger"></i> Non
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">Fonctionnalités incluses</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    {% if subscription.plan.max_courses_per_month %}
+                                        <li><i class="fas fa-check text-success me-2"></i>{{ subscription.plan.max_courses_per_month }} cours/mois</li>
+                                    {% else %}
+                                        <li><i class="fas fa-check text-success me-2"></i>Cours illimités</li>
+                                    {% endif %}
+                                    {% if subscription.plan.max_exams_per_month %}
+                                        <li><i class="fas fa-check text-success me-2"></i>{{ subscription.plan.max_exams_per_month }} examens/mois</li>
+                                    {% else %}
+                                        <li><i class="fas fa-check text-success me-2"></i>Examens illimités</li>
+                                    {% endif %}
+                                    {% if subscription.plan.max_tds_per_month %}
+                                        <li><i class="fas fa-check text-success me-2"></i>{{ subscription.plan.max_tds_per_month }} TDs/mois</li>
+                                    {% else %}
+                                        <li><i class="fas fa-check text-success me-2"></i>TDs illimités</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    {% if subscription.plan.has_certificates %}
+                                        <li><i class="fas fa-certificate text-warning me-2"></i>Certificats vérifiables</li>
+                                    {% endif %}
+                                    {% if subscription.plan.has_mentoring %}
+                                        <li><i class="fas fa-user-tie text-warning me-2"></i>Mentoring personnalisé</li>
+                                    {% endif %}
+                                    {% if subscription.plan.has_analytics %}
+                                        <li><i class="fas fa-chart-line text-warning me-2"></i>Analytics avancés</li>
+                                    {% endif %}
+                                    {% if subscription.plan.has_priority_support %}
+                                        <li><i class="fas fa-headset text-warning me-2"></i>Support prioritaire</li>
+                                    {% endif %}
+                                    {% if subscription.plan.has_ad_free %}
+                                        <li><i class="fas fa-ban text-warning me-2"></i>Sans publicité</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        {% if subscription.status == 'active' %}
+                            <a href="{% url 'subscriptions:upgrade' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-up me-2"></i>Changer de plan
+                            </a>
+                            <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="fas fa-times me-2"></i>Annuler l'abonnement
+                            </button>
+                        {% elif subscription.status == 'cancelled' %}
+                            <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary">
+                                <i class="fas fa-rocket me-2"></i>Se réabonner
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Statistiques d'utilisation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Cours ce mois</span>
+                                <span>3/5</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Examens ce mois</span>
+                                <span>2/10</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: 20%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>TDs ce mois</span>
+                                <span>1/5</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: 20%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Historique des transactions</h5>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Montant DC</th>
+                                    <th>Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                    <tr>
+                                        <td>{{ transaction.created_at|date:"d/m/Y H:i" }}</td>
+                                        <td>{{ transaction.get_transaction_type_display }}</td>
+                                        <td>{{ transaction.dc_amount }} DC</td>
+                                        <td>{{ transaction.plan_name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucune transaction pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'annulation -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Annuler l'abonnement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir annuler votre abonnement ?</p>
+                <p class="text-muted">Vous pourrez continuer à utiliser les fonctionnalités jusqu'à la fin de votre période actuelle ({{ subscription.end_date|date:"d/m/Y" }}).</p>
+                <form method="post" action="{% url 'subscriptions:cancel' subscription.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Raison de l'annulation (optionnel)</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="Pourquoi annulez-vous votre abonnement ?"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Confirmer l'annulation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

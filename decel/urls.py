@@ -63,6 +63,9 @@ urlpatterns = [
     path('analytics/', include('analytics.urls')),
     path('payments/', include('payments.urls')),
     path('api/', include('api.urls')),
+    path('subscriptions/', include('subscriptions.urls')),
+    path('premium/', include('premium.urls')),
+    path('b2b/', include('b2b.urls')),
 ]
 
 # Set custom error handlers

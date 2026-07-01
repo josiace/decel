@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.title }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'premium:list' %}">Services Premium</a></li>
+                <li class="breadcrumb-item active">{{ service.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="mb-0">{{ service.title }}</h2>
+                        <span class="badge bg-primary">{{ service.get_service_type_display }}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">{{ service.description }}</p>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Prestataire :</strong> {{ service.provider.get_full_name|default:service.provider.username }}</p>
+                                <p><strong>Matière :</strong> {{ service.subject.name }}</p>
+                                <p><strong>Durée :</strong> {{ service.duration_minutes }} minutes</p>
+                                <p><strong>Max étudiants :</strong> {{ service.max_students_per_session }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Prix :</strong> 
+                                    {% if service.dc_price_per_session %}
+                                        {{ service.dc_price_per_session }} DC/session
+                                    {% else %}
+                                        {{ service.dc_price_per_hour }} DC/heure
+                                    {% endif %}
+                                </p>
+                                <p><strong>Format :</strong> 
+                                    {% if service.is_online %}
+                                        <i class="fas fa-video text-success"></i> En ligne
+                                    {% else %}
+                                        <i class="fas fa-map-marker-alt text-primary"></i> {{ service.location }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {% if service.requirements %}
+                            <hr>
+                            <h5>Prérequis</h5>
+                            <p>{{ service.requirements }}</p>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <h5>Disponibilités</h5>
+                        <p>
+                            <strong>Jours :</strong> 
+                            {% for day in service.available_days %}
+                                <span class="badge bg-info">{{ day }}</span>
+                            {% endfor %}
+                        </p>
+                        <p>
+                            <strong>Heures :</strong> {{ service.available_time_start }} - {{ service.available_time_end }}
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'premium:book' service.id %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calendar-plus me-2"></i>Réserver
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Reviews Section -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Avis ({% if reviews %}{{ reviews|length }}{% else %}0{% endif %})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if reviews %}
+                            {% for review in reviews %}
+                                <div class="border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ review.reviewer.get_full_name|default:review.reviewer.username }}</strong>
+                                            <div class="text-warning">
+                                                <i class="fas fa-star"></i> {{ review.rating }}/5
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">Communication: {{ review.communication }}/5 | Expertise: {{ review.expertise }}/5 | Utilité: {{ review.helpfulness }}/5 | Ponctualité: {{ review.punctuality }}/5</small>
+                                    </div>
+                                    {% if review.comment %}
+                                        <p class="mb-0 mt-2">{{ review.comment }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">Aucun avis pour le moment.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Type de service :</strong>
+                            <p>{{ service.get_service_type_display }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Prix :</strong>
+                            <p class="display-6 text-primary">
+                                {% if service.dc_price_per_session %}
+                                    {{ service.dc_price_per_session }} DC
+                                {% else %}
+                                    {{ service.dc_price_per_hour }} DC/h
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Durée :</strong>
+                            <p>{{ service.duration_minutes }} minutes</p>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Statut :</strong>
+                            <span class="badge bg-success">{{ service.get_status_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

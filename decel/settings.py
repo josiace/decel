@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'contributor',
     'analytics',
     'api',
+    'subscriptions',
+    'premium',
+    'b2b',
 ]
 
 # =========================
