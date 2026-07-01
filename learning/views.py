@@ -14,70 +14,73 @@ from skills.models import Subject
 from recommendations.services import RecommendationService
 
 
-@login_required
 def course_list(request):
-    """List all available courses with advanced search."""
+    """List all available courses with advanced search - public pour SEO."""
     courses = Course.objects.filter(is_published=True).select_related('subject')
     subjects = Subject.objects.all()
-    
+
     # Search query
     q = request.GET.get('q', '')
     if q:
         courses = courses.filter(
-            Q(title__icontains=q) | 
+            Q(title__icontains=q) |
             Q(description__icontains=q)
         )
-    
+
     # Filter by subject
     subject_id = request.GET.get('subject', '')
     if subject_id:
         courses = courses.filter(subject_id=subject_id)
-    
+
     # Filter by content type
     content_type = request.GET.get('content_type', '')
     if content_type:
         courses = courses.filter(content_type=content_type)
-    
+
     # Filter by price
     price_filter = request.GET.get('price', '')
     if price_filter == 'free':
         courses = courses.filter(dc_price=0)
     elif price_filter == 'paid':
         courses = courses.filter(dc_price__gt=0)
-    
+
     # Filter by country
     country_filter = request.GET.get('country', '')
     if country_filter:
         courses = courses.filter(country=country_filter)
-    
+
     # Filter by grade level
     grade_filter = request.GET.get('grade_level', '')
     if grade_filter:
         courses = courses.filter(grade_level=grade_filter)
-    
+
     context = {
         'courses': courses,
         'subjects': subjects,
         'meta_description': 'Explorez nos cours en ligne gratuits et payants. Mathématiques, Physique, Chimie et plus. Apprenez à votre rythme avec DECEL et gagnez des XP.',
-        'meta_keywords': 'cours en ligne, apprentissage, éducation, DECEL, cours gratuits, Mathématiques, Physique, Chimie, études en ligne',
     }
     return render(request, 'learning/course_list.html', context)
 
 
-@login_required
 def course_detail(request, course_id):
-    """Show course details and content."""
+    """Show course details and content - public pour SEO."""
     course = get_object_or_404(Course, id=course_id, is_published=True)
-    
-    # Check if user has completed this course
-    progress, created = CourseProgress.objects.get_or_create(
-        user=request.user,
-        course=course,
-        defaults={'is_completed': False}
-    )
-    
-    # Check if user can access the content
-    can_access = ContentPurchaseService.can_access(
+
+    # Check if user has completed this course (only if logged in)
+    progress = None
+    can_access = False
+    is_completed = False
+
+    if request.user.is_authenticated:
+        progress, created = CourseProgress.objects.get_or_create(
+            user=request.user,
+            course=course,
+            defaults={'is_completed': False}
+        )
+        is_completed = progress.is_completed
+
+        # Check if user can access the content
+        can_access = ContentPurchaseService.can_access(
         request.user,
         'course',
         course.id,
@@ -167,9 +170,8 @@ def course_complete(request, course_id):
     return redirect('course_detail', course_id=course.id)
 
 
-@login_required
 def td_list(request):
-    """List all available TDs with advanced search."""
+    """List all available TDs with advanced search - public pour SEO."""
     tds = TD.objects.filter(is_published=True).select_related('subject')
     subjects = Subject.objects.all()
     
@@ -212,39 +214,46 @@ def td_list(request):
         'tds': tds,
         'subjects': subjects,
         'meta_description': 'Pratiquez avec nos TD (Travaux Dirigés) corrigés et non corrigés. Mathématiques, Physique, Chimie et plus. Exercices pour améliorer vos compétences sur DECEL.',
-        'meta_keywords': 'TD, travaux dirigés, exercices corrigés, pratique, DECEL, exercices mathématiques, exercices physique',
     }
     return render(request, 'learning/td_list.html', context)
 
 
-@login_required
 def td_detail(request, td_id):
-    """Show TD details and exercises."""
+    """Show TD details and exercises - public pour SEO."""
     td = get_object_or_404(TD, id=td_id, is_published=True)
-    
-    # Check if user has completed this TD
-    progress, created = TDProgress.objects.get_or_create(
-        user=request.user,
-        td=td,
-        defaults={'is_completed': False}
-    )
-    
-    # Get correction if available
-    try:
-        correction = CorrectedTD.objects.get(td=td)
-    except CorrectedTD.DoesNotExist:
-        correction = None
-    
-    # Check if user can access the TD content
-    can_access_td = ContentPurchaseService.can_access(
-        request.user,
-        'td',
-        td.id,
-        td.dc_price
-    )
-    
-    # Check if user can access the correction
+
+    # Check if user has completed this TD (only if logged in)
+    progress = None
+    can_access_td = False
     can_access_correction = False
+    is_completed = False
+    has_purchased_td = False
+    has_purchased_correction = False
+
+    if request.user.is_authenticated:
+        progress, created = TDProgress.objects.get_or_create(
+            user=request.user,
+            td=td,
+            defaults={'is_completed': False}
+        )
+        is_completed = progress.is_completed
+
+        # Get correction if available
+        try:
+            correction = CorrectedTD.objects.get(td=td)
+        except CorrectedTD.DoesNotExist:
+            correction = None
+
+        # Check if user can access the TD content
+        can_access_td = ContentPurchaseService.can_access(
+            request.user,
+            'td',
+            td.id,
+            td.dc_price
+        )
+
+        # Check if user can access the correction
+        can_access_correction = False
     if correction:
         can_access_correction = ContentPurchaseService.can_access(
             request.user,
@@ -260,7 +269,6 @@ def td_detail(request, td_id):
         'can_access_td': can_access_td,
         'can_access_correction': can_access_correction,
         'meta_description': f"TD : {td.title} en {td.subject.name}. {td.description[:150] if td.description else 'Pratiquez avec ces exercices interactifs.'} Prix : {td.dc_price} DC.",
-        'meta_keywords': f"{td.subject.name}, TD, travaux dirigés, {td.title}, exercices, DECEL, {td.subject.name} exercices",
     }
     return render(request, 'learning/td_detail.html', context)
 

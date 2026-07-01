@@ -14,9 +14,8 @@ def is_staff_user(user):
     return user.is_staff
 
 
-@login_required
 def content_list(request):
-    """List approved community content - optimisé."""
+    """List approved community content - public pour SEO."""
     contents = Content.objects.filter(status='approved').select_related('subject', 'author')
     return render(request, 'community/content_list.html', {'contents': contents})
 

@@ -10,35 +10,36 @@ from exams.models import ExamSession
 from gamification.models import UserBadge
 
 
-@login_required
 def leaderboard_list(request):
-    """List all available leaderboards."""
+    """List all available leaderboards - public pour SEO."""
     leaderboards = Leaderboard.objects.filter(is_active=True).select_related('subject')
-    
-    # Get user's current positions in each leaderboard
+
+    # Get user's current positions in each leaderboard (only if logged in)
     user_positions = {}
-    for leaderboard in leaderboards:
-        entry = leaderboard.entries.filter(user=request.user).first()
-        if entry:
-            user_positions[leaderboard.id] = entry.position
-    
+    if request.user.is_authenticated:
+        for leaderboard in leaderboards:
+            entry = leaderboard.entries.filter(user=request.user).first()
+            if entry:
+                user_positions[leaderboard.id] = entry.position
+
     return render(request, 'gamification/leaderboard_list.html', {
         'leaderboards': leaderboards,
         'user_positions': user_positions,
     })
 
 
-@login_required
 def leaderboard_detail(request, leaderboard_id):
-    """Show detailed leaderboard with rankings."""
+    """Show detailed leaderboard with rankings - public pour SEO."""
     leaderboard = get_object_or_404(Leaderboard, id=leaderboard_id, is_active=True)
-    
+
     # Get entries for this leaderboard
     entries = leaderboard.entries.select_related('user').order_by('position')[:50]  # Top 50
-    
-    # Get user's position
-    user_entry = leaderboard.entries.filter(user=request.user).first()
-    
+
+    # Get user's position (only if logged in)
+    user_entry = None
+    if request.user.is_authenticated:
+        user_entry = leaderboard.entries.filter(user=request.user).first()
+
     return render(request, 'gamification/leaderboard_detail.html', {
         'leaderboard': leaderboard,
         'entries': entries,
@@ -46,9 +47,8 @@ def leaderboard_detail(request, leaderboard_id):
     })
 
 
-@login_required
 def global_leaderboard(request):
-    """Show global XP leaderboard with detailed user information."""
+    """Show global XP leaderboard with detailed user information - public pour SEO."""
     # Get filter parameters
     country_filter = request.GET.get('country', '')
     grade_filter = request.GET.get('grade_level', '')
@@ -90,31 +90,50 @@ def global_leaderboard(request):
     })
 
 
-@login_required
 def subject_leaderboard(request, subject_id):
-    """Show leaderboard for a specific subject based on skill percentage."""
+    """Show leaderboard for a specific subject based on skill percentage - public pour SEO."""
     from skills.models import Subject
-    
+
     subject = get_object_or_404(Subject, id=subject_id)
-    
+
+    # Get filter parameters
+    country_filter = request.GET.get('country', '')
+    grade_filter = request.GET.get('grade_level', '')
+
     # Get top users by skill percentage for this subject
-    top_skills = UserSkill.objects.filter(
-        subject=subject
-    ).select_related('user').order_by('-skill_percentage')[:50]
-    
-    # Get current user's skill and position
-    user_skill = UserSkill.objects.filter(user=request.user, subject=subject).first()
+    skills_query = UserSkill.objects.filter(subject=subject).select_related('user')
+
+    # Apply filters
+    if country_filter:
+        skills_query = skills_query.filter(user__country__code=country_filter)
+    if grade_filter:
+        skills_query = skills_query.filter(user__grade_level=grade_filter)
+
+    top_skills = skills_query.order_by('-skill_percentage')[:50]
+
+    # Get current user's skill and position (only if logged in)
+    user_skill = None
     user_rank = None
-    
-    all_skills = UserSkill.objects.filter(subject=subject).order_by('-skill_percentage')
-    for idx, skill in enumerate(all_skills, 1):
-        if skill.user_id == request.user.id:
-            user_rank = idx
-            break
-    
+
+    if request.user.is_authenticated:
+        user_skill = UserSkill.objects.filter(user=request.user, subject=subject).first()
+
+        all_skills = UserSkill.objects.filter(subject=subject).order_by('-skill_percentage')
+        for idx, skill in enumerate(all_skills, 1):
+            if skill.user_id == request.user.id:
+                user_rank = idx
+                break
+
+    # Get all countries for filter
+    from accounts.models import Country
+    countries = Country.objects.filter(is_active=True)
+
     return render(request, 'gamification/subject_leaderboard.html', {
         'subject': subject,
         'top_skills': top_skills,
         'user_skill': user_skill,
         'user_rank': user_rank,
+        'countries': countries,
+        'country_filter': country_filter,
+        'grade_filter': grade_filter,
     })

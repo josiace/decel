@@ -2,8 +2,9 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from exams.models import Exam
-from learning.models import Course, TD
+from learning.models import Course, TD, CorrectedTD
 from skills.models import Subject
+from blog.models import BlogPost
 
 
 class StaticViewSitemap(Sitemap):
@@ -90,3 +91,35 @@ class SubjectSitemap(Sitemap):
 
     def location(self, obj):
         return f'/subjects/{obj.id}/'
+
+
+class CorrectedTDSitemap(Sitemap):
+    """Sitemap pour les TD corrigés publiés."""
+    protocol = 'https'
+    changefreq = 'weekly'
+    priority = 0.7
+
+    def items(self):
+        return CorrectedTD.objects.filter(is_published=True).select_related('subject')
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return reverse('corrected_td_detail', args=[obj.id])
+
+
+class BlogSitemap(Sitemap):
+    """Sitemap pour les articles de blog publiés."""
+    protocol = 'https'
+    changefreq = 'weekly'
+    priority = 0.8
+
+    def items(self):
+        return BlogPost.objects.filter(status='published').select_related('author')
+
+    def lastmod(self, obj):
+        return obj.published_at or obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()

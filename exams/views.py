@@ -9,26 +9,22 @@ from skills.services import SkillService
 from recommendations.services import RecommendationService
 
 
-@login_required
 def exam_list(request):
-    """List all available exams."""
+    """List all available exams - public pour SEO."""
     exams = Exam.objects.filter(is_active=True).select_related('subject')
     context = {
         'exams': exams,
         'meta_description': 'Découvrez tous les examens QCM disponibles sur DECEL. Testez vos connaissances en Mathématiques, Physique, Chimie et plus. Gagnez des XP et améliorez vos compétences.',
-        'meta_keywords': 'examens QCM, tests de connaissances, révisions, DECEL, apprentissage adaptatif, évaluation en ligne',
     }
     return render(request, 'exams/exam_list.html', context)
 
 
-@login_required
 def exam_detail(request, exam_id):
-    """Show exam details before starting - optimisé."""
+    """Show exam details before starting - public pour SEO."""
     exam = get_object_or_404(Exam.objects.select_related('subject', 'created_by'), id=exam_id, is_active=True)
     context = {
         'exam': exam,
         'meta_description': f"Examen QCM : {exam.title} en {exam.subject.name}. Niveau de difficulté {exam.difficulty}/5. Testez vos connaissances et gagnez des XP. Score de passage : {exam.passing_score}%.",
-        'meta_keywords': f"{exam.subject.name}, examen QCM, {exam.title}, révision, test de connaissances, DECEL, {exam.subject.name} examen",
     }
     return render(request, 'exams/exam_detail.html', context)
 

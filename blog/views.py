@@ -13,7 +13,6 @@ def blog_home(request):
         'posts': posts,
         'categories': categories,
         'meta_description': 'Blog DECEL - Articles sur l\'apprentissage adaptatif, l\'éducation en Afrique francophone, les conseils pour réussir vos examens et bien plus.',
-        'meta_keywords': 'blog éducation, apprentissage adaptatif, DECEL, conseils examens, éducation Afrique, réussite scolaire',
     }
     return render(request, 'blog/blog_home.html', context)
 
@@ -29,7 +28,6 @@ def post_detail(request, slug):
     context = {
         'post': post,
         'meta_description': post.meta_description or post.excerpt or post.content[:160],
-        'meta_keywords': post.meta_keywords or f"{post.title}, blog DECEL, éducation, apprentissage",
     }
     return render(request, 'blog/post_detail.html', context)
 
@@ -43,6 +41,5 @@ def category_posts(request, category_slug):
         'category': category,
         'posts': posts,
         'meta_description': f'Articles sur {category.name} - Blog DECEL. {category.description[:100] if category.description else ""}',
-        'meta_keywords': f'{category.name}, blog DECEL, éducation, {category.name} articles',
     }
     return render(request, 'blog/category_posts.html', context)

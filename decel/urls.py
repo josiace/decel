@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 
-from decel.sitemaps import StaticViewSitemap, ExamSitemap, CourseSitemap, TDSitemap, SubjectSitemap
+from decel.sitemaps import StaticViewSitemap, ExamSitemap, CourseSitemap, TDSitemap, SubjectSitemap, CorrectedTDSitemap, BlogSitemap
 from decel.seo_views import robots_txt
 
 sitemaps = {
@@ -18,7 +18,9 @@ sitemaps = {
     'exams': ExamSitemap,
     'courses': CourseSitemap,
     'tds': TDSitemap,
+    'corrected_tds': CorrectedTDSitemap,
     'subjects': SubjectSitemap,
+    'blog': BlogSitemap,
 }
 
 @cache_page(60 * 10)  # 10 minutes

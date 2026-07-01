@@ -16,58 +16,6 @@
         />
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
         {% block extrahead %}
-<style>
-    /* Protection contre les captures d'écran et copies */
-    body {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    
-    /* Empêcher la sélection de texte */
-    * {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    
-    /* Empêcher le clic droit */
-    body {
-        -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Empêcher la copie avec Ctrl+C */
-    body {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    
-    /* Protection supplémentaire contre les copies */
-    ::selection {
-        background: transparent;
-    }
-    
-    ::-moz-selection {
-        background: transparent;
-    }
-    
-    /* Empêcher l'impression */
-    @media print {
-        body {
-            display: none !important;
-        }
-    }
-    
-    /* Protection contre les outils de développement */
-    .protected-content {
-        pointer-events: none;
-    }
-</style>
 {% endblock %}
     </head>
     <body itemscope itemtype="https://schema.org/WebPage">
@@ -311,34 +259,6 @@
                 if (xpDisplay) xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
                 if (dcDisplay) dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
                 {% endif %}
-
-                // Protection contre les captures d'écran et copies
-                document.addEventListener('contextmenu', function(e) {
-                    e.preventDefault();
-                    return false;
-                });
-
-                document.addEventListener('keydown', function(e) {
-                    if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
-                    if (e.key === 'F12') { e.preventDefault(); return false; }
-                    if (e.key === 'PrintScreen') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.key === 'c') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.key === 'v') { e.preventDefault(); return false; }
-                    if (e.ctrlKey && e.key === 'a') { e.preventDefault(); return false; }
-                });
-
-                document.addEventListener('dragstart', function(e) {
-                    if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
-                });
-
-                window.addEventListener('visibilitychange', function() {
-                    if (document.hidden) {
-                        console.log('Page cachée - possible capture d\'écran détectée');
-                    }
-                });
 
                 // Theme toggle functionality
                 function toggleTheme() {
