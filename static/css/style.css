@@ -52,6 +52,8 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     font-size: 16px; /* Base font size pour mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================
@@ -69,6 +71,272 @@ body {
 .container-fluid {
     width: 100%;
     padding: 0 1rem;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 767px) {
+    /* Better touch targets */
+    .btn {
+        min-height: 44px; /* iOS recommended minimum touch target */
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Form inputs optimization */
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        font-size: 16px; /* Prevent iOS zoom */
+        padding: 0.75rem;
+    }
+
+    /* Card spacing */
+    .card {
+        margin-bottom: 1rem;
+        border-radius: var(--radius-lg);
+    }
+
+    /* Table scroll on mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Better spacing for sections */
+    section {
+        padding: 2rem 0;
+    }
+
+    /* Hero section mobile */
+    .hero {
+        padding: 3rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    /* Buttons in hero */
+    .hero .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Pills in hero */
+    .hero-pills {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .hero-pill {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Footer mobile */
+    footer {
+        padding: 2rem 1rem;
+    }
+
+    /* Dropdown mobile */
+    .dropdown-menu {
+        position: static !important;
+        width: 100%;
+        margin-top: 0.5rem;
+        border-radius: var(--radius-md);
+    }
+
+    /* Badge mobile */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Alert mobile */
+    .alert {
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Modal mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: var(--radius-lg);
+    }
+
+    /* Pagination mobile */
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Typography improvements for mobile */
+    h1 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        line-height: 1.4;
+    }
+
+    h4 {
+        font-size: 1.125rem;
+        line-height: 1.4;
+    }
+
+    h5 {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    h6 {
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    p {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    /* Better spacing for readability */
+    .card-body {
+        padding: 1rem;
+    }
+
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .card-footer {
+        padding: 0.75rem 1rem;
+    }
+
+    /* List improvements */
+    .list-group-item {
+        padding: 0.75rem 1rem;
+    }
+
+    /* Breadcrumb mobile */
+    .breadcrumb {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Progress bar mobile */
+    .progress {
+        height: 0.5rem;
+    }
+
+    /* Spinner mobile */
+    .spinner-border {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    /* Input group mobile */
+    .input-group-text {
+        padding: 0.75rem;
+    }
+
+    /* Close button mobile */
+    .btn-close {
+        padding: 0.5rem;
+    }
+
+    /* Toast mobile */
+    .toast {
+        width: 100%;
+        margin: 0.5rem;
+    }
+
+    /* Accordion mobile */
+    .accordion-button {
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+    }
+
+    .accordion-body {
+        padding: 1rem;
+    }
+
+    /* Tabs mobile */
+    .nav-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    /* Pills mobile */
+    .nav-pills .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    /* Carousel mobile */
+    .carousel-caption {
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Jumbotron mobile */
+    .jumbotron {
+        padding: 2rem 1rem;
+    }
+
+    /* Figure mobile */
+    .figure-caption {
+        font-size: 0.875rem;
+    }
+
+    /* Blockquote mobile */
+    blockquote {
+        font-size: 0.9375rem;
+        padding: 1rem;
+    }
+
+    /* Code mobile */
+    code {
+        font-size: 0.875rem;
+    }
+
+    pre {
+        font-size: 0.875rem;
+        padding: 1rem;
+    }
+
+    /* Kbd mobile */
+    kbd {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Sample mobile */
+    .sample {
+        font-size: 0.875rem;
+    }
 }
 
 /* Grid System - Mobile First */
@@ -720,21 +988,34 @@ h6 {
     width: 80%;
 }
 
-/* Navbar Toggler (Mobile) */
+/* Navbar Toggler (Mobile) - Amélioré */
 .navbar-toggler {
     display: block; /* Toujours visible sur mobile */
-    background: none;
+    background: var(--primary-color);
     border: none;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-toggler:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.navbar-toggler:active {
+    transform: scale(0.95);
 }
 
 .navbar-toggler-icon {
     display: block;
     width: 25px;
     height: 2px;
-    background: var(--text-primary);
+    background: white;
     position: relative;
+    transition: all 0.3s ease;
 }
 
 .navbar-toggler-icon::before,
@@ -743,8 +1024,9 @@ h6 {
     position: absolute;
     width: 25px;
     height: 2px;
-    background: var(--text-primary);
+    background: white;
     left: 0;
+    transition: all 0.3s ease;
 }
 
 .navbar-toggler-icon::before {
@@ -755,10 +1037,37 @@ h6 {
     top: 8px;
 }
 
+/* Animation hamburger menu quand ouvert */
+.navbar-toggler.active .navbar-toggler-icon {
+    background: transparent;
+}
+
+.navbar-toggler.active .navbar-toggler-icon::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.navbar-toggler.active .navbar-toggler-icon::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
 .navbar-collapse {
     display: none;
     width: 100%;
     margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .navbar-collapse.show {
@@ -769,6 +1078,25 @@ h6 {
     display: flex;
     flex-direction: column;
     width: 100%;
+    gap: 0.25rem;
+}
+
+.navbar-nav.show .nav-link {
+    padding: 1rem 0.75rem; /* Plus grand padding pour tactile */
+    border-radius: var(--radius-md);
+    background: var(--light-bg);
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.navbar-nav.show .nav-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(5px);
+}
+
+.navbar-nav.show .nav-link::after {
+    display: none; /* Pas de soulignement sur mobile */
 }
 
 /* Desktop navbar */

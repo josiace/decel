@@ -250,8 +250,10 @@
             function toggleNavbar() {
                 const navbarCollapse = document.getElementById("navbarNav");
                 const navbarNav = navbarCollapse.querySelector('.navbar-nav');
+                const navbarToggler = document.querySelector('.navbar-toggler');
                 navbarCollapse.classList.toggle("show");
                 navbarNav.classList.toggle("show");
+                navbarToggler.classList.toggle("active");
             }
 
             function toggleDropdown(event) {
