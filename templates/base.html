@@ -298,7 +298,7 @@
                     });
                 });
 
-                {% comment %} {% if user.is_authenticated %}
+                {% if user.is_authenticated %}
                 const usernameDisplay = document.getElementById('username-display');
                 const levelDisplay = document.getElementById('level-display');
                 const xpDisplay = document.getElementById('xp-display');
@@ -307,7 +307,7 @@
                 if (levelDisplay) levelDisplay.textContent = '{{ user.level|escapejs }}';
                 if (xpDisplay) xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
                 if (dcDisplay) dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
-                {% endif %} {% endcomment %}
+                {% endif %}
 
                 // Protection contre les captures d'écran et copies
                 document.addEventListener('contextmenu', function(e) {
