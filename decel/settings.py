@@ -262,7 +262,7 @@ SITE_TWITTER_HANDLE = config('SITE_TWITTER_HANDLE', default='')
 # COMPRESSOR (CSS/JS Minification)
 # =========================
 COMPRESS_ENABLED = True
-COMPRESS_OFFLINE = not DEBUG  # Only compress in production
+COMPRESS_OFFLINE = False  # Disable offline compression to avoid manifest issues
 COMPRESS_CSS_FILTERS = [
     'compressor.filters.css_default.CssAbsoluteFilter',
     'compressor.filters.cssmin.CSSMinFilter',
