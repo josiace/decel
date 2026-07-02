@@ -2011,3 +2011,92 @@ footer {
         font-size: 2rem;
     }
 }
+
+/* ============================================
+   DECEL - UI/UX Mobile Optimization Additions
+   ============================================ */
+
+/* Timer Sticky / Fixed */
+.exam-timer-sticky {
+    position: sticky;
+    top: 70px;
+    z-index: 100;
+}
+
+/* PDF subject container on mobile */
+.pdf-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.pdf-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+@media (max-width: 767px) {
+    .exam-timer-sticky {
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        margin-bottom: 0 !important;
+    }
+    
+    .exam-timer-sticky .card {
+        border-radius: 0;
+        border: none;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .pdf-container {
+        padding-bottom: 0;
+        height: 60vh;
+    }
+    
+    .pdf-container iframe {
+        position: relative;
+        height: 100%;
+    }
+}
+
+/* User Profile Badges in Mobile Navbar */
+.user-meta-badges {
+    display: inline-flex;
+    align-items: center;
+}
+
+@media (max-width: 767px) {
+    .user-meta-badges {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    .user-meta-badges .badge,
+    .user-meta-badges [class$="-badge"] {
+        margin-left: 0 !important;
+        text-align: center;
+        font-size: 0.75rem;
+        padding: 0.5rem 0.25rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+    }
+}
+

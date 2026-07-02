@@ -1,8 +1,50 @@
 import uuid
+import requests
 from django.utils import timezone
-from django.contrib.gis.geoip2 import GeoIP2
+from django.core.cache import cache
 from user_agents import parse as parse_user_agent
 from .models import PageView, UserSession
+
+
+def get_country_from_ip(ip):
+    if not ip or ip in ('127.0.0.1', 'localhost'):
+        return 'ML'
+
+    cache_key = f'geo_country_{ip}'
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        r = requests.get(
+            f'http://ip-api.com/json/{ip}?fields=countryCode',
+            timeout=2
+        )
+        country = r.json().get('countryCode', 'XX')
+    except Exception:
+        country = 'XX'
+
+    cache.set(cache_key, country, 60 * 60 * 24)
+    return country
+
+
+class GeoLocationMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+        if ip:
+            ip = ip.split(',')[0].strip()
+        request.country_code = get_country_from_ip(ip)
+
+        # Si l'utilisateur est connecté et que son country_code est vide ou différent, on le met à jour
+        if request.user and request.user.is_authenticated:
+            if not request.user.country_code or request.user.country_code != request.country_code:
+                request.user.country_code = request.country_code
+                request.user.save(update_fields=['country_code'])
+
+        return self.get_response(request)
 
 
 class AnalyticsMiddleware:
@@ -12,11 +54,6 @@ class AnalyticsMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        # Essayer de charger GeoIP2 pour la localisation (optionnel)
-        try:
-            self.geoip2 = GeoIP2()
-        except:
-            self.geoip2 = None
 
     def __call__(self, request):
         # Ignorer les requêtes API, admin, static, media
@@ -61,26 +98,13 @@ class AnalyticsMiddleware:
         try:
             session = UserSession.objects.get(session_id=session_id)
         except UserSession.DoesNotExist:
-            # Créer une nouvelle session
             ip_address = self.get_client_ip(request)
             user_agent_str = request.META.get('HTTP_USER_AGENT', '')
 
-            # Parser user agent
             user_agent = parse_user_agent(user_agent_str)
             device_type = self.get_device_type(user_agent)
-            browser = user_agent.browser.family if user_agent.browser else ''
-            os = user_agent.os.family if user_agent.os else ''
 
-            # Localisation (optionnel)
-            country = ''
-            city = ''
-            if self.geoip2 and ip_address:
-                try:
-                    geo_data = self.geoip2.city(ip_address)
-                    country = geo_data.get('country_name', '')
-                    city = geo_data.get('city', '')
-                except:
-                    pass
+            country_code = getattr(request, 'country_code', 'XX')
 
             session = UserSession.objects.create(
                 user=user,
@@ -88,10 +112,9 @@ class AnalyticsMiddleware:
                 ip_address=ip_address,
                 user_agent=user_agent_str,
                 device_type=device_type,
-                browser=browser,
-                os=os,
-                country=country,
-                city=city,
+                country=country_code,
+                country_code=country_code,
+                city='',
                 entry_page=request.path,
             )
 
@@ -112,6 +135,7 @@ class AnalyticsMiddleware:
 
         # Localisation
         country = session.country if session else ''
+        country_code = session.country_code if session else getattr(request, 'country_code', 'XX')
         city = session.city if session else ''
 
         # Créer la vue de page
@@ -127,6 +151,7 @@ class AnalyticsMiddleware:
             browser=browser,
             os=os,
             country=country,
+            country_code=country_code,
             city=city,
         )
 

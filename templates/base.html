@@ -107,9 +107,11 @@
                             >
                                 <i class="fas fa-user-circle me-1"></i>
                                 <span id="username-display">Chargement...</span>
-                                <span class="level-badge ms-2">Niveau <span id="level-display">1</span></span>
-                                <span class="xp-badge ms-2"><span id="xp-display">0</span> XP</span>
-                                <span class="dc-badge ms-2"><i class="fas fa-coins me-1"></i><span id="dc-display">0</span> DC</span>
+                                <span class="user-meta-badges">
+                                    <span class="level-badge ms-2">Niveau <span id="level-display">1</span></span>
+                                    <span class="xp-badge ms-2"><span id="xp-display">0</span> XP</span>
+                                    <span class="dc-badge ms-2"><i class="fas fa-coins me-1"></i><span id="dc-display">0</span> DC</span>
+                                </span>
                             </a>
                             <ul class="dropdown-menu" id="userDropdown">
                                 <li>
@@ -168,12 +170,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'global_leaderboard' %}">
+                            <a class="nav-link" href="{% url 'gamification:global_leaderboard' %}">
                                 <i class="fas fa-trophy me-1"></i>Classements
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog_home' %}">
+                            <a class="nav-link" href="{% url 'blog:blog_home' %}">
                                 <i class="fas fa-newspaper me-1"></i>Blog
                             </a>
                         </li>

@@ -85,6 +85,7 @@ class User(AbstractUser):
     # Contact fields
     phone_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Numéro de téléphone", help_text="Numéro de téléphone de l'utilisateur")
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Pays", help_text="Pays de l'utilisateur")
+    country_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="Code Pays", help_text="Code pays ISO à 2 lettres")
 
     # Learning intelligence fields
     total_xp = models.IntegerField(default=0, verbose_name="XP Total", help_text="Points d'expérience cumulés (calculé automatiquement)")

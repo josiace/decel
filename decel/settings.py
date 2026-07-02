@@ -75,6 +75,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
+    'analytics.middleware.GeoLocationMiddleware',
     'accounts.middleware.VisitorTrackingMiddleware',
     'analytics.middleware.AnalyticsMiddleware',
 ]

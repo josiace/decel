@@ -23,6 +23,7 @@ class PageView(models.Model):
     # Location info (optional, from IP)
     country = models.CharField(max_length=100, blank=True, verbose_name="Pays")
     city = models.CharField(max_length=100, blank=True, verbose_name="Ville")
+    country_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="Code Pays")
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de la vue")
@@ -109,6 +110,7 @@ class UserSession(models.Model):
     # Location
     country = models.CharField(max_length=100, blank=True, verbose_name="Pays")
     city = models.CharField(max_length=100, blank=True, verbose_name="Ville")
+    country_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="Code Pays")
 
     # Journey path (ordered list of pages visited)
     journey_path = models.JSONField(default=list, blank=True, verbose_name="Parcours")
