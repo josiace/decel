@@ -1,24 +1,40 @@
-# DECEL - Adaptive Learning Platform
+# DECEL - Plateforme d'apprentissage adaptatif
 
-DECEL is a production-grade EdTech SaaS platform that functions as a learning intelligence system. It adapts to user performance through skill tracking, XP progression, and adaptive recommendations.
+DECEL est une plateforme EdTech SaaS de production qui fonctionne comme un système d'intelligence d'apprentissage. Elle s'adapte aux performances des utilisateurs grâce au suivi des compétences, à la progression XP et à des recommandations adaptatives.
 
-## 🌐 Public Access & SEO
+## 🌐 Accès public & SEO
 
-**Content accessible without registration:**
-- Exam listings and details (view-only)
-- Course listings and details (view-only)
-- TD listings and details (view-only)
-- Community content (approved)
-- Leaderboards with filters (by country, grade level)
-- Blog articles
+**Contenu accessible sans inscription :**
+- Listes et détails des examens (lecture seule)
+- Listes et détails des cours (lecture seule)
+- Listes et détails des TD (lecture seule)
+- Contenu communautaire (approuvé)
+- Classements avec filtres (par pays, niveau scolaire)
+- Articles de blog
 
-**SEO Optimizations:**
-- Dynamic sitemaps (exams, courses, TDs, corrected TDs, blog, subjects)
-- robots.txt configured for public content indexing
-- Open Graph and Twitter Card meta tags
-- Structured data (Organization, WebSite, SoftwareApplication, FAQPage)
-- PWA manifest with multiple icon sizes
-- Removed anti-copy protection for better UX
+**Optimisations SEO :**
+- Sitemaps dynamiques (examens, cours, TD, TD corrigés, blog, matières)
+- robots.txt configuré pour l'indexation du contenu public
+- Méta-tags Open Graph et Twitter Card
+- Données structurées (Organization, WebSite, SoftwareApplication, FAQPage, Blog, BlogPosting)
+- Manifest PWA avec plusieurs tailles d'icônes
+
+## 🚀 Déploiement
+
+DECEL est prêt à être déployé sur **Render** (ou Heroku, AWS, etc.) :
+- **[Procfile](file:///c:/Users/prince%20josiace/Documents/DECEL/Procfile)** : Définit le processus web (Gunicorn) et la phase release (migrations + collectstatic)
+- **[runtime.txt](file:///c:/Users/prince%20josiace/Documents/DECEL/runtime.txt)** : Spécifie la version de Python (3.11.9)
+- **Whitenoise** : Gère les fichiers statiques en production
+- **dj-database-url** : Configure la base de données automatiquement
+- **Supabase Storage** : Pour les fichiers médias en production
+
+### Variables d'environnement nécessaires (voir [.env.example](file:///c:/Users/prince%20josiace/Documents/DECEL/.env.example)) :
+- `SECRET_KEY` : Clé secrète Django (générer une nouvelle en production !)
+- `DEBUG` : False en production
+- `ALLOWED_HOSTS` : Votre domaine (ex: decel-sn4v.onrender.com)
+- `DATABASE_URL` : URL de votre base PostgreSQL
+- `SUPABASE_URL` et `SUPABASE_KEY` : Pour le stockage des médias
+- `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` : Pour les paiements
 
 ## 🧠 Core Features
 
