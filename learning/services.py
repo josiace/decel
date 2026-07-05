@@ -11,6 +11,8 @@ class ContentPurchaseService:
     @staticmethod
     def has_purchased(user, content_type, content_id):
         """Vérifie si l'utilisateur a déjà acheté le contenu."""
+        if not user.is_authenticated:
+            return False
         if content_type == 'course':
             return ContentPurchase.objects.filter(
                 user=user,

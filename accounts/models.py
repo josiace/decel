@@ -54,7 +54,7 @@ class VisitorTracking(models.Model):
     user_agent = models.TextField(blank=True, verbose_name="User Agent", help_text="Navigateur du visiteur")
     path = models.CharField(max_length=255, verbose_name="Chemin", help_text="URL visitée")
     user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Utilisateur", help_text="Utilisateur connecté (si applicable)")
-    session_key = models.CharField(max_length=255, blank=True, verbose_name="Session", help_text="Clé de session")
+    session_key = models.CharField(max_length=255, blank=True, null=True, verbose_name="Session", help_text="Clé de session")
     visit_date = models.DateField(verbose_name="Date de visite", help_text="Date de la visite")
     visit_time = models.TimeField(verbose_name="Heure de visite", help_text="Heure de la visite")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date d'enregistrement")

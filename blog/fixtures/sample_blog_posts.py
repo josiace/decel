@@ -4,6 +4,7 @@ Exécutez: python manage.py shell < blog/fixtures/sample_blog_posts.py
 """
 
 from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 from blog.models import BlogPost, BlogCategory
 
 User = get_user_model()
@@ -226,13 +227,14 @@ for post_data in posts_data:
     post, created = BlogPost.objects.get_or_create(
         title=post_data['title'],
         defaults={
-            'slug': post_data['title'].lower().replace(' ', '-').replace("'", '-'),
+            'slug': slugify(post_data['title']),
             'author': admin_user,
             'content': post_data['content'],
             'excerpt': post_data['excerpt'],
             'meta_description': post_data['meta_description'],
             'meta_keywords': post_data['meta_keywords'],
             'status': post_data['status'],
+            'category': category,
         }
     )
     

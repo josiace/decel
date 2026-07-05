@@ -23,12 +23,13 @@ sitemaps = {
     'blog': BlogSitemap,
 }
 
-@cache_page(60 * 10)  # 10 minutes
+
 def home(request):
     """Landing page for DECEL - redirects to home_authenticated if user is logged in."""
     if request.user.is_authenticated:
         return redirect('home_authenticated')
     return render(request, 'home.html')
+
 
 # Custom error handlers
 def custom_404(request, exception):

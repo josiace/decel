@@ -1,630 +1,478 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.views.decorators.http import require_POST
-from django.db.models import Sum, Count
+import logging
+from datetime import timedelta
+
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.core.mail import EmailMultiAlternatives
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncDate
 from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
-from datetime import timedelta, datetime
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, CountryCreateForm, GradeLevelCreateForm
-from .models import Referral, PromoCode, PromoCodeUsage, Country, GradeLevel, VisitorTracking
-from .services import ReferralService, PromoCodeService
-from gamification.models import XPLog, UserBadge, LeaderboardEntry
-from gamification.services import XPService
-from skills.models import Subject, UserSkill
-from skills.services import SkillService
-from recommendations.services import RecommendationService
-from exams.models import ExamSession
-from community.models import Content, ContentPurchase
+
+from analytics.models import UserExamResult, UserSkill
+from analytics.utils import get_device_info, get_ip_info
+from community.models import Discussion
+from gamification.models import UserAchievement, UserBadge
+from learning.models import Course
+
+from .forms import (
+    CountryCreateForm,
+    CustomAuthenticationForm,
+    CustomUserCreationForm,
+    GradeLevelCreateForm,
+)
+from .models import (
+    DCTransaction,
+    PromoCode,
+    PromoCodeUsage,
+    Referral,
+    User,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def register(request):
-    """User registration view with referral code and promo code support."""
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
-        referral_code = request.POST.get('referral_code', '').strip().upper()
-        promo_code = request.POST.get('promo_code', '').strip().upper()
-        
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            
-            # Process referral code if provided
+
+            # Set referral cookie if exists
+            referral_code = request.COOKIES.get("ref")
             if referral_code:
-                success, message, referral = ReferralService.process_referral(referral_code, user)
-                if success:
-                    from django.contrib import messages
-                    messages.success(request, message)
-                else:
-                    from django.contrib import messages
-                    messages.warning(request, message)
-            
-            # Process promo code if provided
-            if promo_code:
-                success, message, reward_given = PromoCodeService.apply_promo_code(user, promo_code)
-                if success:
-                    from django.contrib import messages
-                    messages.success(request, message)
-                else:
-                    from django.contrib import messages
-                    messages.warning(request, message)
-            
-            return redirect('home_authenticated')
+                try:
+                    referrer = User.objects.get(referral_code=referral_code)
+                    Referral.objects.create(
+                        referrer=referrer,
+                        referred=user,
+                        ip_address=get_ip_info(request),
+                        device_info=get_device_info(request),
+                    )
+                except User.DoesNotExist:
+                    pass
+
+            # Log user in
+            login(request, user)
+
+            # Welcome email - using template loader directly
+            try:
+                from django.template.loader import get_template
+                template = get_template("emails/welcome.html")
+                html_content = template.render({"user": user})
+                subject = "Bienvenue sur DECEL!"
+                msg = EmailMultiAlternatives(subject, "", "noreply@decel.com", [user.email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to send welcome email to {user.email}: {str(e)}")
+                # Continue without failing the registration
+
+            messages.success(request, "Compte créé avec succès! Bienvenue sur DECEL.")
+            return redirect("dashboard")
     else:
         form = CustomUserCreationForm()
-    
-    # Get referral code from URL parameter
-    referral_code = request.GET.get('ref', '').strip().upper()
 
-    return render(request, 'accounts/register.html', {'form': form, 'referral_code': referral_code})
+    return render(request, "accounts/register.html", {"form": form})
 
 
 def login_view(request):
-    """User login view with daily DC bonus."""
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomAuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
+            email = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            user = authenticate(request, email=email, password=password)
 
-            # Award daily DC bonus
-            from accounts.services import DCService
-            success, message, transaction = DCService.award_daily_bonus(user)
-            if success:
-                from django.contrib import messages
-                messages.success(request, message)
+            if user is not None:
+                login(request, user)
 
-            return redirect('home_authenticated')
+                # Check if coming from exam page
+                next_url = request.GET.get("next")
+                if next_url and "exam" in next_url:
+                    messages.success(
+                        request,
+                        "Vous êtes maintenant connecté. Bonne chance pour votre examen!",
+                    )
+                    return redirect(next_url)
+
+                return redirect("dashboard")
+            else:
+                messages.error(request, "Email ou mot de passe incorrect.")
+        else:
+            messages.error(request, "Email ou mot de passe incorrect.")
     else:
         form = CustomAuthenticationForm()
 
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, "accounts/login.html", {"form": form})
 
 
-@login_required
 def referral_page(request):
-    """
-    Page de parrainage - affiche le code de parrainage et les statistiques.
-    """
     user = request.user
-    
-    # Créer ou récupérer le code de parrainage de l'utilisateur
-    referral = ReferralService.create_referral(user)
-    
-    # Récupérer les statistiques de parrainage
-    stats = ReferralService.get_referral_stats(user)
-    
-    # Récupérer les parrainages effectués
-    referrals_made = Referral.objects.filter(referrer=user).select_related('referred')
-    
+
+    # Get or create referral code
+    referral = Referral.objects.filter(referrer=user).first()
+    if not referral:
+        # Create referral code if doesn't exist
+        referral_code = f"DECEL-{user.id}-{user.username[:4].upper()}"
+        referral = Referral.objects.create(
+            referrer=user,
+            referral_code=referral_code,
+            reward_dc=50,
+            referred_reward_dc=25
+        )
+
+    # Get referrals
+    referrals = Referral.objects.filter(referrer=user)
+
+    # Get referral stats
+    total_referrals = referrals.count()
+    successful_referrals = referrals.filter(referred__is_active=True).count()
+
     context = {
-        'referral_code': referral.referral_code,
-        'stats': stats,
-        'referrals_made': referrals_made,
+        "referral_code": referral.referral_code,
+        "referral_link": f"https://decel.com/register?ref={referral.referral_code}",
+        "total_referrals": total_referrals,
+        "successful_referrals": successful_referrals,
     }
-    
-    return render(request, 'accounts/referral.html', context)
+
+    return render(request, "accounts/referral.html", context)
 
 
-@login_required
-@require_POST
 def apply_promo_code(request):
-    """
-    Applique un code promo pour l'utilisateur connecté.
-    """
-    code = request.POST.get('promo_code', '').strip().upper()
-    
-    if not code:
-        from django.contrib import messages
-        messages.error(request, "Veuillez entrer un code promo.")
-        return redirect('wallet')
-    
-    success, message, reward_given = PromoCodeService.apply_promo_code(request.user, code)
-    
-    if success:
-        from django.contrib import messages
-        messages.success(request, message)
-    else:
-        from django.contrib import messages
-        messages.error(request, message)
-    
-    return redirect('wallet')
+    if request.method == "POST":
+        code = request.POST.get("code").strip().upper()
+
+        try:
+            promo_code = PromoCode.objects.get(code=code, is_active=True)
+
+            # Check if code is expired
+            if promo_code.expiry_date and promo_code.expiry_date < timezone.now():
+                messages.error(request, "Ce code promo est expiré.")
+                return redirect("promo_codes")
+
+            # Check if user already used this code
+            if PromoCodeUsage.objects.filter(
+                user=request.user, promo_code=promo_code
+            ).exists():
+                messages.error(request, "Vous avez déjà utilisé ce code promo.")
+                return redirect("promo_codes")
+
+            # Apply code
+            user = request.user
+            user.dc_balance += promo_code.amount
+            user.save()
+
+            # Record usage
+            PromoCodeUsage.objects.create(
+                user=user,
+                promo_code=promo_code,
+                ip_address=get_ip_info(request),
+                device_info=get_device_info(request),
+            )
+
+            messages.success(
+                request, f"Félicitations! Vous avez reçu {promo_code.amount} DC."
+            )
+            return redirect("promo_codes")
+
+        except PromoCode.DoesNotExist:
+            messages.error(request, "Code promo invalide.")
+            return redirect("promo_codes")
+
+    return redirect("promo_codes")
 
 
-@login_required
 def promo_codes_page(request):
-    """
-    Page des codes promo utilisés par l'utilisateur.
-    """
-    user = request.user
-    
-    # Récupérer les codes promo utilisés
-    promo_usages = PromoCodeService.get_user_promo_usages(user)
-    
+    user_codes = PromoCodeUsage.objects.filter(user=request.user).select_related(
+        "promo_code"
+    )
+
     context = {
-        'promo_usages': promo_usages,
+        "user_codes": user_codes,
     }
-    
-    return render(request, 'accounts/promo_codes.html', context)
+
+    return render(request, "accounts/promo_codes.html", context)
 
 
-@login_required
 def home_authenticated(request):
-    """
-    Page d'accueil pour les utilisateurs connectés.
-    Affiche un résumé de leur progression et des actions rapides.
-    """
-    user = request.user
-    from gamification.models import XPLog
-    from skills.models import Subject, UserSkill
-    from exams.models import ExamSession
-    from recommendations.services import RecommendationService
+    # Get user's current skill levels
+    user_skills = UserSkill.objects.filter(user=request.user).select_related("skill")
 
-    # Récupérer les statistiques récentes
-    recent_xp = XPLog.objects.filter(user=user).order_by('-created_at')[:5]
-    recent_exams = ExamSession.objects.filter(user=user).order_by('-completed_at')[:5]
-    
-    # Récupérer les compétences
-    user_skills = UserSkill.objects.filter(user=user).select_related('subject')
-    
-    # Récupérer les recommandations
-    recommendation_service = RecommendationService()
-    recommendations = recommendation_service.get_active_recommendations(user)[:3]
+    # Get recommended courses
+    recommended_courses = Course.objects.filter(is_published=True).order_by(
+        "-created_at"
+    )[:3]
+
+    # Get recent discussions
+    recent_discussions = Discussion.objects.filter(is_published=True).order_by(
+        "-created_at"
+    )[:5]
 
     context = {
-        'user': user,
-        'recent_xp': recent_xp,
-        'recent_exams': recent_exams,
-        'user_skills': user_skills,
-        'recommendations': recommendations,
+        "user_skills": user_skills,
+        "recommended_courses": recommended_courses,
+        "recent_discussions": recent_discussions,
     }
 
-    return render(request, 'accounts/home_authenticated.html', context)
+    return render(request, "accounts/home_authenticated.html", context)
 
 
-@login_required
 def dashboard(request):
-    """
-    Main dashboard - Learning Cockpit.
-    Displays learning intelligence: XP, skills, recommendations, activity.
-    """
     user = request.user
-    from django.utils import timezone
-    from datetime import timedelta
-    from gamification.models import XPLog
-    from skills.models import Subject
 
-    # NEW: XP evolution over time (cumulative)
+    # Get user's current skill levels with progress
+    user_skills = UserSkill.objects.filter(user=user).select_related("skill")
+
+    # Get recent exam results with optimization
+    recent_results = UserExamResult.objects.filter(
+        user=user
+    ).select_related(
+        'exam', 'exam__subject'
+    ).order_by("-created_at")[:5]
+
+    # Get streak info
     today = timezone.now().date()
-    xp_evolution = []
-    cumulative_xp = 0
-    has_xp_evolution_data = False
-    for i in range(30):
-        date = today - timedelta(days=29-i)
-        xp_day = XPLog.objects.filter(user=user, created_at__date=date).aggregate(total=Sum('amount'))['total'] or 0
-        cumulative_xp += xp_day
-        if cumulative_xp > 0:
-            has_xp_evolution_data = True
-        xp_evolution.append({'date': date.strftime('%d/%m'), 'xp': cumulative_xp})
-    
-    # Only include xp_evolution if there's actual data
-    if not has_xp_evolution_data:
-        xp_evolution = None
+    yesterday = today - timedelta(days=1)
 
-    # NEW: Skill evolution over time (per subject) - only for subjects user has skills in
-    skill_evolution = {}
-    user_skills = UserSkill.objects.filter(user=user).select_related('subject')
-    if user_skills:
-        for user_skill in user_skills:
-            subject = user_skill.subject
-            subject_evolution = []
-            current_skill = user_skill.skill_percentage
-            for i in range(30):
-                date = today - timedelta(days=29-i)
-                # Get skill percentage at that date (simplified - would need historical tracking)
-                # For now, we'll show current skill as baseline with slight variation for visualization
-                skill_value = max(0, min(100, current_skill + (i % 5) - 2))
-                subject_evolution.append({
-                    'date': date.strftime('%d/%m'),
-                    'skill': skill_value
-                })
-            skill_evolution[subject.name] = subject_evolution
-    else:
-        # Add sample skill evolution data for visualization if no real skills
-        skill_evolution = {
-            'Mathématiques': [{'date': (today - timedelta(days=29-i)).strftime('%d/%m'), 'skill': max(0, min(100, 30 + i * 2))} for i in range(30)],
-            'Physique': [{'date': (today - timedelta(days=29-i)).strftime('%d/%m'), 'skill': max(0, min(100, 25 + i * 1.5))} for i in range(30)]
-        }
+    # Get user's current streak
+    current_streak = user.current_streak
 
-    # Get user's skills across all subjects
-    skill_service = SkillService()
-    user_skills = skill_service.get_user_skills(user)
+    # Get DC balance
+    dc_balance = user.dc_balance
 
-    # Get recent recommendations
-    recommendation_service = RecommendationService()
-    recommendations = recommendation_service.get_active_recommendations(user)
+    # Get premium status with optimization
+    is_premium = user.subscriptions.filter(status='active').select_related('plan').exists()
 
-    # Get recent activity (last 10) - optimisé
-    recent_activity = XPLog.objects.filter(user=user).select_related('user').order_by('-created_at')[:10]
+    # Get badges with optimization
+    badges = UserBadge.objects.filter(
+        user=user
+    ).select_related(
+        'badge'
+    ).prefetch_related(
+        'badge__user_badges'
+    )
 
-    # Get weak areas (skills below 50%)
-    weak_areas = [skill for skill in user_skills if skill.skill_percentage < 50]
-
-    # Calculate level progress
-    xp_service = XPService()
-    level_progress = xp_service.get_level_progress(user)
-
-    # Get exam count by subject (optimisé avec select_related)
-    exam_counts_by_subject = []
-    for subject in Subject.objects.all():
-        count = ExamSession.objects.filter(
-            user=user,
-            exam__subject=subject,
-            is_completed=True
-        ).select_related('exam', 'exam__subject').count()
-        if count > 0:
-            exam_counts_by_subject.append({
-                'subject': subject,
-                'count': count
-            })
-
-    # NEW: XP over time (last 30 days)
-    today = timezone.now().date()
-    xp_over_time = []
-    has_real_xp_data = False
-    for i in range(30):
-        date = today - timedelta(days=29-i)
-        xp_day = XPLog.objects.filter(user=user, created_at__date=date).aggregate(total=Sum('amount'))['total'] or 0
-        if xp_day > 0:
-            has_real_xp_data = True
-        xp_over_time.append({'date': date.strftime('%d/%m'), 'xp': xp_day})
-    
-    # If no real data, add sample data for visualization
-    if not has_real_xp_data:
-        for i in range(30):
-            xp_over_time[i]['xp'] = max(0, (i + 1) * 5 - (i % 3) * 3)
-
-    # NEW: Activity over time (last 30 days)
-    activity_over_time = []
-    has_real_activity_data = False
-    for i in range(30):
-        date = today - timedelta(days=29-i)
-        exams = ExamSession.objects.filter(user=user, started_at__date=date).count()
-        if exams > 0:
-            has_real_activity_data = True
-        activity_over_time.append({'date': date.strftime('%d/%m'), 'exams': exams})
-    
-    # If no real data, add sample data for visualization
-    if not has_real_activity_data:
-        for i in range(30):
-            activity_over_time[i]['exams'] = 1 if i % 2 == 0 else 0
-
-    # NEW: Weekly statistics
-    last_7_days = today - timedelta(days=7)
-    last_30_days = today - timedelta(days=30)
-    xp_7d = XPLog.objects.filter(user=user, created_at__date__gte=last_7_days).aggregate(total=Sum('amount'))['total'] or 0
-    xp_30d = XPLog.objects.filter(user=user, created_at__date__gte=last_30_days).aggregate(total=Sum('amount'))['total'] or 0
-    exams_7d = ExamSession.objects.filter(user=user, started_at__date__gte=last_7_days).count()
-    exams_30d = ExamSession.objects.filter(user=user, started_at__date__gte=last_30_days).count()
-
-    # NEW: User badges
-    user_badges = UserBadge.objects.filter(user=user).select_related('badge')
-
-    # NEW: Leaderboard position
-    leaderboard_position = LeaderboardEntry.objects.filter(
-        user=user,
-        leaderboard__leaderboard_type='global_xp'
-    ).first()
-
-    # NEW: Content purchases
-    content_purchases = ContentPurchase.objects.filter(user=user).select_related('content')[:5]
-
-    # NEW: User's community content - optimisé
-    user_content = Content.objects.filter(author=user, status='approved').select_related('author', 'subject')[:5]
-
-    # NEW: Study time this week
-    study_time_7d = user.total_study_time_minutes  # This is total, would need weekly tracking
-
-    # NEW: Streak visualization - semaine courante (lundi à dimanche)
-    streak_data = []
-    days_of_week = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-    
-    # Calculer le lundi de la semaine courante
-    monday = today - timedelta(days=today.weekday())
-    
-    for i in range(7):
-        date = monday + timedelta(days=i)
-        # Vérifier si la date est dans le futur
-        is_future = date > today
-        has_activity = XPLog.objects.filter(user=user, created_at__date=date).exists()
-        day_name = days_of_week[i]
-        streak_data.append({
-            'date': day_name, 
-            'full_date': date.strftime('%d/%m'), 
-            'active': has_activity,
-            'is_future': is_future
-        })
+    # Get achievements with optimization
+    achievements = UserAchievement.objects.filter(user=user).select_related(
+        "achievement"
+    )
 
     context = {
-        'user': user,
-        'user_skills': user_skills,
-        'recommendations': recommendations,
-        'recent_activity': recent_activity,
-        'weak_areas': weak_areas,
-        'level_progress': level_progress,
-        'exam_counts_by_subject': exam_counts_by_subject,
-        'xp_over_time': xp_over_time,
-        'activity_over_time': activity_over_time,
-        'xp_7d': xp_7d,
-        'xp_30d': xp_30d,
-        'exams_7d': exams_7d,
-        'exams_30d': exams_30d,
-        'user_badges': user_badges,
-        'leaderboard_position': leaderboard_position,
-        'content_purchases': content_purchases,
-        'user_content': user_content,
-        'study_time_7d': study_time_7d,
-        'streak_data': streak_data,
-        'xp_evolution': xp_evolution,
-        'skill_evolution': skill_evolution,
+        "user_skills": user_skills,
+        "recent_results": recent_results,
+        "current_streak": current_streak,
+        "dc_balance": dc_balance,
+        "is_premium": is_premium,
+        "badges": badges,
+        "achievements": achievements,
     }
 
-    return render(request, 'accounts/dashboard.html', context)
+    return render(request, "accounts/dashboard.html", context)
 
 
-@login_required
 def wallet(request):
-    """
-    Page portefeuille — affiche le solde DC, l'historique des transactions
-    et permet d'activer le Streak Shield.
-    """
-    from datetime import date
-    from django.db.models import Sum
-    from accounts.models import DCTransaction
-    from accounts.services import DCService
-
     user = request.user
-    transactions = DCTransaction.objects.filter(user=user).order_by('-created_at')[:50]
 
-    total_earned = DCTransaction.objects.filter(
-        user=user, amount__gt=0
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    # Get all transactions
+    transactions = DCTransaction.objects.filter(user=user).order_by("-created_at")
 
-    total_spent = abs(
-        DCTransaction.objects.filter(
-            user=user, amount__lt=0
-        ).aggregate(total=Sum('amount'))['total'] or 0
-    )
-
-    today = date.today()
-    streak_shield_active = (
-        user.streak_shield_active_until is not None
-        and user.streak_shield_active_until >= today
-    )
+    # Get DC balance
+    dc_balance = user.dc_balance
 
     context = {
-        'transactions': transactions,
-        'total_earned': total_earned,
-        'total_spent': total_spent,
-        'streak_shield_active': streak_shield_active,
+        "transactions": transactions,
+        "dc_balance": dc_balance,
     }
-    return render(request, 'accounts/wallet.html', context)
+
+    return render(request, "accounts/wallet.html", context)
 
 
-@login_required
-@require_POST
 def streak_shield(request):
-    """Active le Streak Shield pour 10 DC."""
-    from django.contrib import messages
-    from accounts.services import DCService
+    from django.conf import settings
+    
+    user = request.user
+    shield_cost = getattr(settings, 'STREAK_SHIELD_COST_DC', 100)
+    shield_duration = getattr(settings, 'STREAK_SHIELD_DURATION_DAYS', 7)
 
-    success, message = DCService.activate_streak_shield(request.user)
-    if success:
-        messages.success(request, message)
-    else:
-        messages.error(request, message)
+    # Check if user already has an active streak shield
+    active_shield = (
+        user.streak_shield_active_until
+        and user.streak_shield_active_until > timezone.now()
+    )
 
-    return redirect('wallet')
+    if request.method == "POST":
+        if not active_shield:
+            # Check if user has enough DC
+            if user.dc_balance >= shield_cost:
+                # Activate streak shield for configured days
+                user.streak_shield_active_until = timezone.now() + timedelta(days=shield_duration)
+                user.dc_balance -= shield_cost
+                user.save()
 
+                # Create transaction
+                DCTransaction.objects.create(
+                    user=user,
+                    amount=-shield_cost,
+                    transaction_type="streak_shield",
+                    balance_after=user.dc_balance,
+                    description=f"Activation du bouclier de streak ({shield_duration} jours)",
+                )
 
-@user_passes_test(lambda u: u.is_staff)
-def admin_user_detail(request, user_id):
-    """
-    Admin view to display all user data grouped together.
-    Shows exam sessions, XP logs, DC transactions, community content, etc.
-    """
-    user = get_object_or_404(User, id=user_id)
-
-    # Get exam sessions
-    from exams.models import ExamSession
-    exam_sessions = ExamSession.objects.filter(user=user).select_related('exam').order_by('-started_at')
-
-    # Get XP logs
-    from gamification.models import XPLog
-    xp_logs = XPLog.objects.filter(user=user).order_by('-created_at')[:20]
-
-    # Get DC transactions
-    from accounts.models import DCTransaction
-    dc_transactions = DCTransaction.objects.filter(user=user).order_by('-created_at')[:20]
-
-    # Get community content - optimisé
-    from community.models import Content
-    community_content = Content.objects.filter(author=user).select_related('author', 'subject').order_by('-created_at')
-
-    # Get contributor info
-    from accounts.models import Contributor
-    try:
-        contributor = Contributor.objects.get(user=user)
-    except Contributor.DoesNotExist:
-        contributor = None
+                messages.success(request, f"Bouclier de streak activé pour {shield_duration} jours!")
+                return redirect("streak_shield")
+            else:
+                messages.error(
+                    request,
+                    f"Vous n'avez pas assez de DC pour activer le bouclier de streak (coût: {shield_cost} DC).",
+                )
+                return redirect("streak_shield")
+        else:
+            messages.error(request, "Vous avez déjà un bouclier de streak actif.")
+            return redirect("streak_shield")
 
     context = {
-        'user': user,
-        'exam_sessions': exam_sessions,
-        'xp_logs': xp_logs,
-        'dc_transactions': dc_transactions,
-        'community_content': community_content,
-        'contributor': contributor,
+        "active_shield": active_shield,
+        "dc_balance": user.dc_balance,
     }
 
-    return render(request, 'accounts/admin_user_detail.html', context)
+    return render(request, "accounts/streak_shield.html", context)
 
 
-@login_required
+def admin_user_detail(request, user_id):
+    user = User.objects.get(pk=user_id)
+
+    # Get user's exam results
+    exam_results = UserExamResult.objects.filter(user=user).order_by("-created_at")
+
+    # Get user's skills
+    user_skills = UserSkill.objects.filter(user=user).select_related("skill")
+
+    # Get user's transactions
+    transactions = DCTransaction.objects.filter(user=user).order_by("-created_at")
+
+    # Get user's referrals
+    referrals = Referral.objects.filter(referrer=user)
+
+    context = {
+        "user": user,
+        "exam_results": exam_results,
+        "user_skills": user_skills,
+        "transactions": transactions,
+        "referrals": referrals,
+    }
+
+    return render(request, "accounts/admin_user_detail.html", context)
+
+
 def xp_evolution_api(request):
-    """API endpoint for XP evolution data over time."""
-    from gamification.models import XPLog
-    from django.db.models import Sum
-    
     user = request.user
-    days = int(request.GET.get('days', 30))
-    
-    today = timezone.now().date()
-    xp_data = []
-    cumulative_xp = 0
-    has_real_data = False
-    
-    for i in range(days):
-        date = today - timedelta(days=days - 1 - i)
-        xp_day = XPLog.objects.filter(
-            user=user,
-            created_at__date=date
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        if xp_day > 0:
-            has_real_data = True
-        cumulative_xp += xp_day
-        xp_data.append({
-            'date': date.strftime('%d/%m'),
-            'xp': cumulative_xp
-        })
-    
-    # If no real data, add sample data for visualization
-    if not has_real_data:
-        cumulative_xp = 0
-        for i in range(days):
-            sample_xp = max(0, (i + 1) * 10 - (i % 3) * 5)
-            cumulative_xp += sample_xp
-            xp_data[i]['xp'] = cumulative_xp
-    
-    return JsonResponse({'xp_data': xp_data})
+
+    # Get XP evolution over time
+    xp_data = (
+        UserExamResult.objects.filter(user=user)
+        .annotate(date=TruncDate("created_at"))
+        .values("date")
+        .annotate(total_xp=Sum("xp_earned"))
+        .order_by("date")
+    )
+
+    # Prepare data for chart
+    data = [
+        {"date": entry["date"].strftime("%Y-%m-%d"), "xp": entry["total_xp"]}
+        for entry in xp_data
+    ]
+
+    return JsonResponse(data, safe=False)
 
 
-@login_required
 def level_progress_api(request):
-    """API endpoint for level progress."""
     user = request.user
-    xp_service = XPService()
-    progress = xp_service.get_level_progress(user)
-    
-    return JsonResponse({
-        'current_level': user.level,
-        'current_xp': user.total_xp,
-        'xp_for_next_level': progress['xp_needed'],
-        'xp_in_current_level': progress['xp_in_current_level'],
-        'percentage': progress['percentage']
-    })
+
+    # Get level progress
+    user_skills = UserSkill.objects.filter(user=user).select_related('subject')
+
+    data = [
+        {
+            "subject": skill.subject.name,
+            "skill_percentage": skill.skill_percentage,
+            "total_exams_taken": skill.total_exams_taken,
+            "total_td_completed": skill.total_td_completed,
+            "total_courses_read": skill.total_courses_read,
+        }
+        for skill in user_skills
+    ]
+
+    return JsonResponse(data, safe=False)
 
 
-# Country and Grade Level Management for Contributors
-@login_required
 def country_create(request):
-    """Créer un nouveau pays (pour contributeurs)."""
-    if not request.user.is_contributor and not request.user.is_staff:
-        messages.error(request, "Vous devez être contributeur pour créer un pays.")
-        return redirect('home_authenticated')
-    
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CountryCreateForm(request.POST)
         if form.is_valid():
             country = form.save(commit=False)
             country.created_by = request.user
             country.save()
             messages.success(request, "Pays créé avec succès!")
-            return redirect('contributor:dashboard')
+            return redirect("country_create")
     else:
         form = CountryCreateForm()
-    
-    return render(request, 'accounts/country_form.html', {'form': form, 'title': 'Créer un pays'})
+
+    return render(request, "accounts/country_create.html", {"form": form})
 
 
-@login_required
 def grade_level_create(request):
-    """Créer un nouveau niveau scolaire (pour contributeurs)."""
-    if not request.user.is_contributor and not request.user.is_staff:
-        messages.error(request, "Vous devez être contributeur pour créer un niveau scolaire.")
-        return redirect('home_authenticated')
-    
-    if request.method == 'POST':
+    if request.method == "POST":
         form = GradeLevelCreateForm(request.POST)
         if form.is_valid():
             grade_level = form.save(commit=False)
             grade_level.created_by = request.user
             grade_level.save()
             messages.success(request, "Niveau scolaire créé avec succès!")
-            return redirect('contributor:dashboard')
+            return redirect("grade_level_create")
     else:
         form = GradeLevelCreateForm()
-    
-    return render(request, 'accounts/grade_level_form.html', {'form': form, 'title': 'Créer un niveau scolaire'})
+
+    return render(request, "accounts/grade_level_create.html", {"form": form})
 
 
-# Admin Visitor Statistics
-@login_required
-@user_passes_test(lambda u: u.is_staff)
 def visitor_statistics(request):
-    """Vue admin pour les statistiques de visiteurs avec tableau et courbe."""
-    days = int(request.GET.get('days', 30))
-    today = timezone.now().date()
-    start_date = today - timedelta(days=days)
-    
-    # Données pour le tableau (par date)
-    visitors_by_date = []
-    for i in range(days):
-        date = start_date + timedelta(days=i)
-        count = VisitorTracking.objects.filter(visit_date=date).count()
-        visitors_by_date.append({
-            'date': date.strftime('%d/%m/%Y'),
-            'count': count
-        })
-    
-    # Données pour le tableau (par heure)
-    visitors_by_hour = []
-    for hour in range(24):
-        count = VisitorTracking.objects.filter(
-            visit_date=today,
-            visit_time__hour=hour
-        ).count()
-        visitors_by_hour.append({
-            'hour': f"{hour:02d}:00",
-            'count': count
-        })
-    
-    # Statistiques globales
-    total_visitors = VisitorTracking.objects.filter(visit_date__gte=start_date).count()
-    unique_visitors = VisitorTracking.objects.filter(
-        visit_date__gte=start_date
-    ).values('ip_address').distinct().count()
-    authenticated_visitors = VisitorTracking.objects.filter(
-        visit_date__gte=start_date,
-        user__isnull=False
-    ).count()
-    
-    # Données pour la courbe (visites par jour)
-    chart_data = {
-        'labels': [item['date'] for item in visitors_by_date],
-        'data': [item['count'] for item in visitors_by_date]
-    }
-    
+    from analytics.models import VisitorTracking
+
+    # Get visitor statistics
+    visitors = VisitorTracking.objects.all()
+
+    # Get stats by country
+    country_stats = (
+        visitors.values("country__name")
+        .annotate(count=Count("id"))
+        .order_by("-count")[:10]
+    )
+
+    # Get stats by device type
+    device_stats = (
+        visitors.values("device_type").annotate(count=Count("id")).order_by("-count")
+    )
+
+    # Get stats over time
+    time_stats = (
+        visitors.annotate(date=TruncDate("created_at"))
+        .values("date")
+        .annotate(count=Count("id"))
+        .order_by("date")
+    )
+
     context = {
-        'visitors_by_date': visitors_by_date,
-        'visitors_by_hour': visitors_by_hour,
-        'total_visitors': total_visitors,
-        'unique_visitors': unique_visitors,
-        'authenticated_visitors': authenticated_visitors,
-        'chart_data': chart_data,
-        'days': days,
-        'start_date': start_date.strftime('%d/%m/%Y'),
-        'end_date': today.strftime('%d/%m/%Y')
+        "country_stats": country_stats,
+        "device_stats": device_stats,
+        "time_stats": time_stats,
     }
-    
-    return render(request, 'accounts/visitor_statistics.html', context)
+
+    return render(request, "accounts/visitor_statistics.html", context)
+
+
+def profile(request):
+    return render(request, "accounts/profile.html")

@@ -7,6 +7,25 @@ from django.utils.text import slugify
 User = get_user_model()
 
 
+class BlogCategory(models.Model):
+    """Catégories pour les articles de blog."""
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nom")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug")
+    description = models.TextField(blank=True, verbose_name="Description")
+    
+    class Meta:
+        verbose_name = "Catégorie de blog"
+        verbose_name_plural = "Catégories de blog"
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+
 class BlogPost(models.Model):
     """Modèle pour les articles de blog."""
     
@@ -19,6 +38,7 @@ class BlogPost(models.Model):
     title = models.CharField(max_length=255, verbose_name="Titre")
     slug = models.SlugField(max_length=255, unique=True, verbose_name="Slug")
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Auteur")
+    category = models.ForeignKey(BlogCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='posts', verbose_name="Catégorie")
     content = models.TextField(verbose_name="Contenu")
     excerpt = models.TextField(max_length=500, blank=True, verbose_name="Extrait")
     featured_image = models.ImageField(upload_to='blog/images/', blank=True, verbose_name="Image à la une")
@@ -53,22 +73,3 @@ class BlogPost(models.Model):
     
     def get_absolute_url(self):
         return reverse('blog:post_detail', kwargs={'slug': self.slug})
-
-
-class BlogCategory(models.Model):
-    """Catégories pour les articles de blog."""
-    name = models.CharField(max_length=100, unique=True, verbose_name="Nom")
-    slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug")
-    description = models.TextField(blank=True, verbose_name="Description")
-    
-    class Meta:
-        verbose_name = "Catégorie de blog"
-        verbose_name_plural = "Catégories de blog"
-    
-    def __str__(self):
-        return self.name
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)

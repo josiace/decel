@@ -201,34 +201,35 @@ class DCService:
         """
         return DCTransaction.objects.filter(user=user).order_by('-created_at')[:limit]
 
-    STREAK_SHIELD_COST = 10  # DC requis pour activer le Streak Shield
-
     @staticmethod
     @transaction.atomic
     def activate_streak_shield(user):
         """
-        Dépense 10 DC pour protéger le streak de l'utilisateur pour aujourd'hui.
+        Dépense DC pour protéger le streak de l'utilisateur.
 
         Returns:
             tuple: (success: bool, message: str)
         """
+        from django.conf import settings
         from datetime import date
 
+        shield_cost = getattr(settings, 'STREAK_SHIELD_COST_DC', 100)
+        shield_duration = getattr(settings, 'STREAK_SHIELD_DURATION_DAYS', 7)
         today = date.today()
 
-        # Déjà actif aujourd'hui
+        # Déjà actif
         if user.streak_shield_active_until and user.streak_shield_active_until >= today:
             return False, "Le Streak Shield est déjà actif aujourd'hui."
 
         success, message, tx = DCService.deduct_dc(
             user=user,
-            amount=DCService.STREAK_SHIELD_COST,
+            amount=shield_cost,
             transaction_type='streak_shield',
-            description="Streak Shield — protection du streak pour aujourd'hui"
+            description=f"Streak Shield — protection du streak pour {shield_duration} jours"
         )
 
         if success:
-            user.streak_shield_active_until = today
+            user.streak_shield_active_until = today + timezone.timedelta(days=shield_duration)
             user.save()
             return True, "Streak Shield activé avec succès !"
         return False, message

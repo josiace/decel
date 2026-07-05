@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue sur DECEL!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4F46E5;
+        }
+        .content {
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4F46E5;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DECEL</div>
+            <h1>Bienvenue {{ user.first_name }}!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Nous sommes ravis de vous accueillir sur DECEL, votre plateforme d'apprentissage adaptatif.</p>
+            
+            <p>Vous pouvez maintenant:</p>
+            <ul>
+                <li>Passer des examens pour tester vos connaissances</li>
+                <li>Suivre des cours interactifs</li>
+                <li>Pratiquer avec des TD corrigés</li>
+                <li>Gagner des XP et progresser dans les classements</li>
+            </ul>
+            
+            <p>Commencez votre voyage d'apprentissage dès maintenant!</p>
+            
+            <a href="http://localhost:8081/dashboard/" class="button">Accéder à mon Dashboard</a>
+        </div>
+        
+        <div class="footer">
+            <p>Ce message a été envoyé automatiquement. Ne répondez pas à cet email.</p>
+            <p>&copy; 2024 DECEL. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

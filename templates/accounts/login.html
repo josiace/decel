@@ -10,11 +10,11 @@
 {% block googlebot %}noindex, follow{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
+<div class="auth-page">
+    <div class="auth-card">
         <div class="card">
             <div class="card-header">
-                <h3 class="text-center">Connexion à DECEL</h3>
+                <h3>Connexion à DECEL</h3>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -22,41 +22,20 @@
                     <div class="mb-3">
                         <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
                         {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
+                        {% if form.username.errors %}<div class="text-danger">{{ form.username.errors }}</div>{% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.password.id_for_label }}" class="form-label">Mot de passe</label>
                         {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger">{{ form.password.errors }}</div>
-                        {% endif %}
+                        {% if form.password.errors %}<div class="text-danger">{{ form.password.errors }}</div>{% endif %}
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Se connecter</button>
                 </form>
             </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">Vous n'avez pas de compte ? <a href="{% url 'register' %}">S'inscrire</a></p>
+            <div class="card-footer">
+                <p class="mb-0">Pas encore de compte ? <a href="{% url 'register' %}">S'inscrire</a></p>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    input[type="text"], input[type="password"], input[type="email"] {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-md);
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        outline: none;
-    }
-</style>
 {% endblock %}

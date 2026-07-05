@@ -21,7 +21,10 @@ def get_country_from_ip(ip):
             timeout=2
         )
         country = r.json().get('countryCode', 'XX')
-    except Exception:
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to get country for IP {ip}: {str(e)}")
         country = 'XX'
 
     cache.set(cache_key, country, 60 * 60 * 24)

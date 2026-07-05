@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}S'abonner - {{ plan.name }} - DECEL{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">S'abonner à {{ plan.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4>{{ plan.name }}</h4>
+                        <p class="text-muted">{{ plan.get_billing_cycle_display }}</p>
+                        <h2 class="text-primary">{{ plan.dc_price }} DC</h2>
+                    </div>
+                    
+                    {% if plan.features %}
+                    <div class="mb-4">
+                        <h6>Fonctionnalités incluses:</h6>
+                        <ul class="list-unstyled">
+                            {% for feature in plan.features %}
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Votre solde DC actuel: <strong>{{ request.user.dc_balance }} DC</strong>
+                    </div>
+                    
+                    {% if request.user.dc_balance >= plan.dc_price %}
+                    <form method="post" action="{% url 'subscriptions:subscribe' plan.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-check me-2"></i>Confirmer l'abonnement
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Solde DC insuffisant. Vous avez besoin de {{ plan.dc_price }} DC mais vous n'en avez que {{ request.user.dc_balance }}.
+                    </div>
+                    <a href="{% url 'payments:packs' %}" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-coins me-2"></i>Acheter des DC
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'subscriptions:plans' %}" class="btn btn-secondary w-100 mt-3">
+                        <i class="fas fa-arrow-left me-2"></i>Retour aux plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

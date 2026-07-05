@@ -39,9 +39,11 @@ class VisitorTrackingMiddleware:
                 visit_date=visit_date,
                 visit_time=visit_time
             )
-        except Exception:
-            # Si erreur, ignorer pour ne pas bloquer la requête
-            pass
+        except Exception as e:
+            # Logger l'erreur sans bloquer la requête
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Visitor tracking failed for IP {ip_address}: {str(e)}", exc_info=True)
         
         response = self.get_response(request)
         return response

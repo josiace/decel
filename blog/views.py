@@ -1,9 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.cache import cache_page
 from .models import BlogPost, BlogCategory
 
 
-@cache_page(60 * 15)  # 15 minutes
 def blog_home(request):
     """Page d'accueil du blog avec tous les articles publiés."""
     posts = BlogPost.objects.filter(status='published').select_related('author')
@@ -35,7 +33,7 @@ def post_detail(request, slug):
 def category_posts(request, category_slug):
     """Articles filtrés par catégorie."""
     category = get_object_or_404(BlogCategory, slug=category_slug)
-    posts = BlogPost.objects.filter(status='published').select_related('author')
+    posts = BlogPost.objects.filter(status='published', category=category).select_related('author', 'category')
     
     context = {
         'category': category,

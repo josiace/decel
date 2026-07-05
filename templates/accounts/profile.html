@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil - DECEL{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="rounded-circle mb-3" width="120" height="120">
+                    {% else %}
+                    <img src="/static/images/default-avatar.png" alt="{{ user.username }}" class="rounded-circle mb-3" width="120" height="120">
+                    {% endif %}
+                    <h4 class="card-title">{{ user.first_name|default:user.username }} {{ user.last_name }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <div class="mt-3">
+                        <span class="badge bg-primary">Niveau {{ user.level }}</span>
+                        <span class="badge bg-success">{{ user.total_xp }} XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations Personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Prénom</label>
+                            <p class="form-control-plaintext">{{ user.first_name|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Nom</label>
+                            <p class="form-control-plaintext">{{ user.last_name|default:"Non renseigné" }}</p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Email</label>
+                        <p class="form-control-plaintext">{{ user.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Numéro de téléphone</label>
+                        <p class="form-control-plaintext">{{ user.phone_number|default:"Non renseigné" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Pays</label>
+                        <p class="form-control-plaintext">{{ user.country.name|default:"Non renseigné" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Biographie</label>
+                        <p class="form-control-plaintext">{{ user.bio|default:"Non renseigné" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-primary">{{ user.total_xp }}</h3>
+                            <p class="text-muted mb-0">XP Total</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-success">{{ user.level }}</h3>
+                            <p class="text-muted mb-0">Niveau</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-warning">{{ user.dc_balance }}</h3>
+                            <p class="text-muted mb-0">Solde DC</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-info">{{ user.streak_days }}</h3>
+                            <p class="text-muted mb-0">Jours de Suite</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-secondary">{{ user.badges.count }}</h3>
+                            <p class="text-muted mb-0">Badges</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <h3 class="text-dark">{{ user.exam_sessions.count }}</h3>
+                            <p class="text-muted mb-0">Examens Passés</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

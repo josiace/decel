@@ -17,6 +17,11 @@ from .serializers import (
     CourseSerializer, TDSerializer, ExamSerializer, ExamSessionSerializer,
     PromoCodeSerializer, ReferralSerializer
 )
+from .validators import (
+    validate_recharge_code, validate_promo_code, 
+    validate_payment_method, validate_transaction_reference
+)
+import rest_framework.throttling
 
 User = get_user_model()
 
@@ -24,8 +29,10 @@ User = get_user_model()
 class AuthViewSet(viewsets.ViewSet):
     """ViewSet pour l'authentification."""
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [rest_framework.throttling.AnonRateThrottle]
+    throttle_scope = 'register'
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_scope='register')
     def register(self, request):
         """Inscription d'un nouvel utilisateur."""
         serializer = UserRegisterSerializer(data=request.data)
@@ -38,7 +45,7 @@ class AuthViewSet(viewsets.ViewSet):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_scope='login')
     def login(self, request):
         """Connexion d'un utilisateur."""
         serializer = UserLoginSerializer(data=request.data)
@@ -96,8 +103,10 @@ class WalletViewSet(viewsets.ViewSet):
     def apply_code(self, request):
         """Appliquer un code de recharge."""
         code = request.data.get('code')
-        if not code:
-            return Response({'error': 'Code requis'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            validate_recharge_code(code)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         success, message, dc_amount = RechargeCodeService.redeem_code(request.user, code)
         if success:
@@ -135,6 +144,17 @@ class DCPackOrderViewSet(viewsets.ModelViewSet):
                 {'error': 'pack_id et payment_method requis'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        try:
+            validate_payment_method(payment_method)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if payment_method in ['orange_money', 'wave', 'bank_transfer', 'cash']:
+            try:
+                validate_transaction_reference(transaction_reference)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             pack = DCPack.objects.get(id=pack_id, is_active=True)

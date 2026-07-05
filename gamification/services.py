@@ -11,11 +11,12 @@ class XPService:
     XP is NOT a currency - it cannot be spent.
     """
     
-    # XP amounts for different actions
-    XP_EXAM_PASSED = 100
-    XP_EXAM_FAILED = 50
-    XP_TD_COMPLETED = 40
-    XP_COURSE_READ = 20
+    # XP amounts for different actions - now from settings
+    from django.conf import settings
+    XP_EXAM_PASSED = getattr(settings, 'XP_EXAM_PASSED', 100)
+    XP_EXAM_FAILED = getattr(settings, 'XP_EXAM_FAILED', 50)
+    XP_TD_COMPLETED = getattr(settings, 'XP_TD_COMPLETED', 40)
+    XP_COURSE_READ = getattr(settings, 'XP_COURSE_READ', 20)
     
     # Level calculation: level = sqrt(total_xp / 100)
     # Level 1: 0-99 XP

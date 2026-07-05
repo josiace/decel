@@ -70,6 +70,8 @@ def course_detail(request, course_id):
     progress = None
     can_access = False
     is_completed = False
+    has_purchased = False
+    user_review = None
 
     if request.user.is_authenticated:
         progress, created = CourseProgress.objects.get_or_create(
@@ -81,33 +83,33 @@ def course_detail(request, course_id):
 
         # Check if user can access the content
         can_access = ContentPurchaseService.can_access(
-        request.user,
-        'course',
-        course.id,
-        course.dc_price
-    )
-    has_purchased = ContentPurchaseService.has_purchased(
-        request.user,
-        'course',
-        course.id
-    )
+            request.user,
+            'course',
+            course.id,
+            course.dc_price
+        )
+        has_purchased = ContentPurchaseService.has_purchased(
+            request.user,
+            'course',
+            course.id
+        )
+        
+        # Check if user has already reviewed
+        user_review = Review.objects.filter(
+            content_type='course',
+            course=course,
+            user=request.user
+        ).first()
     
-    # Get reviews for this course
+    # Get reviews for this course - always public
     reviews = Review.objects.filter(
         content_type='course',
         course=course,
         is_approved=True
     ).select_related('user').order_by('-created_at')
     
-    # Calculate average rating
+    # Calculate average rating - always public
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-    
-    # Check if user has already reviewed
-    user_review = Review.objects.filter(
-        content_type='course',
-        course=course,
-        user=request.user
-    ).first()
     
     context = {
         'course': course,
@@ -230,6 +232,12 @@ def td_detail(request, td_id):
     has_purchased_td = False
     has_purchased_correction = False
 
+    # Get correction if available (always check)
+    try:
+        correction = CorrectedTD.objects.get(td=td)
+    except CorrectedTD.DoesNotExist:
+        correction = None
+
     if request.user.is_authenticated:
         progress, created = TDProgress.objects.get_or_create(
             user=request.user,
@@ -237,12 +245,6 @@ def td_detail(request, td_id):
             defaults={'is_completed': False}
         )
         is_completed = progress.is_completed
-
-        # Get correction if available
-        try:
-            correction = CorrectedTD.objects.get(td=td)
-        except CorrectedTD.DoesNotExist:
-            correction = None
 
         # Check if user can access the TD content
         can_access_td = ContentPurchaseService.can_access(
@@ -253,14 +255,13 @@ def td_detail(request, td_id):
         )
 
         # Check if user can access the correction
-        can_access_correction = False
-    if correction:
-        can_access_correction = ContentPurchaseService.can_access(
-            request.user,
-            'corrected_td',
-            correction.id,
-            correction.dc_price
-        )
+        if correction:
+            can_access_correction = ContentPurchaseService.can_access(
+                request.user,
+                'corrected_td',
+                correction.id,
+                correction.dc_price
+            )
     
     context = {
         'td': td,

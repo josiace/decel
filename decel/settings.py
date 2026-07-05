@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import sqlite3
 import dj_database_url
 from decouple import config
 
@@ -66,9 +65,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -116,19 +113,36 @@ WSGI_APPLICATION = 'decel.wsgi.application'
 # =========================
 # DATABASE (Render safe)
 # =========================
-DATABASE_URL = config('DATABASE_URL', default='sqlite:///db.sqlite3')
+USE_REMOTE_DB_IN_DEBUG = config('USE_REMOTE_DB_IN_DEBUG', default=False, cast=bool)
+LOCAL_DATABASE_NAME = config('LOCAL_DATABASE_NAME', default='db.sqlite3')
+LOCAL_DATABASE_PATH = BASE_DIR / LOCAL_DATABASE_NAME
+DEFAULT_DATABASE_URL = f"sqlite:///{LOCAL_DATABASE_PATH.as_posix()}"
 
-if DATABASE_URL.startswith('sqlite'):
+if DEBUG and not USE_REMOTE_DB_IN_DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': DATABASE_URL.replace('sqlite:///', ''),
+            'NAME': str(LOCAL_DATABASE_PATH),
         }
     }
 else:
-    DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL)
-    }
+    DATABASE_URL = config('DATABASE_URL', default=DEFAULT_DATABASE_URL)
+
+    if DATABASE_URL.startswith('sqlite'):
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': DATABASE_URL.replace('sqlite:///', ''),
+            }
+        }
+    else:
+        DATABASES = {
+            'default': dj_database_url.config(default=DATABASE_URL)
+        }
+        if 'postgres' in DATABASES['default']['ENGINE']:
+            DATABASES['default']['OPTIONS'] = {
+                'client_encoding': 'UTF8',
+            }
 
 # =========================
 # PASSWORD VALIDATION
@@ -224,6 +238,17 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '20/hour',
+        'user': '100/hour',
+        'register': '5/hour',
+        'login': '10/hour',
+        'payment': '10/hour',
+    }
 }
 
 # =========================
@@ -343,3 +368,23 @@ JAZZMIN_SETTINGS = {
         'navigation_expander': True,
     },
 }
+
+# =========================
+# GAMIFICATION SETTINGS
+# =========================
+XP_EXAM_PASSED = config('XP_EXAM_PASSED', default=100, cast=int)
+XP_EXAM_FAILED = config('XP_EXAM_FAILED', default=50, cast=int)
+XP_TD_COMPLETED = config('XP_TD_COMPLETED', default=40, cast=int)
+XP_COURSE_READ = config('XP_COURSE_READ', default=20, cast=int)
+
+STREAK_SHIELD_COST_DC = config('STREAK_SHIELD_COST_DC', default=100, cast=int)
+STREAK_SHIELD_DURATION_DAYS = config('STREAK_SHIELD_DURATION_DAYS', default=7, cast=int)
+
+REFERRAL_REWARD_DC = config('REFERRAL_REWARD_DC', default=50, cast=int)
+REFERRAL_REFERRED_REWARD_DC = config('REFERRAL_REFERRED_REWARD_DC', default=25, cast=int)
+
+# =========================
+# PAYMENT SETTINGS
+# =========================
+DC_EXAM_REWARD_PERCENTAGE = config('DC_EXAM_REWARD_PERCENTAGE', default=5, cast=int)
+DC_EXAM_PASS_THRESHOLD = config('DC_EXAM_PASS_THRESHOLD', default=50, cast=int)

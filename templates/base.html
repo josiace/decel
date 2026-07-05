@@ -1,554 +1,167 @@
 <!doctype html>
 <html lang="fr">
-    <head>
-        {% load static %}
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{% block title %}{{ SITE_NAME }} — {{ SITE_TAGLINE }}{% endblock %}</title>
-        {% include 'includes/seo_head.html' %}
-        {% load compress %}
-        {% compress css %}
-        <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-        {% endcompress %}
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        />
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
-        {% block extrahead %}
-{% endblock %}
-    </head>
-    <body itemscope itemtype="https://schema.org/WebPage">
-        <nav class="navbar">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'home' %}">
-                    <img
-                        src="{% static 'images/logodecel.png' %}"
-                        alt="DECEL Logo"
-                        class="navbar-logo"
-                    />
-                </a>
-                <button
-                    class="navbar-toggler"
-                    type="button"
-                    onclick="toggleNavbar()"
-                >
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'home' %}">
-                                <i class="fas fa-home me-1"></i>Accueil
-                            </a>
-                        </li>
-                        {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Tableau de Bord
-                            </a>
-                        </li>
-                        {% if user.is_contributor %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'contributor:dashboard' %}">
-                                <i class="fas fa-user-edit me-1"></i>Contributeur
-                            </a>
-                        </li>
-                        {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'exam_list' %}">
-                                <i class="fas fa-clipboard-list me-1"></i>Examens
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'course_list' %}">
-                                <i class="fas fa-book me-1"></i>Cours
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'td_list' %}">
-                                <i class="fas fa-tasks me-1"></i>TDs
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'content_list' %}">
-                                <i class="fas fa-users me-1"></i>Communauté
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'payments:packs' %}">
-                                <i class="fas fa-coins me-1"></i>Acheter des DC
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'referral' %}">
-                                <i class="fas fa-gift me-1"></i>Parrainage
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'promo_codes' %}">
-                                <i class="fas fa-ticket-alt me-1"></i>Codes Promo
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link btn btn-link" onclick="toggleTheme()" title="Changer le thème">
-                                <i class="fas fa-moon me-1" id="theme-icon"></i>
-                            </button>
-                        </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav">
-                        {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                onclick="toggleDropdown(event)"
-                            >
-                                <i class="fas fa-user-circle me-1"></i>
-                                <span id="username-display">Chargement...</span>
-                                <span class="user-meta-badges">
-                                    <span class="level-badge ms-2">Niveau <span id="level-display">1</span></span>
-                                    <span class="xp-badge ms-2"><span id="xp-display">0</span> XP</span>
-                                    <span class="dc-badge ms-2"><i class="fas fa-coins me-1"></i><span id="dc-display">0</span> DC</span>
-                                </span>
-                            </a>
-                            <ul class="dropdown-menu" id="userDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'wallet' %}">
-                                        <i class="fas fa-wallet me-2"></i>Mon Portefeuille
-                                        <span style="float:right;color:var(--accent-color);font-weight:600;">{{ user.dc_balance }} DC</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'payments:packs' %}">
-                                        <i class="fas fa-plus-circle me-2"></i>Acheter des DC
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'referral' %}">
-                                        <i class="fas fa-gift me-2"></i>Parrainage
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'promo_codes' %}">
-                                        <i class="fas fa-ticket-alt me-2"></i>Codes Promo
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'exam_list' %}">
-                                <i class="fas fa-clipboard-list me-1"></i>Examens
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'course_list' %}">
-                                <i class="fas fa-book me-1"></i>Cours
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'td_list' %}">
-                                <i class="fas fa-tasks me-1"></i>TDs
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'content_list' %}">
-                                <i class="fas fa-users me-1"></i>Communauté
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'gamification:global_leaderboard' %}">
-                                <i class="fas fa-trophy me-1"></i>Classements
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog:blog_home' %}">
-                                <i class="fas fa-newspaper me-1"></i>Blog
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link btn btn-link" onclick="toggleTheme()" title="Changer le thème">
-                                <i class="fas fa-moon me-1" id="theme-icon"></i>
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Connexion
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary text-white ms-2" href="{% url 'register' %}">
-                                <i class="fas fa-user-plus me-1"></i>Inscription
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </nav>
+<head>
+    {% load static compress %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ SITE_NAME }} — {{ SITE_TAGLINE }}{% endblock %}</title>
+    {% include 'includes/seo_head.html' %}
+    <link rel="stylesheet" href="{% static 'css/decel.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    {% block extrahead %}{% endblock %}
+</head>
+<body
+    itemscope
+    itemtype="https://schema.org/WebPage"
+    data-track-click="{% url 'analytics:track_click' %}"
+    data-track-session-end="{% url 'analytics:track_session_end' %}"
+    {% if user.is_authenticated %}class="has-bottom-nav"{% endif %}
+>
+    <nav class="navbar" aria-label="Navigation principale">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'images/logodecel.png' %}" alt="DECEL" class="navbar-logo" width="36" height="36" />
+                <span class="navbar-brand-text">DECEL</span>
+            </a>
 
-        <main class="container">
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
-                <span>
-                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-                    {{ message }}
-                </span>
-                <button type="button" class="btn-close" onclick="this.parentElement.remove()">&times;</button>
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% block content %}{% endblock %}
-        </main>
-
-        <footer role="contentinfo">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12 col-md-4 text-center text-md-start mb-3 mb-md-0">
-                        <img src="{% static 'images/logodecel.png' %}" alt="{{ SITE_NAME }} — {{ SITE_TAGLINE }}" class="footer-logo" width="120" height="40" loading="lazy" />
-                        <p class="text-muted">{{ SITE_TAGLINE }}</p>
-                    </div>
-                    <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
-                        <h4 class="h6 text-white mb-2">Navigation</h4>
-                        <nav aria-label="Liens pied de page">
-                            <ul class="list-unstyled mb-0">
-                                <li><a href="{% url 'home' %}">Accueil</a></li>
-                                <li><a href="{% url 'register' %}">Inscription</a></li>
-                                <li><a href="{% url 'login' %}">Connexion</a></li>
-                            </ul>
-                        </nav>
-                    </div>
-                    <div class="col-12 col-md-4 text-center text-md-end mb-3 mb-md-0">
-                        <h4 class="h6 text-white mb-2">Contact</h4>
-                        <p class="text-muted mb-1">
-                            <i class="fas fa-envelope me-2"></i>
-                            <a href="mailto:afletounoudouprince5@gmail.com" class="text-muted text-decoration-none">afletounoudouprince5@gmail.com</a>
-                        </p>
-                        <p class="text-muted mb-2">
-                            <i class="fab fa-whatsapp me-2"></i>
-                            <a href="https://wa.me/22369549391" target="_blank" rel="noopener noreferrer" class="text-muted text-decoration-none">+223 69 54 93 91</a>
-                        </p>
-                        <p class="text-muted mb-0 small">&copy; {% now "Y" %} {{ SITE_NAME }}. Tous droits réservés.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-        <script>
-            function toggleNavbar() {
-                const navbarCollapse = document.getElementById("navbarNav");
-                const navbarNav = navbarCollapse.querySelector('.navbar-nav');
-                const navbarToggler = document.querySelector('.navbar-toggler');
-                navbarCollapse.classList.toggle("show");
-                navbarNav.classList.toggle("show");
-                navbarToggler.classList.toggle("active");
-            }
-
-            function toggleDropdown(event) {
-                event.preventDefault();
-                const dropdown = event.target.closest('.dropdown').querySelector('.dropdown-menu');
-                dropdown.classList.toggle("show");
-            }
-
-            document.addEventListener("click", function (event) {
-                const dropdowns = document.querySelectorAll('.dropdown-menu');
-                dropdowns.forEach(dropdown => {
-                    const toggle = event.target.closest(".dropdown-toggle");
-                    if (!toggle && !event.target.closest(".dropdown-menu")) {
-                        dropdown.classList.remove("show");
-                    }
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function() {
-                // Fermer la navbar mobile lors du clic sur un lien
-                const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        const navbarCollapse = document.getElementById("navbarNav");
-                        const navbarNav = navbarCollapse.querySelector('.navbar-nav');
-                        if (window.innerWidth < 768) {
-                            navbarCollapse.classList.remove("show");
-                            navbarNav.classList.remove("show");
-                        }
-                    });
-                });
-
+            <div class="desktop-nav">
+                <a href="{% url 'home' %}" class="desktop-nav-item"><i class="fas fa-home"></i> Accueil</a>
                 {% if user.is_authenticated %}
-                const usernameDisplay = document.getElementById('username-display');
-                const levelDisplay = document.getElementById('level-display');
-                const xpDisplay = document.getElementById('xp-display');
-                const dcDisplay = document.getElementById('dc-display');
-                if (usernameDisplay) usernameDisplay.textContent = '{{ user.first_name|default:user.username|escapejs }}';
-                if (levelDisplay) levelDisplay.textContent = '{{ user.level|escapejs }}';
-                if (xpDisplay) xpDisplay.textContent = '{{ user.total_xp|escapejs }}';
-                if (dcDisplay) dcDisplay.textContent = '{{ user.dc_balance|escapejs }}';
+                <a href="{% url 'dashboard' %}" class="desktop-nav-item"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 {% endif %}
+                <a href="{% url 'exam_list' %}" class="desktop-nav-item"><i class="fas fa-clipboard-list"></i> Examens</a>
+                <a href="{% url 'course_list' %}" class="desktop-nav-item"><i class="fas fa-book"></i> Cours</a>
+                <a href="{% url 'td_list' %}" class="desktop-nav-item"><i class="fas fa-tasks"></i> TDs</a>
+                <a href="{% url 'gamification:global_leaderboard' %}" class="desktop-nav-item"><i class="fas fa-trophy"></i> Classement</a>
+                <a href="{% url 'blog:blog_home' %}" class="desktop-nav-item"><i class="fas fa-newspaper"></i> Blog</a>
+            </div>
 
-                // Theme toggle functionality
-                function toggleTheme() {
-                    const body = document.body;
-                    const themeIcon = document.getElementById('theme-icon');
-                    
-                    if (body.classList.contains('dark-mode')) {
-                        body.classList.remove('dark-mode');
-                        themeIcon.classList.remove('fa-sun');
-                        themeIcon.classList.add('fa-moon');
-                        localStorage.setItem('theme', 'light');
-                    } else {
-                        body.classList.add('dark-mode');
-                        themeIcon.classList.remove('fa-moon');
-                        themeIcon.classList.add('fa-sun');
-                        localStorage.setItem('theme', 'dark');
-                    }
-                }
+            <div class="navbar-actions">
+            <button type="button" class="navbar-action" onclick="toggleTheme()" title="Changer le thème" aria-label="Changer le thème">
+                <i class="fas fa-moon navbar-action-icon" id="theme-icon"></i>
+            </button>
+            {% if user.is_authenticated %}
+            <button type="button" class="navbar-user" onclick="window.location.href='{% url 'profile' %}'">
+                {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="" class="navbar-user-avatar" width="32" height="32" />
+                {% else %}
+                <img src="{% static 'images/icone.PNG' %}" alt="" class="navbar-user-avatar" width="32" height="32" />
+                {% endif %}
+                <div class="navbar-user-info">
+                    <span class="navbar-user-name">{{ user.first_name|default:user.username }}</span>
+                    <span class="navbar-user-level">Niveau {{ user.level }}</span>
+                </div>
+            </button>
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm ms-2">
+                <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">Connexion</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm d-none d-md-inline-flex">Inscription</a>
+            {% endif %}
+            <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu">
+                <div class="mobile-menu-icon"><span></span><span></span><span></span></div>
+            </button>
+        </div>
+        </div>
+    </nav>
 
-                // Load saved theme preference
-                function loadTheme() {
-                    const savedTheme = localStorage.getItem('theme');
-                    const themeIcon = document.getElementById('theme-icon');
-                    
-                    if (savedTheme === 'dark') {
-                        document.body.classList.add('dark-mode');
-                        if (themeIcon) {
-                            themeIcon.classList.remove('fa-moon');
-                            themeIcon.classList.add('fa-sun');
-                        }
-                    }
-                }
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+    <aside class="mobile-menu" id="mobile-menu" aria-label="Menu mobile">
+        <div class="mobile-menu-header">
+            <span class="mobile-menu-title">Menu</span>
+            <button type="button" class="mobile-menu-close" onclick="toggleMobileMenu()" aria-label="Fermer"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="mobile-menu-nav">
+            <a href="{% url 'home' %}" class="mobile-menu-item"><i class="fas fa-home mobile-menu-item-icon"></i> Accueil</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="mobile-menu-item"><i class="fas fa-chart-pie mobile-menu-item-icon"></i> Dashboard</a>
+            {% if user.is_contributor %}
+            <a href="{% url 'contributor:dashboard' %}" class="mobile-menu-item"><i class="fas fa-pen mobile-menu-item-icon"></i> Contributeur</a>
+            {% endif %}
+            <hr class="mobile-menu-divider" />
+            {% endif %}
+            <a href="{% url 'exam_list' %}" class="mobile-menu-item"><i class="fas fa-clipboard-list mobile-menu-item-icon"></i> Examens</a>
+            <a href="{% url 'course_list' %}" class="mobile-menu-item"><i class="fas fa-book mobile-menu-item-icon"></i> Cours</a>
+            <a href="{% url 'td_list' %}" class="mobile-menu-item"><i class="fas fa-tasks mobile-menu-item-icon"></i> TDs</a>
+            <a href="{% url 'content_list' %}" class="mobile-menu-item"><i class="fas fa-users mobile-menu-item-icon"></i> Communauté</a>
+            <a href="{% url 'gamification:global_leaderboard' %}" class="mobile-menu-item"><i class="fas fa-trophy mobile-menu-item-icon"></i> Classement</a>
+            <a href="{% url 'blog:blog_home' %}" class="mobile-menu-item"><i class="fas fa-newspaper mobile-menu-item-icon"></i> Blog</a>
+            <hr class="mobile-menu-divider" />
+            {% if user.is_authenticated %}
+            <a href="{% url 'payments:packs' %}" class="mobile-menu-item"><i class="fas fa-coins mobile-menu-item-icon"></i> Acheter des DC</a>
+            <a href="{% url 'referral' %}" class="mobile-menu-item"><i class="fas fa-gift mobile-menu-item-icon"></i> Parrainage</a>
+            <a href="{% url 'wallet' %}" class="mobile-menu-item"><i class="fas fa-wallet mobile-menu-item-icon"></i> Portefeuille</a>
+            <a href="{% url 'profile' %}" class="mobile-menu-item"><i class="fas fa-user mobile-menu-item-icon"></i> Profil</a>
+            <a href="{% url 'logout' %}" class="mobile-menu-item"><i class="fas fa-sign-out-alt mobile-menu-item-icon"></i> Déconnexion</a>
+            {% else %}
+            <a href="{% url 'login' %}" class="mobile-menu-item"><i class="fas fa-sign-in-alt mobile-menu-item-icon"></i> Connexion</a>
+            <a href="{% url 'register' %}" class="mobile-menu-item"><i class="fas fa-user-plus mobile-menu-item-icon"></i> Inscription</a>
+            {% endif %}
+        </nav>
+    </aside>
 
-                // Load theme on page load
-                loadTheme();
-            });
-        </script>
+    <main class="container{% block main_class %}{% endblock %}">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            <span>
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+            </span>
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Fermer">&times;</button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
 
-        <style>
-            /* Dark mode styles */
-            body.dark-mode {
-                --bg-primary: #1a1a2e !important;
-                --bg-secondary: #16213e !important;
-                --text-primary: #eaeaea !important;
-                --text-secondary: #b8b8b8 !important;
-                --border-color: #2a2a4a !important;
-                --card-bg: #1f1f3a !important;
-                background-color: var(--bg-primary) !important;
-                color: var(--text-primary) !important;
-            }
+    <footer role="contentinfo">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-md-4 text-center text-md-start mb-4 mb-md-0">
+                    <img src="{% static 'images/logodecel.png' %}" alt="{{ SITE_NAME }}" class="footer-logo" width="120" height="40" loading="lazy" />
+                    <p class="text-muted">{{ SITE_TAGLINE }}</p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm mt-2">
+                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-4 text-center mb-4 mb-md-0">
+                    <h4 class="h6 text-white mb-2">Navigation</h4>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}">Accueil</a></li>
+                        <li><a href="{% url 'exam_list' %}">Examens</a></li>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'logout' %}">Déconnexion</a></li>
+                        {% else %}
+                        <li><a href="{% url 'register' %}">Inscription</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-12 col-md-4 text-center text-md-end">
+                    <h4 class="h6 text-white mb-2">Contact</h4>
+                    <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i><a href="mailto:afletounoudouprince5@gmail.com">afletounoudouprince5@gmail.com</a></p>
+                    <p class="text-muted mb-2"><i class="fab fa-whatsapp me-2"></i><a href="https://wa.me/22369549391" target="_blank" rel="noopener">+223 69 54 93 91</a></p>
+                    <p class="text-muted small mb-0">&copy; {% now "Y" %} {{ SITE_NAME }}. Tous droits réservés.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-            body.dark-mode .navbar {
-                background-color: var(--bg-secondary) !important;
-                border-color: var(--border-color) !important;
-            }
+    {% if user.is_authenticated %}
+    <nav class="bottom-nav" aria-label="Navigation mobile">
+        <button type="button" class="bottom-nav-item" onclick="window.location.href='{% url 'dashboard' %}'"><i class="fas fa-home bottom-nav-item-icon"></i><span class="bottom-nav-item-label">Accueil</span></button>
+        <button type="button" class="bottom-nav-item" onclick="window.location.href='{% url 'exam_list' %}'"><i class="fas fa-clipboard-list bottom-nav-item-icon"></i><span class="bottom-nav-item-label">Examens</span></button>
+        <button type="button" class="bottom-nav-item" onclick="window.location.href='{% url 'course_list' %}'"><i class="fas fa-book bottom-nav-item-icon"></i><span class="bottom-nav-item-label">Cours</span></button>
+        <button type="button" class="bottom-nav-item" onclick="window.location.href='{% url 'gamification:global_leaderboard' %}'"><i class="fas fa-trophy bottom-nav-item-icon"></i><span class="bottom-nav-item-label">Classement</span></button>
+        <button type="button" class="bottom-nav-item" onclick="window.location.href='{% url 'profile' %}'"><i class="fas fa-user bottom-nav-item-icon"></i><span class="bottom-nav-item-label">Profil</span></button>
+    </nav>
+    {% endif %}
 
-            body.dark-mode .card {
-                background-color: var(--card-bg) !important;
-                border-color: var(--border-color) !important;
-                color: var(--text-primary) !important;
-            }
-
-            body.dark-mode .card-header {
-                background-color: var(--bg-secondary) !important;
-                border-color: var(--border-color) !important;
-                color: var(--text-primary) !important;
-            }
-
-            body.dark-mode .btn-primary {
-                background-color: #4a90e2 !important;
-                border-color: #4a90e2 !important;
-            }
-
-            body.dark-mode .btn-secondary {
-                background-color: #6c757d !important;
-                border-color: #6c757d !important;
-            }
-
-            body.dark-mode .form-control {
-                background-color: var(--bg-secondary) !important;
-                border-color: var(--border-color) !important;
-                color: var(--text-primary) !important;
-            }
-
-            body.dark-mode .table {
-                color: var(--text-primary) !important;
-            }
-
-            body.dark-mode .table th {
-                background-color: var(--bg-secondary) !important;
-                border-color: var(--border-color) !important;
-            }
-
-            body.dark-mode .table td {
-                border-color: var(--border-color) !important;
-            }
-
-            body.dark-mode a {
-                color: #4a90e2 !important;
-            }
-
-            body.dark-mode .breadcrumb-item a {
-                color: #4a90e2 !important;
-            }
-
-            .dark-mode .card-body {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode .nav-link {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode .table {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode .form-control {
-                background-color: var(--bg-secondary) !important;
-                border-color: var(--border-color) !important;
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode .btn {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode p, .dark-mode span, .dark-mode div {
-                color: var(--text-primary) !important;
-            }
-
-            .dark-mode .text-muted {
-                color: var(--text-secondary) !important;
-            }
-
-            .dark-mode .card-body {
-                color: var(--text-primary);
-            }
-
-            .dark-mode .card-footer {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
-            }
-
-            .dark-mode .nav-link {
-                color: var(--text-primary);
-            }
-
-            .dark-mode .nav-link:hover {
-                color: var(--accent-color);
-            }
-
-            .dark-mode .dropdown-menu {
-                background-color: var(--card-bg);
-                border-color: var(--border-color);
-            }
-
-            .dark-mode .dropdown-item {
-                color: var(--text-primary);
-            }
-
-            .dark-mode .dropdown-item:hover {
-                background-color: var(--bg-secondary);
-            }
-
-            .dark-mode footer {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
-            }
-
-            .dark-mode .alert {
-                background-color: var(--card-bg);
-                border-color: var(--border-color);
-                color: var(--text-primary);
-            }
-
-            .dark-mode .form-control {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
-                color: var(--text-primary);
-            }
-
-            .dark-mode .form-select {
-                background-color: var(--bg-secondary);
-                border-color: var(--border-color);
-                color: var(--text-primary);
-            }
-        </style>
-
-        {% block scripts %}{% endblock %}
-
-        <!-- Analytics Tracking Script -->
-        <script>
-        (function() {
-            // Track click events
-            document.addEventListener('click', function(event) {
-                const target = event.target;
-                const element = target.closest('a, button, input[type="submit"], input[type="button"], [onclick]');
-
-                if (element) {
-                    const clickData = {
-                        page_url: window.location.pathname,
-                        element_id: element.id || '',
-                        element_class: element.className || '',
-                        element_tag: element.tagName.toLowerCase(),
-                        element_text: element.textContent.trim().substring(0, 255) || '',
-                        href: element.href || '',
-                        x: event.clientX,
-                        y: event.clientY
-                    };
-
-                    // Send click data to server
-                    fetch('{% url "analytics:track_click" %}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify(clickData)
-                    }).catch(function(error) {
-                        // Silently fail to not disrupt user experience
-                        console.log('Analytics click tracking failed:', error);
-                    });
-                }
-            });
-
-            // Track session end when user leaves
-            window.addEventListener('beforeunload', function() {
-                navigator.sendBeacon('{% url "analytics:track_session_end" %}', JSON.stringify({}));
-            });
-
-            // Helper function to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
-        })();
-        </script>
-    </body>
+    <script src="{% static 'js/decel.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
 </html>
