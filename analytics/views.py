@@ -83,8 +83,7 @@ def user_analytics(request):
     analytics.courses_completed = courses_completed
     analytics.tds_completed = tds_completed
     analytics.total_time_spent_minutes = total_study_minutes
-    analytics.save()
-    
+    # Note : les agrégats sont calculés à la volée, plus d'écriture en base à chaque affichage
     return render(request, 'analytics/user_analytics.html', {
         'analytics': analytics,
         'recent_activities': recent_activities,

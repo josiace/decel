@@ -53,9 +53,12 @@
                     <span class="navbar-user-level">Niveau {{ user.level }}</span>
                 </div>
             </button>
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm ms-2">
-                <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
-            </a>
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm ms-2">
+                    <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                </button>
+            </form>
             {% else %}
             <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">Connexion</a>
             <a href="{% url 'register' %}" class="btn btn-primary btn-sm d-none d-md-inline-flex">Inscription</a>
@@ -94,7 +97,12 @@
             <a href="{% url 'referral' %}" class="mobile-menu-item"><i class="fas fa-gift mobile-menu-item-icon"></i> Parrainage</a>
             <a href="{% url 'wallet' %}" class="mobile-menu-item"><i class="fas fa-wallet mobile-menu-item-icon"></i> Portefeuille</a>
             <a href="{% url 'profile' %}" class="mobile-menu-item"><i class="fas fa-user mobile-menu-item-icon"></i> Profil</a>
-            <a href="{% url 'logout' %}" class="mobile-menu-item"><i class="fas fa-sign-out-alt mobile-menu-item-icon"></i> Déconnexion</a>
+            <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="mobile-menu-item" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
+                        <i class="fas fa-sign-out-alt mobile-menu-item-icon"></i> Déconnexion
+                    </button>
+                </form>
             {% else %}
             <a href="{% url 'login' %}" class="mobile-menu-item"><i class="fas fa-sign-in-alt mobile-menu-item-icon"></i> Connexion</a>
             <a href="{% url 'register' %}" class="mobile-menu-item"><i class="fas fa-user-plus mobile-menu-item-icon"></i> Inscription</a>
@@ -124,9 +132,12 @@
                     <img src="{% static 'images/logodecel.png' %}" alt="{{ SITE_NAME }}" class="footer-logo" width="120" height="40" loading="lazy" />
                     <p class="text-muted">{{ SITE_TAGLINE }}</p>
                     {% if user.is_authenticated %}
-                    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm mt-2">
-                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
-                    </a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">
+                            <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
                 <div class="col-12 col-md-4 text-center mb-4 mb-md-0">
@@ -135,7 +146,12 @@
                         <li><a href="{% url 'home' %}">Accueil</a></li>
                         <li><a href="{% url 'exam_list' %}">Examens</a></li>
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'logout' %}">Déconnexion</a></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer;">Déconnexion</button>
+                            </form>
+                        </li>
                         {% else %}
                         <li><a href="{% url 'register' %}">Inscription</a></li>
                         {% endif %}

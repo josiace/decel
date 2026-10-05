@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from .models import User, DCTransaction
 
 
@@ -58,6 +59,8 @@ class DCService:
         Returns:
             tuple: (success: bool, message: str, transaction: DCTransaction or None)
         """
+        # Verrou de ligne pour éviter les débits concurrents
+        user = User.objects.select_for_update().get(pk=user.pk)
         if user.dc_balance < amount:
             return False, f"Solde DC insuffisant. Vous avez {user.dc_balance} DC, mais il faut {amount} DC.", None
 

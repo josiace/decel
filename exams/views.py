@@ -100,6 +100,13 @@ def exam_submit(request, exam_id):
 
     if session.is_completed:
         return redirect('exam_result', session_id=session.id)
+
+    # Contrôle serveur de l'expiration du temps (tolérance de 30 secondes)
+    if exam.time_limit and session.time_remaining_seconds is not None:
+        elapsed = (timezone.now() - session.started_at).total_seconds()
+        if elapsed > (exam.time_limit * 60) + 30:
+            session.is_time_expired = True
+            session.save()
     
     # Extract answers from POST data
     answers_data = {}
@@ -182,18 +189,18 @@ def exam_submit(request, exam_id):
         if dc_transaction:
             session.dc_earned = dc_transaction.amount
             session.save()
-        session.save()
 
-        # Award XP to contributor if exam was created by a contributor and user failed
-        if exam.created_by and exam.created_by.is_contributor() and not results['passed']:
-            contributor_reward = exam.xp_reward_for_contributor
-            if contributor_reward > 0:
-                xp_service.award_xp(
-                    user=exam.created_by,
-                    amount=contributor_reward,
-                    reason=f"Récompense contributeur : Un utilisateur a raté votre examen '{exam.title}'",
-                    action_type='contributor_reward'
-                )
+    # Award XP to contributor if exam was created by a contributor and user failed
+    # (corrigé : ce bloc était imbriqué dans le bloc passed, donc jamais exécuté)
+    if exam.created_by and exam.created_by.is_contributor() and not results['passed']:
+        contributor_reward = exam.xp_reward_for_contributor
+        if contributor_reward > 0:
+            xp_service.award_xp(
+                user=exam.created_by,
+                amount=contributor_reward,
+                reason=f"Récompense contributeur : Un utilisateur a raté votre examen '{exam.title}'",
+                action_type='contributor_reward'
+            )
     
     # Update skill for the subject
     skill_service = SkillService()

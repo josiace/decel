@@ -59,6 +59,10 @@ class ContentPurchaseService:
         if ContentPurchaseService.has_purchased(user, content_type, content_id):
             return False, "Vous avez déjà acheté ce contenu."
         
+        # Vérifier le solde AVANT de consommer le code promo (sans promo)
+        if not promo_code and user.dc_balance < price:
+            return False, f"Solde DC insuffisant. Vous avez {user.dc_balance} DC, mais il faut {price} DC."
+
         # Appliquer le code promo si fourni
         discount = 0
         if promo_code:
@@ -81,7 +85,7 @@ class ContentPurchaseService:
             author = td.author
         elif content_type == 'corrected_td':
             corrected_td = CorrectedTD.objects.get(id=content_id)
-            author = None  # Les corrections n'ont pas d'auteur direct
+            author = corrected_td.td.author  # L'auteur du TD est crédité pour sa correction
         
         # Traiter l'achat avec DCService (débiter acheteur, créditer créateur)
         success, message = DCService.process_content_purchase(
@@ -95,21 +99,15 @@ class ContentPurchaseService:
         if not success:
             return False, message
         
-        # Enregistrer l'achat
+        # Enregistrer l'achat (une seule opération, clé de contenu renseignée dès la création)
         purchase = ContentPurchase.objects.create(
             user=user,
             content_type=content_type,
-            dc_paid=final_price
+            dc_paid=final_price,
+            course_id=content_id if content_type == 'course' else None,
+            td_id=content_id if content_type == 'td' else None,
+            corrected_td_id=content_id if content_type == 'corrected_td' else None,
         )
-        
-        if content_type == 'course':
-            purchase.course_id = content_id
-        elif content_type == 'td':
-            purchase.td_id = content_id
-        elif content_type == 'corrected_td':
-            purchase.corrected_td_id = content_id
-        
-        purchase.save()
         
         if discount > 0:
             return True, f"Contenu acheté avec succès pour {final_price} DC (réduction: {discount} DC)."

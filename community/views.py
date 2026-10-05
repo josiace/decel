@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from django.http import FileResponse, Http404
+from django.views.decorators.http import require_POST
 from django.db import transaction
 from .models import Content, ModerationRule
 from skills.models import Subject
@@ -107,7 +108,7 @@ def content_edit(request, content_id):
                 'subjects': subjects,
             })
         
-        if content.content_format in ['pdf', 'file'] and not content.content_file and not content.content_file:
+        if content.content_format in ['pdf', 'file'] and not content.content_file and not content_file:
             messages.error(request, 'Le fichier est requis pour ce format.')
             return render(request, 'community/content_form.html', {
                 'content': content,
@@ -118,6 +119,11 @@ def content_edit(request, content_id):
         if content_file:
             content.content_file = content_file
         
+        # Un contenu approuvé, une fois modifié, doit repasser en modération
+        if content.status == 'approved':
+            content.status = 'pending'
+            content.moderation_notes = 'Contenu modifié après approbation — nouvelle modération requise.'
+
         content.save()
         
         messages.success(request, 'Contenu mis à jour avec succès.')
@@ -215,6 +221,7 @@ def content_detail(request, content_id):
 
 
 @login_required
+@require_POST
 def purchase_content(request, content_id):
     """Purchase community content with DC."""
     from accounts.services import DCService

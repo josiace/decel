@@ -173,7 +173,7 @@ class DCPackOrderViewSet(viewsets.ModelViewSet):
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet pour les cours."""
-    queryset = Course.objects.all().order_by('-created_at')
+    queryset = Course.objects.filter(is_published=True).order_by('-created_at')
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -185,7 +185,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TDViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet pour les TD."""
-    queryset = TD.objects.all().order_by('-created_at')
+    queryset = TD.objects.filter(is_published=True).order_by('-created_at')
     serializer_class = TDSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -199,7 +199,7 @@ class ExamViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet pour les examens."""
     queryset = Exam.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = ExamSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ExamSessionViewSet(viewsets.ModelViewSet):

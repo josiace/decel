@@ -2,18 +2,28 @@ from pathlib import Path
 import os
 import dj_database_url
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =========================
 # CORE SECURITY
 # =========================
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
 DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Clé secrète : obligatoire en production, valeur de développement en DEBUG uniquement
+SECRET_KEY = config('SECRET_KEY', default=None)
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-key'
+    else:
+        raise ImproperlyConfigured(
+            'SECRET_KEY manquante : définissez la variable d\'environnement SECRET_KEY.'
+        )
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost://8000,127.0.0.1:8000,decel-sn4v.onrender.com,*'
+    default='localhost,127.0.0.1,decel-sn4v.onrender.com'
 ).split(',')
 
 # =========================

@@ -329,6 +329,7 @@ def td_complete(request, td_id):
 
 
 @login_required
+@require_POST
 def purchase_course(request, course_id):
     """Purchase a course with DC."""
     course = get_object_or_404(Course, id=course_id, is_published=True)
@@ -351,6 +352,7 @@ def purchase_course(request, course_id):
 
 
 @login_required
+@require_POST
 def purchase_td(request, td_id):
     """Purchase a TD with DC."""
     td = get_object_or_404(TD, id=td_id, is_published=True)
@@ -373,6 +375,7 @@ def purchase_td(request, td_id):
 
 
 @login_required
+@require_POST
 def purchase_correction(request, correction_id):
     """Purchase a correction with DC."""
     correction = get_object_or_404(CorrectedTD, id=correction_id)
@@ -421,8 +424,12 @@ def download_file(request, content_type, content_id):
         raise Http404("Aucun fichier disponible")
     
     try:
-        response = FileResponse(file_field.open('rb'), as_attachment=True)
-        response['Content-Disposition'] = f'attachment; filename="{file_field.name.split("/")[-1]}"'
+        # ?inline=1 affiche le fichier dans le navigateur (lectureur PDF/image)
+        # sans exposer l'URL publique du stockage
+        as_attachment = request.GET.get('inline') != '1'
+        response = FileResponse(file_field.open('rb'), as_attachment=as_attachment)
+        disposition = 'attachment' if as_attachment else 'inline'
+        response['Content-Disposition'] = f'{disposition}; filename="{file_field.name.split("/")[-1]}"'
         return response
     except Exception as e:
         messages.error(request, f"Erreur lors du téléchargement : {str(e)}")
