@@ -140,6 +140,7 @@ def exam_submit(request, exam_id):
     correction_service = ExamCorrectionService()
     try:
         results = correction_service.submit_exam(session, answers_data)
+        session.refresh_from_db()
     except ValueError as exc:
         session.refresh_from_db()
         if session.is_completed:
@@ -289,9 +290,18 @@ def exam_time_expired(request, exam_id):
             else:
                 answers_data[question_id] = [int(value)]
     
-    # Submit with current answers
+    # Submit with current answers, handling duplicate or malformed submissions.
     correction_service = ExamCorrectionService()
-    results = correction_service.submit_exam(session, answers_data)
+    try:
+        results = correction_service.submit_exam(session, answers_data)
+        session.refresh_from_db()
+    except ValueError as exc:
+        session.refresh_from_db()
+        if session.is_completed:
+            return redirect("exam_result", session_id=session.id)
+        from django.contrib import messages
+        messages.error(request, str(exc))
+        return redirect("exam_take", exam_id=exam_id)
 
     # Check if this is the best attempt for this exam
     previous_sessions = ExamSession.objects.filter(user=user, exam=exam, is_completed=True)
