@@ -1,33 +1,71 @@
+import ipaddress
+import logging
 import uuid
+
 import requests
-from django.utils import timezone
 from django.core.cache import cache
+from django.utils import timezone
 from user_agents import parse as parse_user_agent
+
 from .models import PageView, UserSession
+
+logger = logging.getLogger(__name__)
+GEO_CACHE_SECONDS = 60 * 60 * 24
+TRACKABLE_CONTENT_TYPES = ("text/html",)
+
+
+def _normalise_ip(value):
+    """Return a valid IP address, or an empty string for untrusted input."""
+    if not value:
+        return ""
+    try:
+        return str(ipaddress.ip_address(value.strip()))
+    except (ValueError, AttributeError):
+        return ""
+
+
+def get_request_ip(request):
+    """
+    Get a validated client IP. Forwarded headers are used because the app runs
+    behind a reverse proxy; only the first address is considered.
+    """
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    candidate = forwarded.split(",", 1)[0].strip() if forwarded else request.META.get("REMOTE_ADDR", "")
+    return _normalise_ip(candidate)
 
 
 def get_country_from_ip(ip):
-    if not ip or ip in ('127.0.0.1', 'localhost'):
-        return 'ML'
+    ip = _normalise_ip(ip)
+    if not ip:
+        return "XX"
+    try:
+        if ipaddress.ip_address(ip).is_loopback:
+            return "ML"
+    except ValueError:
+        return "XX"
 
-    cache_key = f'geo_country_{ip}'
+    cache_key = f"geo_country_{ip}"
     cached = cache.get(cache_key)
     if cached:
         return cached
 
+    # Do not let geolocation latency hold up a page request for long.
+    country = "XX"
     try:
-        r = requests.get(
-            f'http://ip-api.com/json/{ip}?fields=countryCode',
-            timeout=2
+        response = requests.get(
+            f"https://ip-api.com/json/{ip}?fields=status,countryCode",
+            timeout=(0.4, 0.8),
         )
-        country = r.json().get('countryCode', 'XX')
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Failed to get country for IP {ip}: {str(e)}")
-        country = 'XX'
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("status") == "success":
+            candidate = payload.get("countryCode", "")
+            if isinstance(candidate, str) and len(candidate) == 2:
+                country = candidate.upper()
+    except (requests.RequestException, ValueError, TypeError) as exc:
+        logger.debug("IP geolocation unavailable: %s", exc)
 
-    cache.set(cache_key, country, 60 * 60 * 24)
+    cache.set(cache_key, country, GEO_CACHE_SECONDS)
     return country
 
 
@@ -36,165 +74,130 @@ class GeoLocationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
-        if ip:
-            ip = ip.split(',')[0].strip()
+        # Avoid external geolocation calls for admin, API and non-page requests.
+        path = request.path
+        if request.method != "GET" or path.startswith(("/admin/", "/api/", "/static/", "/media/")):
+            request.country_code = "XX"
+            return self.get_response(request)
+
+        ip = get_request_ip(request)
         request.country_code = get_country_from_ip(ip)
 
-        # Si l'utilisateur est connecté et que son country_code est vide ou différent, on le met à jour
-        if request.user and request.user.is_authenticated:
-            if not request.user.country_code or request.user.country_code != request.country_code:
-                request.user.country_code = request.country_code
-                request.user.save(update_fields=['country_code'])
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated and user.country_code != request.country_code:
+            user.country_code = request.country_code
+            user.save(update_fields=["country_code"])
 
         return self.get_response(request)
 
 
 class AnalyticsMiddleware:
-    """
-    Middleware pour tracker les vues de pages et les sessions utilisateurs.
-    """
+    """Track successful HTML page views, not API calls or asset requests."""
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Ignorer les requêtes API, admin, static, media
         if self.should_ignore_request(request):
             return self.get_response(request)
 
-        # Obtenir ou créer session_id
-        session_id = self.get_or_create_session_id(request)
-
-        # Créer ou mettre à jour la session utilisateur
-        session = self.get_or_create_session(request, session_id)
-
-        # Traiter la requête
         response = self.get_response(request)
-
-        # Tracker la vue de page (après traitement pour obtenir le titre si possible)
-        self.track_page_view(request, response, session_id, session)
-
+        content_type = response.get("Content-Type", "")
+        if (
+            request.method == "GET"
+            and 200 <= response.status_code < 400
+            and any(content_type.startswith(value) for value in TRACKABLE_CONTENT_TYPES)
+        ):
+            try:
+                session_id = self.get_or_create_session_id(request)
+                session = self.get_or_create_session(request, session_id)
+                self.track_page_view(request, response, session_id, session)
+            except Exception:
+                # Analytics must never turn a successful page response into a 500.
+                logger.exception("Page analytics tracking failed for %s", request.path)
         return response
 
     def should_ignore_request(self, request):
-        """Détermine si la requête doit être ignorée."""
-        ignore_paths = [
-            '/admin/',
-            '/static/',
-            '/media/',
-            '/api/analytics/',
-            '/favicon.ico',
-        ]
-        return any(request.path.startswith(path) for path in ignore_paths)
+        return request.path.startswith((
+            "/admin/", "/static/", "/media/", "/api/", "/favicon.ico",
+            "/robots.txt", "/sitemap.xml",
+        ))
 
     def get_or_create_session_id(self, request):
-        """Obtient ou crée un ID de session unique."""
-        if 'analytics_session_id' not in request.session:
-            request.session['analytics_session_id'] = str(uuid.uuid4())
-        return request.session['analytics_session_id']
+        if "analytics_session_id" not in request.session:
+            request.session["analytics_session_id"] = str(uuid.uuid4())
+        return request.session["analytics_session_id"]
 
     def get_or_create_session(self, request, session_id):
-        """Obtient ou crée une session utilisateur."""
         user = request.user if request.user.is_authenticated else None
-
-        try:
-            session = UserSession.objects.get(session_id=session_id)
-        except UserSession.DoesNotExist:
-            ip_address = self.get_client_ip(request)
-            user_agent_str = request.META.get('HTTP_USER_AGENT', '')
-
-            user_agent = parse_user_agent(user_agent_str)
-            device_type = self.get_device_type(user_agent)
-
-            country_code = getattr(request, 'country_code', 'XX')
-
-            session = UserSession.objects.create(
-                user=user,
-                session_id=session_id,
-                ip_address=ip_address,
-                user_agent=user_agent_str,
-                device_type=device_type,
-                country=country_code,
-                country_code=country_code,
-                city='',
-                entry_page=request.path,
-            )
-
+        session, created = UserSession.objects.get_or_create(
+            session_id=session_id,
+            defaults={
+                "user": user,
+                "ip_address": get_request_ip(request) or None,
+                "user_agent": request.META.get("HTTP_USER_AGENT", ""),
+                "device_type": self.get_device_type(parse_user_agent(request.META.get("HTTP_USER_AGENT", ""))),
+                "country": getattr(request, "country_code", "XX"),
+                "country_code": getattr(request, "country_code", "XX"),
+                "city": "",
+                "entry_page": request.path,
+            },
+        )
+        # A session may begin anonymously and later authenticate.
+        if not created and user and session.user_id != user.id:
+            session.user = user
+            session.save(update_fields=["user"])
         return session
 
     def track_page_view(self, request, response, session_id, session):
-        """Track une vue de page."""
         user = request.user if request.user.is_authenticated else None
-        ip_address = self.get_client_ip(request)
-        user_agent_str = request.META.get('HTTP_USER_AGENT', '')
-        referrer = request.META.get('HTTP_REFERER', '')
-
-        # Parser user agent
+        user_agent_str = request.META.get("HTTP_USER_AGENT", "")
         user_agent = parse_user_agent(user_agent_str)
-        device_type = self.get_device_type(user_agent)
-        browser = user_agent.browser.family if user_agent.browser else ''
-        os = user_agent.os.family if user_agent.os else ''
-
-        # Localisation
-        country = session.country if session else ''
-        country_code = session.country_code if session else getattr(request, 'country_code', 'XX')
-        city = session.city if session else ''
-
-        # Créer la vue de page
+        country_code = session.country_code or getattr(request, "country_code", "XX")
         PageView.objects.create(
             user=user,
             session_id=session_id,
             url=request.path,
             page_title=self.get_page_title(response),
-            referrer=referrer,
-            ip_address=ip_address,
+            referrer=request.META.get("HTTP_REFERER", ""),
+            ip_address=get_request_ip(request) or None,
             user_agent=user_agent_str,
-            device_type=device_type,
-            browser=browser,
-            os=os,
-            country=country,
+            device_type=self.get_device_type(user_agent),
+            browser=user_agent.browser.family or "",
+            os=user_agent.os.family or "",
+            country=session.country or "",
             country_code=country_code,
-            city=city,
+            city=session.city or "",
         )
-
-        # Mettre à jour la session
         session.page_views_count += 1
-        session.journey_path = session.journey_path + [request.path] if session.journey_path else [request.path]
-        session.unique_pages_count = len(set(session.journey_path))
+        journey = list(session.journey_path or [])
+        journey.append(request.path)
+        session.journey_path = journey[-100:]  # Bound stored journey size.
+        session.unique_pages_count = len(set(journey))
         session.exit_page = request.path
-        session.save()
-
-    def get_client_ip(self, request):
-        """Obtient l'adresse IP du client."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+        session.save(update_fields=[
+            "page_views_count", "journey_path", "unique_pages_count", "exit_page",
+        ])
 
     def get_device_type(self, user_agent):
-        """Détermine le type d'appareil."""
         if user_agent.is_mobile:
-            return 'Mobile'
-        elif user_agent.is_tablet:
-            return 'Tablet'
-        elif user_agent.is_pc:
-            return 'Desktop'
-        elif user_agent.is_bot:
-            return 'Bot'
-        return 'Other'
+            return "Mobile"
+        if user_agent.is_tablet:
+            return "Tablet"
+        if user_agent.is_pc:
+            return "Desktop"
+        if user_agent.is_bot:
+            return "Bot"
+        return "Other"
 
     def get_page_title(self, response):
-        """Essaie d'extraire le titre de la page de la réponse HTML."""
-        if response.get('Content-Type', '').startswith('text/html'):
+        if response.get("Content-Type", "").startswith("text/html"):
             try:
-                content = response.content.decode('utf-8')
-                if '<title>' in content and '</title>' in content:
-                    start = content.find('<title>') + 7
-                    end = content.find('</title>')
-                    return content[start:end].strip()[:255]
-            except:
-                pass
-        return ''
+                content = response.content.decode("utf-8", errors="ignore")
+                start = content.lower().find("<title>")
+                end = content.lower().find("</title>", start + 7)
+                if start != -1 and end != -1:
+                    return content[start + 7:end].strip()[:255]
+            except (AttributeError, UnicodeError):
+                logger.debug("Could not extract page title", exc_info=True)
+        return ""
