@@ -192,8 +192,13 @@ def checkout_success(request):
         except stripe_lib.error.StripeError:
             pass
     else:
-        # Mode dev sans Stripe : on crédite directement
-        _complete_order(order)
+        # Une redirection navigateur ne prouve pas le paiement.
+        # Sans Stripe configuré, ne jamais créditer les DC automatiquement.
+        messages.error(
+            request,
+            "La vérification du paiement est indisponible. Aucun DC n'a été crédité. "
+            "Réessayez lorsque le service de paiement sera configuré."
+        )
 
     order.refresh_from_db()
     if DCPackOrderService.has_dc_credit(order):
