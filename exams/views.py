@@ -108,16 +108,19 @@ def exam_submit(request, exam_id):
             session.is_time_expired = True
             session.save()
     
-    # Extract answers from POST data
+    # Lire les réponses de façon défensive : un formulaire modifié ne doit pas provoquer un 500.
     answers_data = {}
-    for key, value in request.POST.items():
-        if key.startswith('question_'):
-            question_id = key.replace('question_', '')
-            if isinstance(value, list):
-                # Convert all choice IDs to integers
-                answers_data[question_id] = [int(v) for v in value]
-            else:
-                answers_data[question_id] = [int(value)]
+    for key in request.POST:
+        if key.startswith("question_"):
+            question_id = key.removeprefix("question_")
+            try:
+                answers_data[question_id] = [
+                    int(value) for value in request.POST.getlist(key) if value
+                ]
+            except (TypeError, ValueError):
+                from django.contrib import messages
+                messages.error(request, "Réponses invalides. Veuillez recommencer.")
+                return redirect("exam_take", exam_id=exam_id)
     
     # Validate that all questions have answers
     unanswered_questions = []
@@ -133,9 +136,17 @@ def exam_submit(request, exam_id):
             'error': 'Veuillez répondre à toutes les questions avant de soumettre.',
         })
     
-    # Submit and grade exam
+    # Le service verrouille la tentative et vérifie les choix de chaque question.
     correction_service = ExamCorrectionService()
-    results = correction_service.submit_exam(session, answers_data)
+    try:
+        results = correction_service.submit_exam(session, answers_data)
+    except ValueError as exc:
+        session.refresh_from_db()
+        if session.is_completed:
+            return redirect("exam_result", session_id=session.id)
+        from django.contrib import messages
+        messages.error(request, str(exc))
+        return redirect("exam_take", exam_id=exam_id)
 
     # Check if this is the best attempt for this exam
     previous_sessions = ExamSession.objects.filter(user=user, exam=exam, is_completed=True)
